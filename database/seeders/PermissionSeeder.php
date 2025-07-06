@@ -123,7 +123,7 @@ class PermissionSeeder extends Seeder
                 'surveys.read', 'surveys.respond',
                 'schedules.read', 'grades.create', 'grades.read', 'attendance.manage',
                 'documents.read', 'documents.create', 'documents.share',
-                'tasks.read'
+                'tasks.read', 'tasks.update'
             ],
         ];
 
