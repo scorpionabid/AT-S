@@ -165,12 +165,35 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard/superadmin-analytics', [App\Http\Controllers\DashboardController::class, 'superAdminAnalytics'])->middleware('role:superadmin');
     Route::get('dashboard/system-status', [App\Http\Controllers\DashboardController::class, 'systemStatus'])->middleware('role:superadmin');
     
-    // Reports and Analytics
-    Route::get('reports/overview', [App\Http\Controllers\ReportsController::class, 'getOverviewStats'])->middleware('permission:reports.read');
-    Route::get('reports/institutional-performance', [App\Http\Controllers\ReportsController::class, 'getInstitutionalPerformance'])->middleware('permission:reports.read');
-    Route::get('reports/survey-analytics', [App\Http\Controllers\ReportsController::class, 'getSurveyAnalytics'])->middleware('permission:reports.read');
-    Route::get('reports/user-activity', [App\Http\Controllers\ReportsController::class, 'getUserActivityReport'])->middleware('permission:reports.read');
-    Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:reports.export');
+    // Reports and Analytics (using existing permissions temporarily)
+    Route::get('reports/overview', [App\Http\Controllers\ReportsController::class, 'getOverviewStats'])->middleware('permission:users.read');
+    Route::get('reports/institutional-performance', [App\Http\Controllers\ReportsController::class, 'getInstitutionalPerformance'])->middleware('permission:institutions.read');
+    Route::get('reports/survey-analytics', [App\Http\Controllers\ReportsController::class, 'getSurveyAnalytics'])->middleware('permission:surveys.read');
+    Route::get('reports/user-activity', [App\Http\Controllers\ReportsController::class, 'getUserActivityReport'])->middleware('permission:users.read');
+    Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:users.read');
+    
+    // RegionAdmin Dashboard and Analytics
+    Route::prefix('regionadmin')->middleware('role:regionadmin|superadmin')->group(function () {
+        Route::get('dashboard', [App\Http\Controllers\RegionAdminController::class, 'getDashboardStats']);
+        Route::get('institutions', [App\Http\Controllers\RegionAdminController::class, 'getInstitutionStats']);
+        Route::get('users', [App\Http\Controllers\RegionAdminController::class, 'getUserStats']);
+        Route::get('surveys', [App\Http\Controllers\RegionAdminController::class, 'getSurveyAnalytics']);
+    });
+    
+    // System Configuration (SuperAdmin only)
+    Route::prefix('system')->middleware('role:superadmin')->group(function () {
+        Route::get('config', [App\Http\Controllers\SystemConfigController::class, 'getSystemConfig']);
+        Route::put('config', [App\Http\Controllers\SystemConfigController::class, 'updateSystemConfig']);
+        Route::get('health', [App\Http\Controllers\SystemConfigController::class, 'getSystemHealth']);
+        Route::post('maintenance', [App\Http\Controllers\SystemConfigController::class, 'performMaintenance']);
+        Route::get('audit-logs', [App\Http\Controllers\SystemConfigController::class, 'getAuditLogs']);
+        
+        // Report Scheduling
+        Route::get('schedules', [App\Http\Controllers\SystemConfigController::class, 'getScheduledReports']);
+        Route::post('schedules', [App\Http\Controllers\SystemConfigController::class, 'createScheduledReport']);
+        Route::put('schedules/{schedule}', [App\Http\Controllers\SystemConfigController::class, 'updateScheduledReport']);
+        Route::delete('schedules/{schedule}', [App\Http\Controllers\SystemConfigController::class, 'deleteScheduledReport']);
+    });
 });
 
 // Public shared document access (no auth required)
