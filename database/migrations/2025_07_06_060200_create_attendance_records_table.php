@@ -64,7 +64,7 @@ return new class extends Migration
             
             // Absence details (when applicable)
             $table->text('absence_reason')->nullable();
-            $table->foreignId('absence_request_id')->nullable()->constrained()->onDelete('set null');
+            $table->unsignedBigInteger('absence_request_id')->nullable()->comment('References absence_requests.id - constraint to be added in separate migration');
             $table->json('supporting_documents')->nullable()->comment('Medical certificates, parent notes, etc.');
             
             // Parent/guardian notification

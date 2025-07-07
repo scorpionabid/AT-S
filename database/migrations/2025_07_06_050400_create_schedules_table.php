@@ -52,7 +52,7 @@ return new class extends Migration
                 'copied'        // Copied from another schedule
             ])->default('manual');
             
-            $table->foreignId('template_id')->nullable()->constrained('schedule_templates')->onDelete('set null');
+            $table->unsignedBigInteger('template_id')->nullable()->comment('References schedule_templates.id - constraint added in separate migration');
             $table->foreignId('copied_from_schedule_id')->nullable()->constrained('schedules')->onDelete('set null');
             
             // Status and approval workflow
