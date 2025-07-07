@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
         $this->call([ // Call other seeders
             RoleSeeder::class,
             PermissionSeeder::class,
+            SuperAdminSeeder::class, // Create superadmin after roles
             SystemConfigSeeder::class,
             SubjectSeeder::class,
         ]);
