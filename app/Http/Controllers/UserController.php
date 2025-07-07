@@ -531,4 +531,419 @@ class UserController extends Controller
             ]
         ]);
     }
+
+    /**
+     * Bulk operations for users
+     */
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_ids' => 'required|array|min:1|max:100',
+            'user_ids.*' => 'integer|exists:users,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $users = User::whereIn('id', $request->user_ids)->get();
+            $updatedCount = 0;
+
+            foreach ($users as $user) {
+                if (!$user->is_active) {
+                    $user->update(['is_active' => true]);
+                    $updatedCount++;
+
+                    // Log security event
+                    SecurityEvent::logEvent([
+                        'event_type' => 'bulk_user_activated',
+                        'severity' => 'info',
+                        'user_id' => $request->user()->id,
+                        'target_user_id' => $user->id,
+                        'description' => 'User activated via bulk operation',
+                        'event_data' => [
+                            'target_username' => $user->username,
+                            'bulk_operation' => true
+                        ]
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "{$updatedCount} istifadəçi uğurla aktivləşdirildi",
+                'updated_count' => $updatedCount,
+                'total_requested' => count($request->user_ids)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Bulk aktivləşdirmə zamanı xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_ids' => 'required|array|min:1|max:100',
+            'user_ids.*' => 'integer|exists:users,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Prevent deactivating current user
+            if (in_array($request->user()->id, $request->user_ids)) {
+                return response()->json([
+                    'message' => 'Öz hesabınızı deaktiv edə bilməzsiniz'
+                ], 422);
+            }
+
+            $users = User::whereIn('id', $request->user_ids)->get();
+            $updatedCount = 0;
+
+            foreach ($users as $user) {
+                if ($user->is_active) {
+                    $user->update(['is_active' => false]);
+                    $updatedCount++;
+
+                    // Log security event
+                    SecurityEvent::logEvent([
+                        'event_type' => 'bulk_user_deactivated',
+                        'severity' => 'warning',
+                        'user_id' => $request->user()->id,
+                        'target_user_id' => $user->id,
+                        'description' => 'User deactivated via bulk operation',
+                        'event_data' => [
+                            'target_username' => $user->username,
+                            'bulk_operation' => true
+                        ]
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "{$updatedCount} istifadəçi uğurla deaktiv edildi",
+                'updated_count' => $updatedCount,
+                'total_requested' => count($request->user_ids)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Bulk deaktiv etmə zamanı xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkAssignRole(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_ids' => 'required|array|min:1|max:100',
+            'user_ids.*' => 'integer|exists:users,id',
+            'role_id' => 'required|integer|exists:roles,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $users = User::whereIn('id', $request->user_ids)->get();
+            $updatedCount = 0;
+
+            foreach ($users as $user) {
+                if ($user->role_id !== $request->role_id) {
+                    $oldRole = $user->role?->name;
+                    $user->update(['role_id' => $request->role_id]);
+                    $newRole = $user->fresh()->role?->name;
+                    $updatedCount++;
+
+                    // Log security event
+                    SecurityEvent::logEvent([
+                        'event_type' => 'bulk_role_assigned',
+                        'severity' => 'info',
+                        'user_id' => $request->user()->id,
+                        'target_user_id' => $user->id,
+                        'description' => 'User role changed via bulk operation',
+                        'event_data' => [
+                            'target_username' => $user->username,
+                            'old_role' => $oldRole,
+                            'new_role' => $newRole,
+                            'bulk_operation' => true
+                        ]
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "{$updatedCount} istifadəçiyə rol təyin edildi",
+                'updated_count' => $updatedCount,
+                'total_requested' => count($request->user_ids)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Bulk rol təyinatı zamanı xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkAssignInstitution(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_ids' => 'required|array|min:1|max:100',
+            'user_ids.*' => 'integer|exists:users,id',
+            'institution_id' => 'required|integer|exists:institutions,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $users = User::whereIn('id', $request->user_ids)->get();
+            $updatedCount = 0;
+
+            foreach ($users as $user) {
+                if ($user->institution_id !== $request->institution_id) {
+                    $user->update(['institution_id' => $request->institution_id]);
+                    $updatedCount++;
+
+                    // Log security event
+                    SecurityEvent::logEvent([
+                        'event_type' => 'bulk_institution_assigned',
+                        'severity' => 'info',
+                        'user_id' => $request->user()->id,
+                        'target_user_id' => $user->id,
+                        'description' => 'User institution changed via bulk operation',
+                        'event_data' => [
+                            'target_username' => $user->username,
+                            'new_institution_id' => $request->institution_id,
+                            'bulk_operation' => true
+                        ]
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "{$updatedCount} istifadəçiyə təşkilat təyin edildi",
+                'updated_count' => $updatedCount,
+                'total_requested' => count($request->user_ids)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Bulk təşkilat təyinatı zamanı xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $request->validate([
+            'user_ids' => 'required|array|min:1|max:50', // Smaller limit for safety
+            'user_ids.*' => 'integer|exists:users,id',
+            'confirm' => 'required|boolean|accepted' // Extra confirmation required
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Prevent deleting current user
+            if (in_array($request->user()->id, $request->user_ids)) {
+                return response()->json([
+                    'message' => 'Öz hesabınızı silə bilməzsiniz'
+                ], 422);
+            }
+
+            // Prevent deleting SuperAdmins
+            $superAdmins = User::whereIn('id', $request->user_ids)
+                ->whereHas('role', function ($q) {
+                    $q->where('name', 'superadmin');
+                })->count();
+
+            if ($superAdmins > 0) {
+                return response()->json([
+                    'message' => 'SuperAdmin hesablarını silə bilməzsiniz'
+                ], 422);
+            }
+
+            $users = User::whereIn('id', $request->user_ids)->get();
+            $deletedCount = 0;
+
+            foreach ($users as $user) {
+                // Log before deletion
+                SecurityEvent::logEvent([
+                    'event_type' => 'bulk_user_deleted',
+                    'severity' => 'critical',
+                    'user_id' => $request->user()->id,
+                    'target_user_id' => $user->id,
+                    'description' => 'User permanently deleted via bulk operation',
+                    'event_data' => [
+                        'target_username' => $user->username,
+                        'target_email' => $user->email,
+                        'bulk_operation' => true
+                    ]
+                ]);
+
+                $user->delete();
+                $deletedCount++;
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "{$deletedCount} istifadəçi uğurla silindi",
+                'deleted_count' => $deletedCount,
+                'total_requested' => count($request->user_ids)
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Bulk silmə zamanı xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function exportUsers(Request $request): JsonResponse
+    {
+        $request->validate([
+            'format' => 'required|string|in:csv,json',
+            'filters' => 'nullable|array',
+            'include_profiles' => 'nullable|boolean'
+        ]);
+
+        try {
+            $query = User::with(['role', 'institution']);
+            
+            if ($request->include_profiles) {
+                $query->with('profile');
+            }
+
+            // Apply filters if provided
+            if ($request->filters) {
+                if (isset($request->filters['role'])) {
+                    $query->byRole($request->filters['role']);
+                }
+                if (isset($request->filters['institution_id'])) {
+                    $query->where('institution_id', $request->filters['institution_id']);
+                }
+                if (isset($request->filters['is_active'])) {
+                    $query->where('is_active', $request->filters['is_active']);
+                }
+            }
+
+            $users = $query->get();
+
+            $exportData = $users->map(function ($user) use ($request) {
+                $data = [
+                    'id' => $user->id,
+                    'username' => $user->username,
+                    'email' => $user->email,
+                    'role' => $user->role?->name,
+                    'institution' => $user->institution?->name,
+                    'is_active' => $user->is_active,
+                    'created_at' => $user->created_at?->toDateTimeString(),
+                    'last_login_at' => $user->last_login_at?->toDateTimeString()
+                ];
+
+                if ($request->include_profiles && $user->profile) {
+                    $data = array_merge($data, [
+                        'first_name' => $user->profile->first_name,
+                        'last_name' => $user->profile->last_name,
+                        'contact_phone' => $user->profile->contact_phone
+                    ]);
+                }
+
+                return $data;
+            });
+
+            // Log export activity
+            ActivityLog::logActivity([
+                'user_id' => $request->user()->id,
+                'activity_type' => 'users_export',
+                'entity_type' => 'User',
+                'description' => "Exported {$users->count()} users in {$request->format} format",
+                'event_data' => [
+                    'format' => $request->format,
+                    'count' => $users->count(),
+                    'include_profiles' => $request->include_profiles ?? false
+                ]
+            ]);
+
+            return response()->json([
+                'message' => 'İstifadəçilər uğurla export edildi',
+                'format' => $request->format,
+                'count' => $users->count(),
+                'data' => $exportData,
+                'timestamp' => now()->toISOString()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Export zamanı xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get bulk operation statistics
+     */
+    public function getBulkStatistics(Request $request): JsonResponse
+    {
+        try {
+            $stats = [
+                'total_users' => User::count(),
+                'active_users' => User::where('is_active', true)->count(),
+                'inactive_users' => User::where('is_active', false)->count(),
+                'by_role' => User::join('roles', 'users.role_id', '=', 'roles.id')
+                    ->selectRaw('roles.name as role, COUNT(*) as count')
+                    ->groupBy('roles.name')
+                    ->pluck('count', 'role')
+                    ->toArray(),
+                'by_institution' => User::join('institutions', 'users.institution_id', '=', 'institutions.id')
+                    ->selectRaw('institutions.name as institution, COUNT(*) as count')
+                    ->groupBy('institutions.name')
+                    ->orderBy('count', 'desc')
+                    ->take(10)
+                    ->pluck('count', 'institution')
+                    ->toArray(),
+                'recent_activity' => [
+                    'today' => User::whereDate('created_at', today())->count(),
+                    'this_week' => User::where('created_at', '>=', now()->startOfWeek())->count(),
+                    'this_month' => User::where('created_at', '>=', now()->startOfMonth())->count()
+                ]
+            ];
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $stats
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Statistika yüklənərkən xəta baş verdi',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 }

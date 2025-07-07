@@ -47,7 +47,27 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:users.read');
     Route::put('users/{user}', [UserController::class, 'update'])->middleware('permission:users.update');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete');
+    
+    // User bulk operations
+    Route::post('users/bulk/activate', [UserController::class, 'bulkActivate'])->middleware('permission:users.update');
+    Route::post('users/bulk/deactivate', [UserController::class, 'bulkDeactivate'])->middleware('permission:users.update');
+    Route::post('users/bulk/assign-role', [UserController::class, 'bulkAssignRole'])->middleware('permission:users.update');
+    Route::post('users/bulk/assign-institution', [UserController::class, 'bulkAssignInstitution'])->middleware('permission:users.update');
+    Route::post('users/bulk/delete', [UserController::class, 'bulkDelete'])->middleware('permission:users.delete');
+    Route::post('users/export', [UserController::class, 'exportUsers'])->middleware('permission:users.read');
+    Route::get('users/bulk/statistics', [UserController::class, 'getBulkStatistics'])->middleware('permission:users.read');
+    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->middleware('permission:users.update');
+    Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->middleware('permission:users.update');
 
+    // Institution bulk operations (must be before parameterized routes)
+    Route::post('institutions/bulk/activate', [App\Http\Controllers\InstitutionController::class, 'bulkActivate'])->middleware('permission:institutions.update');
+    Route::post('institutions/bulk/deactivate', [App\Http\Controllers\InstitutionController::class, 'bulkDeactivate'])->middleware('permission:institutions.update');
+    Route::post('institutions/bulk/assign-parent', [App\Http\Controllers\InstitutionController::class, 'bulkAssignParent'])->middleware('permission:institutions.update');
+    Route::post('institutions/bulk/update-type', [App\Http\Controllers\InstitutionController::class, 'bulkUpdateType'])->middleware('permission:institutions.update');
+    Route::post('institutions/export', [App\Http\Controllers\InstitutionController::class, 'exportInstitutions'])->middleware('permission:institutions.read');
+    Route::get('institutions/bulk/statistics', [App\Http\Controllers\InstitutionController::class, 'getBulkStatistics'])->middleware('permission:institutions.read');
+    Route::get('institutions-hierarchy', [App\Http\Controllers\InstitutionController::class, 'hierarchy'])->middleware('permission:institutions.read');
+    
     // Institution management
     Route::get('institutions', [App\Http\Controllers\InstitutionController::class, 'index'])->middleware('permission:institutions.read');
     Route::post('institutions', [App\Http\Controllers\InstitutionController::class, 'store'])->middleware('permission:institutions.create');
@@ -56,7 +76,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('institutions/{institution}', [App\Http\Controllers\InstitutionController::class, 'destroy'])->middleware('permission:institutions.delete');
     Route::get('institutions/{institution}/departments', [App\Http\Controllers\InstitutionController::class, 'departments'])->middleware('permission:institutions.read');
     Route::get('institutions/{institution}/statistics', [App\Http\Controllers\InstitutionController::class, 'statistics'])->middleware('permission:institutions.read');
-    Route::get('institutions-hierarchy', [App\Http\Controllers\InstitutionController::class, 'hierarchy'])->middleware('permission:institutions.read');
 
     // Department management
     Route::get('departments', [DepartmentController::class, 'index'])->middleware('permission:institutions.read');
@@ -141,6 +160,17 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard routes
     Route::get('dashboard/stats', [App\Http\Controllers\DashboardController::class, 'stats']);
     Route::get('dashboard/detailed-stats', [App\Http\Controllers\DashboardController::class, 'detailedStats'])->middleware('permission:users.read');
+    
+    // SuperAdmin advanced dashboard routes
+    Route::get('dashboard/superadmin-analytics', [App\Http\Controllers\DashboardController::class, 'superAdminAnalytics'])->middleware('role:superadmin');
+    Route::get('dashboard/system-status', [App\Http\Controllers\DashboardController::class, 'systemStatus'])->middleware('role:superadmin');
+    
+    // Reports and Analytics
+    Route::get('reports/overview', [App\Http\Controllers\ReportsController::class, 'getOverviewStats'])->middleware('permission:reports.read');
+    Route::get('reports/institutional-performance', [App\Http\Controllers\ReportsController::class, 'getInstitutionalPerformance'])->middleware('permission:reports.read');
+    Route::get('reports/survey-analytics', [App\Http\Controllers\ReportsController::class, 'getSurveyAnalytics'])->middleware('permission:reports.read');
+    Route::get('reports/user-activity', [App\Http\Controllers\ReportsController::class, 'getUserActivityReport'])->middleware('permission:reports.read');
+    Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:reports.export');
 });
 
 // Public shared document access (no auth required)
