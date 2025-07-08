@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Auth\PasswordController;
+use App\Http\Controllers\Auth\SessionController;
+use App\Http\Controllers\Auth\DeviceController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\SurveyTargetingController;
 use App\Http\Controllers\RoleController;
@@ -24,14 +27,32 @@ Route::get('test', function () {
 
 // Public routes
 Route::post('login', [AuthController::class, 'login'])->name('login');
-Route::post('register', [AuthController::class, 'register']);
+Route::post('register', [PasswordController::class, 'register']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
+    // Auth routes
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
     Route::post('refresh-token', [AuthController::class, 'refresh']);
-    Route::post('change-password', [AuthController::class, 'changePassword']);
+    
+    // Password management
+    Route::post('change-password', [PasswordController::class, 'changePassword']);
+    Route::post('users/{user}/reset-password', [PasswordController::class, 'resetPassword'])->middleware('permission:users.update');
+    
+    // Session management
+    Route::get('sessions', [SessionController::class, 'index']);
+    Route::delete('sessions/{sessionId}', [SessionController::class, 'revoke']);
+    Route::delete('sessions/others', [SessionController::class, 'revokeOthers']);
+    Route::delete('sessions/all', [SessionController::class, 'revokeAll']);
+    Route::get('sessions/stats', [SessionController::class, 'stats']);
+    
+    // Device management
+    Route::get('devices', [DeviceController::class, 'index']);
+    Route::post('devices', [DeviceController::class, 'register']);
+    Route::put('devices/{deviceId}', [DeviceController::class, 'update']);
+    Route::delete('devices/{deviceId}', [DeviceController::class, 'destroy']);
+    Route::get('devices/stats', [DeviceController::class, 'stats']);
 
     // Test role endpoints
     Route::get('test/superadmin', function () {
@@ -61,7 +82,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('users/bulk/delete', [UserController::class, 'bulkDelete'])->middleware('permission:users.delete');
     Route::post('users/export', [UserController::class, 'exportUsers'])->middleware('permission:users.read');
     Route::get('users/bulk/statistics', [UserController::class, 'getBulkStatistics'])->middleware('permission:users.read');
-    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])->middleware('permission:users.update');
     Route::post('users/{user}/toggle-status', [UserController::class, 'toggleStatus'])->middleware('permission:users.update');
 
     // Institution bulk operations (must be before parameterized routes)

@@ -19,7 +19,7 @@ class User extends Authenticatable
     /**
      * The guard name used for permissions
      */
-    protected $guard_name = 'api';
+    protected $guard_name = 'web';
 
     /**
      * The attributes that are mass assignable.

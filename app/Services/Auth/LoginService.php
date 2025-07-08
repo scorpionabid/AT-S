@@ -49,7 +49,7 @@ class LoginService
                 ]);
             }
 
-        // Check if user is active
+            // Check if user is active
         if (!$user->is_active) {
             throw ValidationException::withMessages([
                 'login' => 'Hesabınız deaktiv edilib. Zəhmət olmasa inzibatçı ilə əlaqə saxlayın.',
@@ -70,50 +70,42 @@ class LoginService
         $this->updateUserDevice($user, $deviceId, $deviceName);
         $this->logSuccessfulLogin($user);
 
-        // Load user with profile
-        $user->load('profile');
+        // Load user with all relations
+        $user->load(['profile', 'role', 'institution']);
         
-        // Get roles and permissions as arrays
+        // Get roles and permissions CORRECTLY
         $roles = $user->getRoleNames()->toArray();
         $permissions = $user->getAllPermissions()->pluck('name')->toArray();
         
-        // Debug log
-        \Log::debug('User auth data', [
+        \Log::debug('Login service - roles and permissions', [
             'user_id' => $user->id,
             'roles' => $roles,
             'permissions' => $permissions,
-            'has_roles' => !empty($roles),
-            'has_permissions' => !empty($permissions)
+            'spatie_roles' => $user->roles->pluck('name')->toArray(),
+            'has_spatie_trait' => method_exists($user, 'getRoleNames')
         ]);
         
-        // Prepare user data
+        // User data with proper role/permission arrays
         $userData = $user->toArray();
         $userData['roles'] = $roles;
         $userData['permissions'] = $permissions;
-        
-        // Debug logging
-        \Log::debug('User auth data', [
-            'user_id' => $user->id,
-            'roles' => $roles,
-            'permissions' => $permissions,
-            'has_roles' => !empty($roles),
-            'has_permissions' => !empty($permissions)
-        ]);
-
-        // Prepare user data for response
-        $userData = array_merge(
-            $user->toArray(),
-            [
-                'roles' => $roles,
-                'permissions' => $permissions
-            ]
-        );
 
         return [
             'token' => $token,
             'user' => $userData,
             'requires_password_change' => false
         ];
+        
+        } catch (\Exception $e) {
+            logger()->error('Login attempt failed with exception', [
+                'login' => $credentials['login'] ?? 'unknown',
+                'error' => $e->getMessage()
+            ]);
+            
+            throw ValidationException::withMessages([
+                'login' => 'Giriş zamanı xəta baş verdi. Zəhmət olmasa yenidən cəhd edin.',
+            ]);
+        }
     }
 
     /**

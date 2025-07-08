@@ -13,6 +13,13 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            // Custom Auth Middleware
+            'auth.custom' => \App\Http\Middleware\AuthMiddleware::class,
+            'role.custom' => \App\Http\Middleware\RoleMiddleware::class,
+            'permission.custom' => \App\Http\Middleware\PermissionMiddleware::class,
+            'institution.access' => \App\Http\Middleware\InstitutionAccessMiddleware::class,
+            
+            // Spatie Permission Middleware (keeping for compatibility)
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,

@@ -32,15 +32,15 @@ class SuperAdminSeeder extends Seeder
 
         // Assign superadmin role with the correct guard
         $superadminRole = Role::where('name', 'superadmin')
-            ->where('guard_name', 'api')
+            ->where('guard_name', 'web')
             ->first();
             
         if ($superadminRole) {
             // Ensure the user has the role with the correct guard
             $superadmin->syncRoles([$superadminRole]);
-            $this->command->info('✅ Superadmin role assigned with API guard');
+            $this->command->info('✅ Superadmin role assigned with WEB guard');
         } else {
-            $this->command->error('❌ Superadmin role not found with API guard');
+            $this->command->error('❌ Superadmin role not found with WEB guard');
         }
 
         $this->command->info('✅ Superadmin user created/updated: superadmin (admin123)');
