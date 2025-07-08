@@ -18,16 +18,45 @@ class NotificationService
     public function send(array $data): ?Notification
     {
         try {
+            // Ensure required fields are present
+            $required = ['title', 'message', 'type', 'channel', 'user_id'];
+            foreach ($required as $field) {
+                if (!isset($data[$field])) {
+                    throw new \InvalidArgumentException("Missing required field: {$field}");
+                }
+            }
+            
+            // Set default values for optional fields
+            $data = array_merge([
+                'priority' => 'normal',
+                'is_sent' => false,
+                'is_read' => false,
+                'language' => 'az',
+            ], $data);
+            
+            // Create the notification
             $notification = Notification::create($data);
             
+            // Log the creation
+            Log::info('Notification created', [
+                'id' => $notification->id,
+                'type' => $notification->type,
+                'user_id' => $notification->user_id,
+            ]);
+            
             // Send immediately if not scheduled
-            if (!$data['scheduled_at'] ?? null) {
+            if (!($data['scheduled_at'] ?? null)) {
                 $this->deliver($notification);
             }
             
             return $notification;
+            
         } catch (\Exception $e) {
-            Log::error('Failed to create notification: ' . $e->getMessage());
+            Log::error('Failed to create notification', [
+                'error' => $e->getMessage(),
+                'data' => $data,
+                'trace' => $e->getTraceAsString()
+            ]);
             return null;
         }
     }
@@ -41,6 +70,13 @@ class NotificationService
         array $variables = [], 
         array $options = []
     ): array {
+        Log::debug('Looking for notification template', [
+            'key' => $templateKey,
+            'recipients' => array_keys($recipients),
+            'variables' => array_keys($variables),
+            'options' => $options
+        ]);
+        
         $template = NotificationTemplate::where('key', $templateKey)
                                        ->where('is_active', true)
                                        ->first();
@@ -49,6 +85,12 @@ class NotificationService
             Log::error("Notification template not found: {$templateKey}");
             return [];
         }
+        
+        Log::debug('Found template', [
+            'id' => $template->id,
+            'channels' => $template->channels,
+            'type' => $template->type
+        ]);
 
         $notifications = [];
         $language = $options['language'] ?? 'az';
@@ -174,11 +216,13 @@ class NotificationService
                 }
             }
 
-            // Send email using Laravel Mail
-            Mail::raw($body, function ($message) use ($user, $subject) {
-                $message->to($user->email, $user->name)
-                        ->subject($subject);
-            });
+            // Send email using NotificationEmail mailable
+            Mail::to($user->email, $user->name)
+                ->send(new \App\Mail\NotificationEmail([
+                    'title' => $subject,
+                    'body' => $body,
+                    'notification_id' => $notification->id,
+                ], $subject));
 
             $notification->markAsSent('delivered');
             return true;

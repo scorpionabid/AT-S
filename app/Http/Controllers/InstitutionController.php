@@ -37,7 +37,18 @@ class InstitutionController extends Controller
             throw $e;
         }
 
-        $query = Institution::with(['parent', 'children']);
+        $query = Institution::with(['parent', 'children', 'departments' => function ($q) {
+            $q->where('is_active', true)
+              ->withCount(['users', 'users as active_users_count' => function ($subq) {
+                  $subq->where('is_active', true);
+              }])
+              ->with(['children' => function ($childq) {
+                  $childq->where('is_active', true)
+                         ->withCount(['users', 'users as active_users_count' => function ($subsubq) {
+                             $subsubq->where('is_active', true);
+                         }]);
+              }]);
+        }]);
 
         // Apply filters
         if ($request->search) {
@@ -413,6 +424,15 @@ class InstitutionController extends Controller
             if ($request->active_only) {
                 $q->active();
             }
+        }, 'departments' => function ($q) use ($request) {
+            if ($request->active_only) {
+                $q->where('is_active', true);
+            }
+            $q->with(['children' => function ($subq) use ($request) {
+                if ($request->active_only) {
+                    $subq->where('is_active', true);
+                }
+            }]);
         }]);
 
         if ($request->root_id) {
@@ -552,6 +572,28 @@ class InstitutionController extends Controller
                 'type' => $institution->type,
                 'level' => $institution->level,
                 'is_active' => $institution->is_active,
+                'departments' => $institution->departments->map(function ($department) {
+                    return [
+                        'id' => $department->id,
+                        'name' => $department->name,
+                        'short_name' => $department->short_name,
+                        'department_type' => $department->department_type,
+                        'is_active' => $department->is_active,
+                        'users_count' => $department->users_count ?? 0,
+                        'active_users_count' => $department->active_users_count ?? 0,
+                        'children' => $department->children->map(function ($child) {
+                            return [
+                                'id' => $child->id,
+                                'name' => $child->name,
+                                'short_name' => $child->short_name,
+                                'department_type' => $child->department_type,
+                                'is_active' => $child->is_active,
+                                'users_count' => $child->users_count ?? 0,
+                                'active_users_count' => $child->active_users_count ?? 0
+                            ];
+                        })
+                    ];
+                }),
                 'children' => $institution->children->isNotEmpty() 
                     ? $this->formatHierarchy($institution->children) 
                     : []

@@ -94,7 +94,7 @@ class DepartmentController extends Controller
      */
     public function show(Department $department): JsonResponse
     {
-        $department->load(['institution', 'parent', 'children']);
+        $department->load(['institution', 'parent', 'children', 'users']);
 
         return response()->json([
             'id' => $department->id,
@@ -125,8 +125,8 @@ class DepartmentController extends Controller
                     'is_active' => $child->is_active
                 ];
             }),
-            'users_count' => 0, // TODO: Implement when user.department_id exists
-            'active_users_count' => 0, // TODO: Implement when user.department_id exists
+            'users_count' => $department->users->count(),
+            'active_users_count' => $department->users->where('is_active', true)->count(),
             'created_at' => $department->created_at,
             'updated_at' => $department->updated_at
         ]);
@@ -275,13 +275,13 @@ class DepartmentController extends Controller
             ], 422);
         }
 
-        // Check if department has active users (TODO: implement when user.department_id exists)
-        // $activeUsers = $department->users()->where('is_active', true)->count();
-        // if ($activeUsers > 0) {
-        //     return response()->json([
-        //         'message' => "Cannot delete department with {$activeUsers} active users"
-        //     ], 422);
-        // }
+        // Check if department has active users
+        $activeUsers = $department->users()->where('is_active', true)->count();
+        if ($activeUsers > 0) {
+            return response()->json([
+                'message' => "Cannot delete department with {$activeUsers} active users"
+            ], 422);
+        }
 
         $department->delete();
 

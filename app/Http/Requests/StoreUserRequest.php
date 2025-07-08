@@ -32,6 +32,7 @@ class StoreUserRequest extends FormRequest
             new ValidRoleAssignment
         ],
             'institution_id' => 'nullable|exists:institutions,id',
+            'department_id' => 'nullable|exists:departments,id',
             'departments' => 'nullable|array',
             'departments.*' => 'string',
             'is_active' => 'nullable|boolean',

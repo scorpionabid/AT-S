@@ -26,6 +26,7 @@ class UpdateUserRequest extends FormRequest
             'email' => 'sometimes|string|email|max:100|unique:users,email,' . $this->route('user')->id,
             'role_id' => 'sometimes|exists:roles,id',
             'institution_id' => 'nullable|exists:institutions,id',
+            'department_id' => 'nullable|exists:departments,id',
             'departments' => 'nullable|array',
             'departments.*' => 'string',
             'is_active' => 'sometimes|boolean',

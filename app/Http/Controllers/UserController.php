@@ -135,7 +135,7 @@ class UserController extends Controller
      */
     public function show(Request $request, User $user): JsonResponse
     {
-        $user->load(['role.permissions', 'institution', 'profile']);
+        $user->load(['role.permissions', 'institution', 'department', 'profile']);
 
         // Log activity
         ActivityLog::logActivity([
@@ -154,6 +154,7 @@ class UserController extends Controller
                 'email' => $user->email,
                 'role_id' => $user->role?->id,
                 'institution_id' => $user->institution?->id,
+                'department_id' => $user->department?->id,
                 'departments' => $user->departments ?? [],
                 'is_active' => $user->is_active,
                 'last_login_at' => $user->last_login_at,
@@ -181,6 +182,11 @@ class UserController extends Controller
                     'name' => $user->institution?->name,
                     'type' => $user->institution?->type,
                     'level' => $user->institution?->level
+                ],
+                'department' => [
+                    'id' => $user->department?->id,
+                    'name' => $user->department?->name,
+                    'department_type' => $user->department?->department_type
                 ]
             ],
             'permissions' => $user->role?->permissions->pluck('name') ?? []
@@ -202,6 +208,7 @@ class UserController extends Controller
                 'password' => Hash::make($request->password),
                 'role_id' => $request->role_id,
                 'institution_id' => $request->institution_id,
+                'department_id' => $request->department_id,
                 'departments' => $request->departments ?? [],
                 'is_active' => $request->is_active ?? true,
                 'password_changed_at' => now(),
@@ -234,7 +241,7 @@ class UserController extends Controller
                 ]);
             }
 
-            $user->load(['role', 'institution', 'profile']);
+            $user->load(['role', 'institution', 'department', 'profile']);
 
             DB::commit();
 
@@ -276,6 +283,7 @@ class UserController extends Controller
                     'id' => $user->id,
                     'username' => $user->username,
                     'email' => $user->email,
+                    'department_id' => $user->department?->id,
                     'role' => [
                         'id' => $user->role?->id,
                         'name' => $user->role?->name,
@@ -285,6 +293,11 @@ class UserController extends Controller
                         'id' => $user->institution?->id,
                         'name' => $user->institution?->name,
                         'type' => $user->institution?->type
+                    ],
+                    'department' => [
+                        'id' => $user->department?->id,
+                        'name' => $user->department?->name,
+                        'department_type' => $user->department?->department_type
                     ],
                     'is_active' => $user->is_active,
                     'created_at' => $user->created_at
@@ -319,7 +332,7 @@ class UserController extends Controller
             $oldData = $user->toArray();
 
             $updateData = $request->only([
-                'username', 'email', 'role_id', 'institution_id', 
+                'username', 'email', 'role_id', 'institution_id', 'department_id',
                 'departments', 'is_active'
             ]);
 
@@ -345,7 +358,7 @@ class UserController extends Controller
                 }
             }
 
-            $user->load(['role', 'institution', 'profile']);
+            $user->load(['role', 'institution', 'department', 'profile']);
 
             DB::commit();
 
@@ -383,6 +396,7 @@ class UserController extends Controller
                     'id' => $user->id,
                     'username' => $user->username,
                     'email' => $user->email,
+                    'department_id' => $user->department?->id,
                     'role' => [
                         'id' => $user->role?->id,
                         'name' => $user->role?->name,
@@ -392,6 +406,11 @@ class UserController extends Controller
                         'id' => $user->institution?->id,
                         'name' => $user->institution?->name,
                         'type' => $user->institution?->type
+                    ],
+                    'department' => [
+                        'id' => $user->department?->id,
+                        'name' => $user->department?->name,
+                        'department_type' => $user->department?->department_type
                     ],
                     'is_active' => $user->is_active,
                     'updated_at' => $user->updated_at

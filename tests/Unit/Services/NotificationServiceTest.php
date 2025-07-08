@@ -32,23 +32,25 @@ class NotificationServiceTest extends TestCase
             'is_active' => true,
         ]);
         
-        // Create a test notification template using the factory
-        $this->template = \Database\Factories\NotificationTemplateFactory::new()->create([
-            'key' => 'test_notification',
-            'name' => 'Test Notification',
-            'type' => 'system_alert',  // Changed from 'system' to 'system_alert' to match enum
-            'subject_template' => 'Test Subject: {{title}}',
-            'title_template' => 'Test Title: {{title}}',
-            'message_template' => 'Hello {{name}}! This is a test notification.',
-            'email_template' => '<p>Hello {{name}}!</p><p>This is a test notification.</p>',
-            'channels' => ['database', 'email'],
-            'is_active' => true,
-            'available_variables' => [
-                'name' => 'User\'s full name',
-                'title' => 'Notification title',
-                'message' => 'The main message content'
+        // Ensure the notification template exists in the test database
+        $this->template = NotificationTemplate::firstOrCreate(
+            ['key' => 'test_notification'],
+            [
+                'name' => 'Test Notification',
+                'type' => 'system_alert',
+                'subject_template' => 'Test Subject: {{title}}',
+                'title_template' => 'Test Title: {{title}}',
+                'message_template' => 'Hello {{name}}! This is a test notification.',
+                'email_template' => '<p>Hello {{name}}!</p><p>This is a test notification.</p>',
+                'channels' => ['in_app', 'email'],
+                'is_active' => true,
+                'available_variables' => [
+                    'name' => 'User\'s full name',
+                    'title' => 'Notification title',
+                    'message' => 'The main message content'
+                ]
             ]
-        ]);
+        );
         
         // Fake mail sending
         Mail::fake();
@@ -61,8 +63,8 @@ class NotificationServiceTest extends TestCase
             'user_id' => $this->user->id,
             'title' => 'Test Notification',
             'message' => 'This is a test notification',
-            'type' => 'system',
-            'channel' => 'database',
+            'type' => 'system_alert',
+            'channel' => 'in_app',
         ];
         
         $notification = $this->notificationService->send($notificationData);
@@ -88,7 +90,7 @@ class NotificationServiceTest extends TestCase
         
         $options = [
             'language' => 'en',
-            'channels' => ['database'],
+            'channels' => ['in_app'],
             'metadata' => ['test' => 'data'],
         ];
         
@@ -106,7 +108,7 @@ class NotificationServiceTest extends TestCase
         $this->assertStringContainsString('Welcome', $notification->title);
         $this->assertStringContainsString('Test User', $notification->message);
         $this->assertEquals($this->user->id, $notification->user_id);
-        $this->assertEquals('database', $notification->channel);
+        $this->assertEquals('in_app', $notification->channel);
     }
     
     /** @test */
@@ -118,6 +120,7 @@ class NotificationServiceTest extends TestCase
         
         $options = [
             'channels' => ['email'],
+            'subject' => 'Test Email Notification',
         ];
         
         $notifications = $this->notificationService->sendFromTemplate(
@@ -129,8 +132,8 @@ class NotificationServiceTest extends TestCase
         
         $this->assertCount(1, $notifications);
         
-        // Assert that an email was sent to the user
-        Mail::assertSent(\App\Mail\NotificationEmail::class, function ($mail) {
+        // Assert that an email was queued to be sent to the user
+        Mail::assertQueued(\App\Mail\NotificationEmail::class, function ($mail) {
             return $mail->hasTo($this->user->email);
         });
     }
@@ -144,8 +147,8 @@ class NotificationServiceTest extends TestCase
             'user_id' => $this->user->id,
             'title' => 'Scheduled Notification',
             'message' => 'This is a scheduled notification',
-            'type' => 'system',
-            'channel' => 'database',
+            'type' => 'system_alert',
+            'channel' => 'in_app',
             'scheduled_at' => $scheduledTime,
         ];
         
@@ -170,7 +173,7 @@ class NotificationServiceTest extends TestCase
         ];
         
         $options = [
-            'channels' => ['database'],
+            'channels' => ['in_app'],
             'related' => $task,
         ];
         

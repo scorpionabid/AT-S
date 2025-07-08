@@ -30,10 +30,17 @@ class SuperAdminSeeder extends Seeder
             'locked_until' => null,
         ]);
 
-        // Assign superadmin role if it exists
-        $superadminRole = Role::where('name', 'superadmin')->first();
-        if ($superadminRole && !$superadmin->hasRole('superadmin')) {
-            $superadmin->assignRole('superadmin');
+        // Assign superadmin role with the correct guard
+        $superadminRole = Role::where('name', 'superadmin')
+            ->where('guard_name', 'api')
+            ->first();
+            
+        if ($superadminRole) {
+            // Ensure the user has the role with the correct guard
+            $superadmin->syncRoles([$superadminRole]);
+            $this->command->info('✅ Superadmin role assigned with API guard');
+        } else {
+            $this->command->error('❌ Superadmin role not found with API guard');
         }
 
         $this->command->info('✅ Superadmin user created/updated: superadmin (admin123)');

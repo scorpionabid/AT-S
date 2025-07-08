@@ -32,6 +32,7 @@ class User extends Authenticatable
         'password',
         'role_id',
         'institution_id',
+        'department_id',
         'departments',
         'is_active',
         'last_login_at',
@@ -85,6 +86,14 @@ class User extends Authenticatable
     public function institution(): BelongsTo
     {
         return $this->belongsTo(Institution::class);
+    }
+
+    /**
+     * Get the department that the user belongs to.
+     */
+    public function department(): BelongsTo
+    {
+        return $this->belongsTo(Department::class);
     }
 
     /**

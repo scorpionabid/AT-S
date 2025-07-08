@@ -2,169 +2,73 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\LoginRequest;
 use App\Models\User;
-use App\Models\UserProfile;
-use App\Models\SecurityEvent;
-use App\Models\ActivityLog;
-use Illuminate\Http\Request;
+use App\Services\Auth\DeviceService;
+use App\Services\Auth\LoginService;
+use App\Services\Auth\LogoutService;
+use App\Services\Auth\SessionService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
+    protected $loginService;
+    protected $logoutService;
+    protected $deviceService;
+    protected $sessionService;
+
+    public function __construct(
+        LoginService $loginService,
+        LogoutService $logoutService,
+        DeviceService $deviceService,
+        SessionService $sessionService
+    ) {
+        $this->loginService = $loginService;
+        $this->logoutService = $logoutService;
+        $this->deviceService = $deviceService;
+        $this->sessionService = $sessionService;
+    }
     /**
      * Login user
+     *
+     * @param LoginRequest $request
+     * @return JsonResponse
      */
-    public function login(Request $request): JsonResponse
+    public function login(LoginRequest $request): JsonResponse
     {
-        $request->validate([
-            'login' => 'required|string', // Can be username or email
-            'password' => 'required|string|min:8',
-        ]);
+        // Validate request and check rate limiting
+        $request->ensureIsNotRateLimited();
 
-        $login = $request->login;
-        $password = $request->password;
-        
-        // Rate limiting by IP and login identifier
-        $ipRateLimitKey = 'login_ip:' . $request->ip();
-        $userRateLimitKey = 'login_user:' . $login;
-        
-        // Check IP-based rate limiting (10 attempts per 15 minutes)
-        if (RateLimiter::tooManyAttempts($ipRateLimitKey, 10)) {
-            $seconds = RateLimiter::availableIn($ipRateLimitKey);
+        try {
+            // Attempt to login using the login service
+            $result = $this->loginService->attemptLogin(
+                $request->only(['login', 'password', 'remember']),
+                $request->device_name,
+                $request->device_id
+            );
+
+            // Clear rate limiting on successful login
+            RateLimiter::clear('login_ip:' . $request->ip());
+            RateLimiter::clear('login_user:' . $request->login);
+
             return response()->json([
-                'message' => "Bu IP ünvanından çox sayda cəhd edilib. {$seconds} saniyə sonra yenidən cəhd edin.",
-                'type' => 'ip_blocked'
-            ], 429);
-        }
-        
-        // Check user-based rate limiting (5 attempts per 15 minutes)
-        if (RateLimiter::tooManyAttempts($userRateLimitKey, 5)) {
-            $seconds = RateLimiter::availableIn($userRateLimitKey);
-            return response()->json([
-                'message' => "Bu hesab üçün çox sayda cəhd edilib. {$seconds} saniyə sonra yenidən cəhd edin.",
-                'type' => 'user_blocked'
-            ], 429);
-        }
-
-        // Find user by username OR email
-        $user = User::where(function($query) use ($login) {
-                    $query->where('username', $login)
-                          ->orWhere('email', $login);
-                })
-                ->with(['roles', 'institution', 'profile'])
-                ->first();
-
-        if (!$user) {
-            RateLimiter::hit($ipRateLimitKey, 900); // 15 minutes
-            RateLimiter::hit($userRateLimitKey, 900);
-            
-            throw ValidationException::withMessages([
-                'login' => ['İstifadəçi adı və ya şifrə səhvdir.'],
+                'message' => 'Uğurlu giriş',
+                'data' => $result
             ]);
-        }
 
-        if (!$user->is_active) {
-            throw ValidationException::withMessages([
-                'login' => ['Hesab deaktivdir. İdarə ilə əlaqə saxlayın.'],
-            ]);
-        }
-
-        if ($user->isLocked()) {
-            $lockTime = $user->locked_until->format('d.m.Y H:i');
-            throw ValidationException::withMessages([
-                'login' => ["Hesab {$lockTime} tarixədək bloklanmışdır."],
-            ]);
-        }
-
-        if (!Hash::check($password, $user->password)) {
-            RateLimiter::hit($ipRateLimitKey, 900);
-            RateLimiter::hit($userRateLimitKey, 900);
+        } catch (ValidationException $e) {
+            // Increment rate limiting on failed attempt
+            RateLimiter::hit('login_ip:' . $request->ip());
+            RateLimiter::hit('login_user:' . $request->login);
             
-            $user->increment('failed_login_attempts');
-            
-            // Progressive account blocking
-            $lockMinutes = $this->calculateLockDuration($user->failed_login_attempts);
-            if ($lockMinutes > 0) {
-                $user->update([
-                    'locked_until' => now()->addMinutes($lockMinutes)
-                ]);
-                
-                $lockTime = $user->locked_until->format('d.m.Y H:i');
-                throw ValidationException::withMessages([
-                    'login' => ["Çox sayda səhv cəhd. Hesab {$lockTime} tarixədək bloklandı."],
-                ]);
-            }
-            
-            $remaining = 5 - $user->failed_login_attempts;
-            $message = $remaining > 0 
-                ? "İstifadəçi adı və ya şifrə səhvdir. {$remaining} cəhd hüququnuz qaldı."
-                : "İstifadəçi adı və ya şifrə səhvdir.";
-                
-            throw ValidationException::withMessages([
-                'login' => [$message],
-            ]);
+            throw $e;
         }
-
-        // Reset failed attempts on successful login
-        $user->update([
-            'failed_login_attempts' => 0,
-            'locked_until' => null,
-            'last_login_at' => now()
-        ]);
-
-        RateLimiter::clear($ipRateLimitKey);
-        RateLimiter::clear($userRateLimitKey);
-
-        // Create token
-        $token = $user->createToken('auth-token')->plainTextToken;
-
-        // Log successful login - temporarily disabled for testing
-        // ActivityLog::logActivity([
-        //     'user_id' => $user->id,
-        //     'activity_type' => 'login',
-        //     'description' => 'User logged in successfully',
-        //     'institution_id' => $user->institution_id
-        // ]);
-
-        // SecurityEvent::logEvent([
-        //     'event_type' => 'successful_login',
-        //     'severity' => 'info',
-        //     'user_id' => $user->id,
-        //     'description' => 'User logged in successfully',
-        //     'event_data' => [
-        //         'username' => $user->username
-        //     ]
-        // ]);
-
-        return response()->json([
-            'message' => 'Login successful',
-            'user' => [
-                'id' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-                'role' => $user->getRoleNames('api')->first() ?? $user->getRoleNames()->first(),
-                'role_display_name' => $user->getRoleNames('api')->first() ?? $user->getRoleNames()->first(),
-                'institution' => [
-                    'id' => $user->institution?->id,
-                    'name' => $user->institution?->name,
-                    'type' => $user->institution?->type
-                ],
-                'departments' => $user->departments,
-                'profile' => $user->profile ? [
-                    'first_name' => $user->profile->first_name,
-                    'last_name' => $user->profile->last_name,
-                    'full_name' => $user->profile->full_name
-                ] : null
-            ],
-            'token' => $token,
-            'permissions' => $user->getPermissionsViaRoles()->pluck('name')
-        ]);
     }
 
     /**
@@ -231,19 +135,6 @@ class AuthController extends Controller
                 'institution_id' => $user->institution_id
             ]);
 
-            // SecurityEvent logging disabled temporarily
-            // SecurityEvent::logEvent([
-            //     'event_type' => 'user_registration',
-            //     'severity' => 'info',
-            //     'user_id' => $user->id,
-            //     'description' => 'New user registered',
-            //     'event_data' => [
-            //         'username' => $user->username,
-            //         'role' => $user->role?->name,
-            //         'institution_id' => $user->institution_id
-            //     ]
-            // ]);
-
             return response()->json([
                 'message' => 'User registered successfully',
                 'user' => [
@@ -276,62 +167,75 @@ class AuthController extends Controller
     }
 
     /**
-     * Logout user
+     * Logout user (Revoke the token)
      */
     public function logout(Request $request): JsonResponse
     {
         $user = $request->user();
-
-        // Delete current token
-        $request->user()->currentAccessToken()->delete();
-
-        // Log logout - temporarily disabled for testing
-        // ActivityLog::logActivity([
-        //     'user_id' => $user->id,
-        //     'activity_type' => 'logout',
-        //     'description' => 'User logged out',
-        //     'institution_id' => $user->institution_id
-        // ]);
+        $this->logoutService->logout($user);
 
         return response()->json([
-            'message' => 'Logout successful'
+            'message' => 'Uğurla çıxış edildi'
         ]);
     }
 
     /**
-     * Get current user
+     * Get the authenticated User.
      */
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['role.permissions', 'institution', 'profile']);
+        $user = $request->user()->load(['profile', 'roles.permissions']);
+        
+        // Add permissions to user object
+        $user->permissions = $user->getAllPermissions()->pluck('name');
+        
+        return response()->json([
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Get active sessions for the authenticated user.
+     */
+    public function sessions(Request $request): JsonResponse
+    {
+        $sessions = $this->sessionService->getActiveSessions($request->user());
+        
+        return response()->json([
+            'sessions' => $sessions
+        ]);
+    }
+
+    /**
+     * Revoke a specific session.
+     */
+    public function revokeSession(Request $request, string $sessionId): JsonResponse
+    {
+        $revoked = $this->sessionService->revokeSession($request->user(), $sessionId);
+        
+        if (!$revoked) {
+            return response()->json([
+                'message' => 'Sessiya tapılmadı'
+            ], 404);
+        }
+        
+        return response()->json([
+            'message' => 'Sessiya uğurla ləğv edildi'
+        ]);
+    }
+
+    /**
+     * Revoke all other sessions.
+     */
+    public function revokeOtherSessions(Request $request): JsonResponse
+    {
+        $count = $request->user()->tokens()
+            ->where('id', '!=', $request->user()->currentAccessToken()->id)
+            ->delete();
 
         return response()->json([
-            'user' => [
-                'id' => $user->id,
-                'username' => $user->username,
-                'email' => $user->email,
-                'role' => $user->getRoleNames('api')->first() ?? $user->getRoleNames()->first(),
-                'role_display_name' => $user->getRoleNames('api')->first() ?? $user->getRoleNames()->first(),
-                'role_level' => $user->role?->level,
-                'institution' => [
-                    'id' => $user->institution?->id,
-                    'name' => $user->institution?->name,
-                    'type' => $user->institution?->type,
-                    'level' => $user->institution?->level
-                ],
-                'departments' => $user->departments,
-                'last_login_at' => $user->last_login_at,
-                'profile' => $user->profile ? [
-                    'first_name' => $user->profile->first_name,
-                    'last_name' => $user->profile->last_name,
-                    'patronymic' => $user->profile->patronymic,
-                    'full_name' => $user->profile->full_name,
-                    'birth_date' => $user->profile->birth_date,
-                    'gender' => $user->profile->gender,
-                    'contact_phone' => $user->profile->contact_phone
-                ] : null
-            ],
-            'permissions' => $user->getPermissionsViaRoles()->pluck('name')
+            'message' => 'Other sessions revoked successfully',
+            'revoked_count' => $count
         ]);
     }
 
