@@ -6,12 +6,14 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Models\ActivityLog;
 use App\Models\SecurityEvent;
+use App\Models\Role;
 use App\Http\Requests\StoreUserRequest;
 use App\Http\Requests\UpdateUserRequest;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class UserController extends Controller
@@ -205,6 +207,17 @@ class UserController extends Controller
                 'password_changed_at' => now(),
             ]);
 
+            // Assign role using Spatie's role management
+            $role = Role::find($request->role_id);
+            if ($role) {
+                $user->assignRole($role->name);
+                
+                // Log role assignment
+                Log::info("Assigned role {$role->name} to user {$user->id}");
+            } else {
+                Log::warning("Role not found for ID: " . $request->role_id);
+            }
+
             // Create profile if profile data provided
             if ($request->hasAny(['first_name', 'last_name', 'patronymic', 'birth_date', 'gender', 'national_id', 'contact_phone', 'emergency_contact', 'address'])) {
                 UserProfile::create([
@@ -226,14 +239,22 @@ class UserController extends Controller
             DB::commit();
 
             // Log activity
-            ActivityLog::logActivity([
+            $activityData = [
                 'user_id' => $request->user()->id,
                 'activity_type' => 'user_create',
                 'entity_type' => 'User',
                 'entity_id' => $user->id,
-                'description' => "Created user: {$user->username}",
+                'description' => "Created user: {$user->username} with role: " . ($role->name ?? 'none'),
                 'after_state' => $user->toArray(),
                 'institution_id' => $request->user()->institution_id
+            ];
+
+            ActivityLog::logActivity($activityData);
+            
+            Log::info('User created successfully', [
+                'user_id' => $user->id,
+                'role_assigned' => $role->name ?? null,
+                'assigned_by' => $request->user()->id
             ]);
 
             SecurityEvent::logEvent([
@@ -272,6 +293,12 @@ class UserController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+            
+            Log::error('User creation failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'request_data' => $request->except(['password', 'password_confirmation'])
+            ]);
             
             return response()->json([
                 'message' => 'User creation failed',

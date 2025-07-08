@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use App\Rules\ValidRoleAssignment;
 
 class StoreUserRequest extends FormRequest
 {
@@ -25,7 +26,11 @@ class StoreUserRequest extends FormRequest
             'username' => 'required|string|min:3|max:50|unique:users',
             'email' => 'required|string|email|max:100|unique:users',
             'password' => 'required|string|min:8',
-            'role_id' => 'required|exists:roles,id',
+            'role_id' => [
+            'required',
+            'exists:roles,id',
+            new ValidRoleAssignment
+        ],
             'institution_id' => 'nullable|exists:institutions,id',
             'departments' => 'nullable|array',
             'departments.*' => 'string',

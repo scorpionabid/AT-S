@@ -10,6 +10,11 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentShareController;
+use App\Http\Controllers\RegionAdmin\RegionAdminDashboardController;
+use App\Http\Controllers\RegionAdmin\RegionAdminInstitutionController;
+use App\Http\Controllers\RegionAdmin\RegionAdminUserController;
+use App\Http\Controllers\RegionAdmin\RegionAdminSurveyController;
+use App\Http\Controllers\RegionAdmin\RegionAdminReportsController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -172,12 +177,32 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('reports/user-activity', [App\Http\Controllers\ReportsController::class, 'getUserActivityReport'])->middleware('permission:users.read');
     Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:users.read');
     
-    // RegionAdmin Dashboard and Analytics
+    // RegionAdmin Dashboard and Analytics - Refactored Controllers
     Route::prefix('regionadmin')->middleware('role:regionadmin|superadmin')->group(function () {
-        Route::get('dashboard', [App\Http\Controllers\RegionAdminController::class, 'getDashboardStats']);
-        Route::get('institutions', [App\Http\Controllers\RegionAdminController::class, 'getInstitutionStats']);
-        Route::get('users', [App\Http\Controllers\RegionAdminController::class, 'getUserStats']);
-        Route::get('surveys', [App\Http\Controllers\RegionAdminController::class, 'getSurveyAnalytics']);
+        // Dashboard endpoints
+        Route::get('dashboard', [RegionAdminDashboardController::class, 'getDashboardStats']);
+        
+        // Institution management endpoints
+        Route::get('institutions', [RegionAdminInstitutionController::class, 'getInstitutionStats']);
+        Route::get('institutions/hierarchy', [RegionAdminInstitutionController::class, 'getInstitutionHierarchy']);
+        Route::get('institutions/performance', [RegionAdminInstitutionController::class, 'getPerformanceInsights']);
+        
+        // User management endpoints
+        Route::get('users', [RegionAdminUserController::class, 'getUserStats']);
+        Route::get('users/list', [RegionAdminUserController::class, 'getUsersList']);
+        Route::get('users/activity', [RegionAdminUserController::class, 'getUserActivity']);
+        
+        // Survey analytics endpoints
+        Route::get('surveys', [RegionAdminSurveyController::class, 'getSurveyAnalytics']);
+        Route::get('surveys/list', [RegionAdminSurveyController::class, 'getSurveysList']);
+        Route::get('surveys/trends', [RegionAdminSurveyController::class, 'getSurveyTrends']);
+        
+        // Reports endpoints
+        Route::get('reports/overview', [RegionAdminReportsController::class, 'getRegionalOverview']);
+        Route::get('reports/institutions', [RegionAdminReportsController::class, 'getInstitutionReports']);
+        Route::get('reports/surveys', [RegionAdminReportsController::class, 'getSurveyReports']);
+        Route::get('reports/users', [RegionAdminReportsController::class, 'getUserReports']);
+        Route::post('reports/export', [RegionAdminReportsController::class, 'exportReport']);
     });
     
     // System Configuration (SuperAdmin only)
