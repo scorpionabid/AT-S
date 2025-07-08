@@ -88,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('departments/{department}', [DepartmentController::class, 'show'])->middleware('permission:institutions.read');
     Route::put('departments/{department}', [DepartmentController::class, 'update'])->middleware('permission:institutions.update');
     Route::delete('departments/{department}', [DepartmentController::class, 'destroy'])->middleware('permission:institutions.delete');
+    Route::get('departments/types/institution', [DepartmentController::class, 'getTypesForInstitution'])->middleware('permission:institutions.read');
 
     // Role management
     Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.read');

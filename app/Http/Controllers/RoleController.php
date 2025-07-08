@@ -78,7 +78,11 @@ class RoleController extends Controller
             'guard_name' => 'api' // Use API guard for consistency
         ]);
 
-        if ($request->permissions) {
+        // Auto-assign all permissions to superadmin role
+        if ($request->name === 'superadmin') {
+            $allPermissions = \Spatie\Permission\Models\Permission::all()->pluck('name')->toArray();
+            $role->syncPermissions($allPermissions);
+        } elseif ($request->permissions) {
             $role->syncPermissions($request->permissions);
         }
 

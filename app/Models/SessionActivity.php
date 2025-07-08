@@ -32,6 +32,7 @@ class SessionActivity extends Model
         'location_country',
         'location_city',
         'device_type',
+        'created_at',
     ];
 
     protected $casts = [
@@ -42,10 +43,22 @@ class SessionActivity extends Model
         'created_at' => 'datetime',
     ];
 
-    // Disable updated_at since this is an append-only log
-    public $timestamps = false;
+    // We only want to track created_at, not updated_at
+    const UPDATED_AT = null;
     
     protected $dates = ['created_at'];
+    
+    // Set the created_at timestamp when creating a new record
+    protected static function boot()
+    {
+        parent::boot();
+        
+        static::creating(function ($model) {
+            if (empty($model->created_at)) {
+                $model->created_at = $model->freshTimestamp();
+            }
+        });
+    }
 
     const ACTIVITY_TYPES = [
         'login' => 'User Login',

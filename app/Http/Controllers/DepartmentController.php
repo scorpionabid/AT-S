@@ -18,8 +18,10 @@ class DepartmentController extends Controller
             'search' => 'nullable|string|max:255',
             'institution_id' => 'nullable|integer|exists:institutions,id',
             'parent_id' => 'nullable|integer|exists:departments,id',
+            'department_type' => 'nullable|string|max:50',
             'is_active' => 'nullable|boolean',
-            'sort_by' => 'nullable|string|in:name,short_name,created_at',
+            'hierarchy' => 'nullable|boolean',
+            'sort_by' => 'nullable|string|in:name,short_name,department_type,created_at',
             'sort_direction' => 'nullable|string|in:asc,desc'
         ]);
 
@@ -28,8 +30,8 @@ class DepartmentController extends Controller
         // Apply filters
         if ($request->search) {
             $query->where(function ($q) use ($request) {
-                $q->where('name', 'ILIKE', "%{$request->search}%")
-                  ->orWhere('short_name', 'ILIKE', "%{$request->search}%");
+                $q->where('name', 'LIKE', "%{$request->search}%")
+                  ->orWhere('short_name', 'LIKE', "%{$request->search}%");
             });
         }
 
@@ -49,15 +51,31 @@ class DepartmentController extends Controller
             $query->where('is_active', $request->is_active);
         }
 
+        if ($request->department_type) {
+            $query->where('department_type', $request->department_type);
+        }
+
         // Apply sorting
         $sortBy = $request->sort_by ?? 'name';
         $sortDirection = $request->sort_direction ?? 'asc';
         $query->orderBy($sortBy, $sortDirection);
 
-        $departments = $query->paginate($request->per_page ?? 15);
+        // Return as hierarchy or paginated list
+        if ($request->hierarchy && !$request->parent_id) {
+            $departments = $query->roots()->get();
+            $this->loadDepartmentHierarchy($departments);
+            
+            return response()->json([
+                'departments' => $departments->map(function ($department) {
+                    return $this->formatDepartmentWithChildren($department);
+                })
+            ]);
+        } else {
+            $departments = $query->paginate($request->per_page ?? 15);
+        }
 
         return response()->json([
-            'departments' => $departments->map(function ($department) {
+            'data' => $departments->map(function ($department) {
                 return $this->formatDepartment($department);
             }),
             'meta' => [
@@ -76,37 +94,41 @@ class DepartmentController extends Controller
      */
     public function show(Department $department): JsonResponse
     {
-        $department->load(['institution', 'parent', 'children', 'users']);
+        $department->load(['institution', 'parent', 'children']);
 
         return response()->json([
-            'department' => [
-                'id' => $department->id,
-                'name' => $department->name,
-                'short_name' => $department->short_name,
-                'description' => $department->description,
-                'is_active' => $department->is_active,
-                'institution' => $department->institution ? [
-                    'id' => $department->institution->id,
-                    'name' => $department->institution->name,
-                    'type' => $department->institution->type
-                ] : null,
-                'parent' => $department->parent ? [
-                    'id' => $department->parent->id,
-                    'name' => $department->parent->name
-                ] : null,
-                'children' => $department->children->map(function ($child) {
-                    return [
-                        'id' => $child->id,
-                        'name' => $child->name,
-                        'short_name' => $child->short_name,
-                        'is_active' => $child->is_active
-                    ];
-                }),
-                'users_count' => $department->users->count(),
-                'active_users_count' => $department->users->where('is_active', true)->count(),
-                'created_at' => $department->created_at,
-                'updated_at' => $department->updated_at
-            ]
+            'id' => $department->id,
+            'name' => $department->name,
+            'short_name' => $department->short_name,
+            'department_type' => $department->department_type,
+            'institution_id' => $department->institution_id,
+            'description' => $department->description,
+            'capacity' => $department->capacity,
+            'budget_allocation' => $department->budget_allocation,
+            'functional_scope' => $department->functional_scope,
+            'metadata' => $department->metadata,
+            'is_active' => $department->is_active,
+            'institution' => $department->institution ? [
+                'id' => $department->institution->id,
+                'name' => $department->institution->name,
+                'type' => $department->institution->type
+            ] : null,
+            'parent' => $department->parent ? [
+                'id' => $department->parent->id,
+                'name' => $department->parent->name
+            ] : null,
+            'children' => $department->children->map(function ($child) {
+                return [
+                    'id' => $child->id,
+                    'name' => $child->name,
+                    'short_name' => $child->short_name,
+                    'is_active' => $child->is_active
+                ];
+            }),
+            'users_count' => 0, // TODO: Implement when user.department_id exists
+            'active_users_count' => 0, // TODO: Implement when user.department_id exists
+            'created_at' => $department->created_at,
+            'updated_at' => $department->updated_at
         ]);
     }
 
@@ -115,22 +137,60 @@ class DepartmentController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:100',
             'short_name' => 'nullable|string|max:20',
+            'department_type' => 'required|string|max:50',
             'description' => 'nullable|string|max:500',
             'institution_id' => 'required|exists:institutions,id',
             'parent_department_id' => 'nullable|exists:departments,id',
+            'metadata' => 'nullable|array',
+            'capacity' => 'nullable|integer|min:1|max:1000',
+            'budget_allocation' => 'nullable|numeric|min:0',
+            'functional_scope' => 'nullable|string|max:1000',
             'is_active' => 'nullable|boolean'
         ]);
 
+        // Validate department type against institution type
+        $institution = \App\Models\Institution::find($request->institution_id);
+        $allowedTypes = Department::getAllowedTypesForInstitution($institution->type);
+        
+        if (!in_array($request->department_type, $allowedTypes)) {
+            return response()->json([
+                'message' => 'The given data was invalid.',
+                'errors' => [
+                    'department_type' => ['Department type not allowed for this institution type.']
+                ]
+            ], 422);
+        }
+
+        // Check institution access for non-superadmin users
+        if (!auth()->user()->hasRole('superadmin')) {
+            $userInstitution = auth()->user()->institution;
+            if (!$userInstitution) {
+                return response()->json(['message' => 'User not assigned to any institution'], 403);
+            }
+
+            // Get all accessible institution IDs (user's institution and its children)
+            $accessibleInstitutions = $userInstitution->getAllChildrenIds();
+            
+            if (!in_array($request->institution_id, $accessibleInstitutions)) {
+                return response()->json(['message' => 'Access denied to this institution'], 403);
+            }
+        }
+
         $department = Department::create([
-            'name' => $request->name,
-            'short_name' => $request->short_name,
-            'description' => $request->description,
-            'institution_id' => $request->institution_id,
-            'parent_department_id' => $request->parent_department_id,
-            'is_active' => $request->is_active ?? true
+            'name' => $validatedData['name'],
+            'short_name' => $validatedData['short_name'] ?? null,
+            'department_type' => $validatedData['department_type'],
+            'description' => $validatedData['description'] ?? null,
+            'institution_id' => $validatedData['institution_id'],
+            'parent_department_id' => $validatedData['parent_department_id'] ?? null,
+            'metadata' => $validatedData['metadata'] ?? [],
+            'capacity' => $validatedData['capacity'] ?? null,
+            'budget_allocation' => $validatedData['budget_allocation'] ?? null,
+            'functional_scope' => $validatedData['functional_scope'] ?? null,
+            'is_active' => $validatedData['is_active'] ?? true
         ]);
 
         $department->load(['institution', 'parent']);
@@ -146,11 +206,16 @@ class DepartmentController extends Controller
      */
     public function update(Request $request, Department $department): JsonResponse
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'sometimes|string|max:100',
             'short_name' => 'nullable|string|max:20',
+            'department_type' => 'sometimes|string|max:50',
             'description' => 'nullable|string|max:500',
             'parent_department_id' => 'nullable|exists:departments,id',
+            'metadata' => 'nullable|array',
+            'capacity' => 'nullable|integer|min:1|max:1000',
+            'budget_allocation' => 'nullable|numeric|min:0',
+            'functional_scope' => 'nullable|string|max:1000',
             'is_active' => 'sometimes|boolean'
         ]);
 
@@ -161,10 +226,18 @@ class DepartmentController extends Controller
             ], 422);
         }
 
-        $department->update($request->only([
-            'name', 'short_name', 'description', 
-            'parent_department_id', 'is_active'
-        ]));
+        // Validate department type if provided
+        if ($request->has('department_type')) {
+            $allowedTypes = Department::getAllowedTypesForInstitution($department->institution->type);
+            if (!in_array($request->department_type, $allowedTypes)) {
+                return response()->json([
+                    'message' => 'Department type not allowed for this institution type',
+                    'allowed_types' => $allowedTypes
+                ], 422);
+            }
+        }
+
+        $department->update($validatedData);
 
         $department->load(['institution', 'parent']);
 
@@ -179,6 +252,21 @@ class DepartmentController extends Controller
      */
     public function destroy(Department $department): JsonResponse
     {
+        // Check institution access for non-superadmin users
+        if (!auth()->user()->hasRole('superadmin')) {
+            $userInstitution = auth()->user()->institution;
+            if (!$userInstitution) {
+                return response()->json(['message' => 'User not assigned to any institution'], 403);
+            }
+
+            // Get all accessible institution IDs (user's institution and its children)
+            $accessibleInstitutions = $userInstitution->getAllChildrenIds();
+            
+            if (!in_array($department->institution_id, $accessibleInstitutions)) {
+                return response()->json(['message' => 'Access denied to this institution'], 403);
+            }
+        }
+
         // Check if department has active children
         $activeChildren = $department->children()->where('is_active', true)->count();
         if ($activeChildren > 0) {
@@ -187,19 +275,70 @@ class DepartmentController extends Controller
             ], 422);
         }
 
-        // Check if department has active users
-        $activeUsers = $department->users()->where('is_active', true)->count();
-        if ($activeUsers > 0) {
-            return response()->json([
-                'message' => "Cannot delete department with {$activeUsers} active users"
-            ], 422);
-        }
+        // Check if department has active users (TODO: implement when user.department_id exists)
+        // $activeUsers = $department->users()->where('is_active', true)->count();
+        // if ($activeUsers > 0) {
+        //     return response()->json([
+        //         'message' => "Cannot delete department with {$activeUsers} active users"
+        //     ], 422);
+        // }
 
-        $department->update(['is_active' => false]);
+        $department->delete();
 
         return response()->json([
-            'message' => 'Department deactivated successfully'
+            'message' => 'Department deleted successfully'
         ]);
+    }
+
+    /**
+     * Get department types for institution
+     */
+    public function getTypesForInstitution(Request $request): JsonResponse
+    {
+        $request->validate([
+            'institution_id' => 'required|exists:institutions,id'
+        ]);
+
+        $institution = \App\Models\Institution::find($request->institution_id);
+        $allowedTypes = Department::getAllowedTypesForInstitution($institution->type);
+        $typesList = [];
+
+        foreach ($allowedTypes as $type) {
+            $typesList[$type] = Department::TYPES[$type] ?? $type;
+        }
+
+        return response()->json([
+            'types' => $typesList,
+            'institution_type' => $institution->type
+        ]);
+    }
+
+    /**
+     * Load department hierarchy recursively
+     */
+    private function loadDepartmentHierarchy($departments): void
+    {
+        foreach ($departments as $department) {
+            $department->load(['children' => function ($query) {
+                $query->with('children');
+            }]);
+            
+            if ($department->children->isNotEmpty()) {
+                $this->loadDepartmentHierarchy($department->children);
+            }
+        }
+    }
+
+    /**
+     * Format department with children for hierarchy view
+     */
+    private function formatDepartmentWithChildren($department): array
+    {
+        $formatted = $this->formatDepartment($department);
+        $formatted['children'] = $department->children->map(function ($child) {
+            return $this->formatDepartmentWithChildren($child);
+        });
+        return $formatted;
     }
 
     /**
@@ -211,7 +350,13 @@ class DepartmentController extends Controller
             'id' => $department->id,
             'name' => $department->name,
             'short_name' => $department->short_name,
+            'department_type' => $department->department_type,
+            'department_type_display' => $department->getTypeDisplayName(),
             'description' => $department->description,
+            'metadata' => $department->metadata,
+            'capacity' => $department->capacity,
+            'budget_allocation' => $department->budget_allocation,
+            'functional_scope' => $department->functional_scope,
             'is_active' => $department->is_active,
             'institution_id' => $department->institution_id,
             'institution' => $department->institution ? [
@@ -221,7 +366,8 @@ class DepartmentController extends Controller
             ] : null,
             'parent' => $department->parent ? [
                 'id' => $department->parent->id,
-                'name' => $department->parent->name
+                'name' => $department->parent->name,
+                'department_type' => $department->parent->department_type
             ] : null,
             'children_count' => $department->children ? $department->children->count() : 0,
             'created_at' => $department->created_at,

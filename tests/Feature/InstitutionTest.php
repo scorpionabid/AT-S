@@ -20,6 +20,13 @@ class InstitutionTest extends TestCase
 
     public function test_admin_can_create_institution()
     {
+        // Create a parent institution first
+        $parentInstitution = \App\Models\Institution::factory()->create([
+            'type' => 'sektor',
+            'level' => 3,
+            'is_active' => true
+        ]);
+
         $admin = User::factory()->create();
         // Assign admin role using Spatie Laravel Permission
         $admin->assignRole('regionadmin');
@@ -30,12 +37,16 @@ class InstitutionTest extends TestCase
             'institution_code' => 'TEST001',
             'type' => 'school',
             'level' => 4,
+            'parent_id' => $parentInstitution->id, // Add valid parent_id
             'contact_info' => [
                 'phone' => '1234567890',
                 'email' => 'institution@test.com',
                 'address' => 'Test Address'
             ],
-            'is_active' => true
+            'is_active' => true,
+            'region_code' => 'TEST',
+            'short_name' => 'Test Inst',
+            'established_date' => '2020-01-01'
         ];
 
         $response = $this->postJson('/api/institutions', $institutionData);
@@ -48,7 +59,13 @@ class InstitutionTest extends TestCase
 
         $response->assertStatus(201);
 
-        $this->assertDatabaseHas('institutions', ['name' => 'Test Institution']);
+        $this->assertDatabaseHas('institutions', [
+            'name' => 'Test Institution',
+            'institution_code' => 'TEST001',
+            'type' => 'school',
+            'level' => 4,
+            'parent_id' => $parentInstitution->id
+        ]);
     }
 
     public function test_user_can_view_own_institution()

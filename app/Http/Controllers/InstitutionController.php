@@ -16,18 +16,26 @@ class InstitutionController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $request->validate([
-            'per_page' => 'nullable|integer|min:1|max:100',
-            'search' => 'nullable|string|max:255',
-            'type' => 'nullable|string|in:ministry,region,sektor,school,vocational,university',
-            'level' => 'nullable|integer|between:1,5',
-            'parent_id' => 'nullable|integer|exists:institutions,id',
-            'region_code' => 'nullable|string|max:10',
-            'is_active' => 'nullable|boolean',
-            'hierarchy' => 'nullable|boolean', // Return as nested hierarchy
-            'sort_by' => 'nullable|string|in:name,type,level,created_at,established_date',
-            'sort_direction' => 'nullable|string|in:asc,desc'
-        ]);
+        try {
+            $request->validate([
+                'per_page' => 'nullable|integer|min:1|max:100',
+                'search' => 'nullable|string|max:255',
+                'type' => 'nullable|string|in:ministry,region,sektor,school,vocational,university',
+                'level' => 'nullable|integer|between:1,5',
+                'parent_id' => 'nullable|integer|exists:institutions,id',
+                'region_code' => 'nullable|string|max:10',
+                'is_active' => 'nullable|boolean',
+                'hierarchy' => 'nullable|boolean', // Return as nested hierarchy
+                'sort_by' => 'nullable|string|in:name,type,level,created_at,established_date',
+                'sort_direction' => 'nullable|string|in:asc,desc'
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            \Log::error('Institution index validation failed', [
+                'request_data' => $request->all(),
+                'validation_errors' => $e->errors()
+            ]);
+            throw $e;
+        }
 
         $query = Institution::with(['parent', 'children']);
 

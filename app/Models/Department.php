@@ -12,6 +12,36 @@ class Department extends Model
     use HasFactory;
 
     /**
+     * Department types based on PRD requirements
+     */
+    const TYPES = [
+        // Regional Administration Departments
+        'maliyyə' => 'Maliyyə Şöbəsi',
+        'inzibati' => 'İnzibati Şöbəsi', 
+        'təsərrüfat' => 'Təsərrüfat Şöbəsi',
+        
+        // School-level Departments
+        'müavin' => 'Müavin Şöbəsi',
+        'ubr' => 'UBR Şöbəsi',
+        'psixoloq' => 'Psixoloji Dəstək Şöbəsi',
+        'müəllim' => 'Fənn Müəllimləri Şöbəsi',
+        
+        // General/Other
+        'general' => 'Ümumi Şöbə',
+        'other' => 'Digər'
+    ];
+
+    /**
+     * Department type groups by institution level
+     */
+    const TYPE_GROUPS = [
+        'regional' => ['maliyyə', 'inzibati', 'təsərrüfat', 'general', 'other'],
+        'sector' => ['maliyyə', 'inzibati', 'təsərrüfat', 'general', 'other'],
+        'school' => ['müavin', 'ubr', 'təsərrüfat', 'psixoloq', 'müəllim', 'general', 'other'],
+        'general' => ['general', 'other']
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<string>
@@ -19,9 +49,14 @@ class Department extends Model
     protected $fillable = [
         'name',
         'short_name',
+        'department_type',
         'institution_id',
         'parent_department_id',
         'description',
+        'metadata',
+        'capacity',
+        'budget_allocation',
+        'functional_scope',
         'is_active',
     ];
 
@@ -34,6 +69,8 @@ class Department extends Model
     {
         return [
             'is_active' => 'boolean',
+            'metadata' => 'array',
+            'budget_allocation' => 'decimal:2',
         ];
     }
 
@@ -106,7 +143,60 @@ class Department extends Model
      */
     public function scopeSearchByName($query, string $search)
     {
-        return $query->where('name', 'ILIKE', "%{$search}%")
-                    ->orWhere('short_name', 'ILIKE', "%{$search}%");
+        return $query->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('short_name', 'LIKE', "%{$search}%");
+    }
+
+    /**
+     * Scope to filter by department type.
+     */
+    public function scopeByType($query, string $type)
+    {
+        return $query->where('department_type', $type);
+    }
+
+    /**
+     * Get department type display name.
+     */
+    public function getTypeDisplayName(): string
+    {
+        return self::TYPES[$this->department_type] ?? $this->department_type;
+    }
+
+    /**
+     * Get allowed department types for institution level.
+     */
+    public static function getAllowedTypesForInstitution(string $institutionType): array
+    {
+        $typeMapping = [
+            'region' => self::TYPE_GROUPS['regional'],
+            'sektor' => self::TYPE_GROUPS['sector'], 
+            'school' => self::TYPE_GROUPS['school'],
+            'vocational' => self::TYPE_GROUPS['school'],
+            'university' => self::TYPE_GROUPS['school']
+        ];
+
+        return $typeMapping[$institutionType] ?? self::TYPE_GROUPS['general'];
+    }
+
+    /**
+     * Check if department type is valid for institution.
+     */
+    public function isValidForInstitution(): bool
+    {
+        if (!$this->institution) {
+            return false;
+        }
+
+        $allowedTypes = self::getAllowedTypesForInstitution($this->institution->type);
+        return in_array($this->department_type, $allowedTypes);
+    }
+
+    /**
+     * Get users assigned to this department.
+     */
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class);
     }
 }
