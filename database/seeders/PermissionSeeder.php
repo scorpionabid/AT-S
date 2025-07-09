@@ -65,6 +65,18 @@ class PermissionSeeder extends Seeder
             'tasks.read',
             'tasks.update',
             'tasks.delete',
+
+            // Reports Management
+            'reports.read',
+            'reports.create',
+            'reports.export',
+
+            // System Management
+            'system.config',
+            'analytics.view',
+
+            // Institutions Extended
+            'institutions.delete',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -85,14 +97,16 @@ class PermissionSeeder extends Seeder
         $rolePermissions = [
             'superadmin' => [
                 'users.create', 'users.read', 'users.update', 'users.delete',
-                'institutions.create', 'institutions.read', 'institutions.update',
+                'institutions.create', 'institutions.read', 'institutions.update', 'institutions.delete',
                 'surveys.create', 'surveys.read', 'surveys.update', 'surveys.delete', 'surveys.publish', 'surveys.manage',
                 'roles.read', 'roles.create', 'roles.update', 'roles.delete',
                 'schedules.create', 'schedules.read',
                 'grades.create', 'grades.read',
                 'attendance.manage',
                 'documents.create', 'documents.read', 'documents.update', 'documents.delete', 'documents.share',
-                'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete'
+                'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
+                'reports.read', 'reports.create', 'reports.export',
+                'system.config', 'analytics.view'
             ],
             'regionadmin' => [
                 'users.read', 'users.create', 'users.update', 'users.delete',
@@ -100,7 +114,9 @@ class PermissionSeeder extends Seeder
                 'surveys.create', 'surveys.read', 'surveys.update', 'surveys.publish', 'surveys.approve',
                 'schedules.read', 'grades.read', 'attendance.manage',
                 'documents.create', 'documents.read', 'documents.update', 'documents.delete', 'documents.share',
-                'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete'
+                'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
+                'reports.read', 'reports.create', 'reports.export',
+                'analytics.view'
             ],
             'schooladmin' => [
                 'users.read', 'users.create', 'users.update',
@@ -109,7 +125,8 @@ class PermissionSeeder extends Seeder
                 'schedules.create', 'schedules.read',
                 'grades.create', 'grades.read', 'attendance.manage',
                 'documents.create', 'documents.read', 'documents.update', 'documents.share',
-                'tasks.read', 'tasks.update'
+                'tasks.read', 'tasks.update',
+                'reports.read'
             ],
             'sektoradmin' => [
                 'users.read', 'users.create', 'users.update',
@@ -117,7 +134,8 @@ class PermissionSeeder extends Seeder
                 'surveys.create', 'surveys.read', 'surveys.update',
                 'schedules.read', 'grades.read',
                 'documents.create', 'documents.read', 'documents.update', 'documents.share',
-                'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete'
+                'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
+                'reports.read'
             ],
             'müəllim' => [
                 'surveys.read', 'surveys.respond',

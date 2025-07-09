@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\Auth\SessionController;
 use App\Http\Controllers\Auth\DeviceController;
 use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\SurveyResponseController;
 use App\Http\Controllers\SurveyTargetingController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\DepartmentController;
@@ -13,6 +14,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentShareController;
+use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\RegionAdmin\RegionAdminDashboardController;
 use App\Http\Controllers\RegionAdmin\RegionAdminInstitutionController;
 use App\Http\Controllers\RegionAdmin\RegionAdminUserController;
@@ -131,6 +133,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('surveys/{survey}/statistics', [SurveyController::class, 'statistics'])->middleware('permission:surveys.read');
     Route::post('surveys/estimate-recipients', [SurveyController::class, 'estimateRecipients'])->middleware('permission:surveys.create');
     
+    // Survey response management
+    Route::get('survey-responses', [SurveyResponseController::class, 'index'])->middleware('permission:surveys.read');
+    Route::post('survey-responses', [SurveyResponseController::class, 'save'])->middleware('permission:surveys.read');
+    Route::get('survey-responses/{response}', [SurveyResponseController::class, 'show'])->middleware('permission:surveys.read');
+    Route::post('surveys/{survey}/responses/start', [SurveyResponseController::class, 'start'])->middleware('permission:surveys.read');
+    Route::put('survey-responses/{response}', [SurveyResponseController::class, 'save'])->middleware('permission:surveys.read');
+    Route::post('survey-responses/{response}/submit', [SurveyResponseController::class, 'submit'])->middleware('permission:surveys.read');
+    Route::post('survey-responses/{response}/approve', [SurveyResponseController::class, 'approve'])->middleware('permission:surveys.manage');
+    Route::post('survey-responses/{response}/reject', [SurveyResponseController::class, 'reject'])->middleware('permission:surveys.manage');
+    Route::delete('survey-responses/{response}', [SurveyResponseController::class, 'destroy'])->middleware('permission:surveys.manage');
+    Route::get('survey-responses/{response}/statistics', [SurveyResponseController::class, 'statistics'])->middleware('permission:surveys.read');
+    
     // Survey targeting routes
     Route::get('survey-targeting/options', [SurveyTargetingController::class, 'getTargetingOptions'])->middleware('permission:surveys.create');
     Route::get('survey-targeting/institutions/hierarchy', [SurveyTargetingController::class, 'getInstitutionHierarchy'])->middleware('permission:surveys.create');
@@ -183,6 +197,10 @@ Route::middleware('auth:sanctum')->group(function () {
     // User storage quota
     Route::get('documents/quota/info', [DocumentController::class, 'getQuotaInfo']);
 
+    // Navigation routes
+    Route::get('navigation/menu', [App\Http\Controllers\NavigationController::class, 'getMenuItems']);
+    Route::get('navigation/stats', [App\Http\Controllers\NavigationController::class, 'getNavigationStats']);
+
     // Dashboard routes
     Route::get('dashboard/stats', [App\Http\Controllers\DashboardController::class, 'stats']);
     Route::get('dashboard/detailed-stats', [App\Http\Controllers\DashboardController::class, 'detailedStats'])->middleware('permission:users.read');
@@ -191,12 +209,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('dashboard/superadmin-analytics', [App\Http\Controllers\DashboardController::class, 'superAdminAnalytics'])->middleware('role:superadmin');
     Route::get('dashboard/system-status', [App\Http\Controllers\DashboardController::class, 'systemStatus'])->middleware('role:superadmin');
     
-    // Reports and Analytics (using existing permissions temporarily)
-    Route::get('reports/overview', [App\Http\Controllers\ReportsController::class, 'getOverviewStats'])->middleware('permission:users.read');
-    Route::get('reports/institutional-performance', [App\Http\Controllers\ReportsController::class, 'getInstitutionalPerformance'])->middleware('permission:institutions.read');
-    Route::get('reports/survey-analytics', [App\Http\Controllers\ReportsController::class, 'getSurveyAnalytics'])->middleware('permission:surveys.read');
-    Route::get('reports/user-activity', [App\Http\Controllers\ReportsController::class, 'getUserActivityReport'])->middleware('permission:users.read');
-    Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:users.read');
+    // Reports and Analytics (with proper permissions)
+    Route::get('reports/overview', [App\Http\Controllers\ReportsController::class, 'getOverviewStats'])->middleware('permission:reports.read');
+    Route::get('reports/institutional-performance', [App\Http\Controllers\ReportsController::class, 'getInstitutionalPerformance'])->middleware('permission:reports.read');
+    Route::get('reports/survey-analytics', [App\Http\Controllers\ReportsController::class, 'getSurveyAnalytics'])->middleware('permission:reports.read');
+    Route::get('reports/user-activity', [App\Http\Controllers\ReportsController::class, 'getUserActivityReport'])->middleware('permission:reports.read');
+    Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:reports.export');
     
     // RegionAdmin Dashboard and Analytics - Refactored Controllers
     Route::prefix('regionadmin')->middleware('role:regionadmin|superadmin')->group(function () {
@@ -227,7 +245,7 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     
     // System Configuration (SuperAdmin only)
-    Route::prefix('system')->middleware('role:superadmin')->group(function () {
+    Route::prefix('system')->middleware('permission:system.config')->group(function () {
         Route::get('config', [App\Http\Controllers\SystemConfigController::class, 'getSystemConfig']);
         Route::put('config', [App\Http\Controllers\SystemConfigController::class, 'updateSystemConfig']);
         Route::get('health', [App\Http\Controllers\SystemConfigController::class, 'getSystemHealth']);
