@@ -23,6 +23,10 @@ use App\Http\Controllers\RegionAdmin\RegionAdminReportsController;
 use App\Http\Controllers\RegionOperator\RegionOperatorDashboardController;
 use App\Http\Controllers\SektorAdmin\SektorAdminDashboardController;
 use App\Http\Controllers\MektebAdmin\MektebAdminDashboardController;
+use App\Http\Controllers\DocumentControllerRefactored;
+use App\Http\Controllers\InstitutionControllerRefactored;
+use App\Http\Controllers\ClassAttendanceController;
+use App\Http\Controllers\ScheduleController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -33,6 +37,14 @@ Route::get('test', function () {
 // Public routes
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('register', [PasswordController::class, 'register']);
+
+// Setup wizard routes (public for initial setup)
+Route::prefix('setup')->group(function () {
+    Route::get('status', [App\Http\Controllers\SetupWizardController::class, 'checkSetupStatus']);
+    Route::post('initialize', [App\Http\Controllers\SetupWizardController::class, 'initializeSystem']);
+    Route::post('sample-structure', [App\Http\Controllers\SetupWizardController::class, 'createSampleStructure']);
+    Route::get('validate', [App\Http\Controllers\SetupWizardController::class, 'validateSystemData']);
+});
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -166,6 +178,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('tasks/{task}', [TaskController::class, 'update'])->middleware('permission:tasks.update');
     Route::delete('tasks/{task}', [TaskController::class, 'destroy'])->middleware('permission:tasks.delete');
     Route::post('tasks/{task}/comments', [TaskController::class, 'addComment'])->middleware('permission:tasks.read');
+    
+    // Hierarchical Task Management - New enhanced features
+    Route::get('tasks/targeting/institutions', [TaskController::class, 'getTargetableInstitutions'])->middleware('permission:tasks.create');
+    Route::get('tasks/targeting/roles', [TaskController::class, 'getAllowedTargetRoles'])->middleware('permission:tasks.create');
+    Route::post('tasks/hierarchical', [TaskController::class, 'createHierarchicalTask'])->middleware('permission:tasks.create');
+    Route::get('tasks/{task}/assignments', [TaskController::class, 'getTaskAssignments'])->middleware('permission:tasks.read');
+    Route::put('assignments/{assignment}/status', [TaskController::class, 'updateAssignmentStatus'])->middleware('permission:tasks.update');
+    Route::get('tasks/{task}/progress', [TaskController::class, 'getTaskProgress'])->middleware('permission:tasks.read');
 
     // Notification management
     Route::get('notifications', [NotificationController::class, 'index']);
@@ -197,8 +217,27 @@ Route::middleware('auth:sanctum')->group(function () {
     // Document sharing
     Route::post('documents/{document}/shares', [DocumentController::class, 'createShare'])->middleware('permission:documents.share');
     
+    // Enhanced document features with regional hierarchy
+    Route::post('documents/upload-with-authority', [DocumentController::class, 'uploadWithAuthority'])->middleware('permission:documents.create');
+    Route::post('documents/{document}/regional-share', [DocumentController::class, 'createRegionalShare'])->middleware('permission:documents.share');
+    Route::get('documents/user-authority', [DocumentController::class, 'getUserAuthority'])->middleware('permission:documents.read');
+    Route::get('documents/accessible', [DocumentController::class, 'getAccessibleDocuments'])->middleware('permission:documents.read');
+    Route::get('documents/statistics', [DocumentController::class, 'getDocumentStatistics'])->middleware('permission:documents.read');
+    
     // User storage quota
     Route::get('documents/quota/info', [DocumentController::class, 'getQuotaInfo']);
+    
+    // Link sharing - New enhanced features
+    Route::get('link-shares', [App\Http\Controllers\LinkShareController::class, 'index'])->middleware('permission:documents.read');
+    Route::post('link-shares', [App\Http\Controllers\LinkShareController::class, 'store'])->middleware('permission:documents.share');
+    Route::get('link-shares/{linkShare}', [App\Http\Controllers\LinkShareController::class, 'show'])->middleware('permission:documents.read');
+    Route::put('link-shares/{linkShare}', [App\Http\Controllers\LinkShareController::class, 'update'])->middleware('permission:documents.share');
+    Route::delete('link-shares/{linkShare}', [App\Http\Controllers\LinkShareController::class, 'destroy'])->middleware('permission:documents.delete');
+    
+    // Link sharing advanced features
+    Route::post('link-shares/{linkShare}/access', [App\Http\Controllers\LinkShareController::class, 'access']);
+    Route::get('link-shares/{linkShare}/statistics', [App\Http\Controllers\LinkShareController::class, 'getStatistics'])->middleware('permission:documents.read');
+    Route::get('link-shares/options/sharing', [App\Http\Controllers\LinkShareController::class, 'getSharingOptions'])->middleware('permission:documents.share');
 
     // Navigation routes
     Route::get('navigation/menu', [App\Http\Controllers\NavigationController::class, 'getMenuItems']);
@@ -311,7 +350,77 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('schedules/{schedule}', [App\Http\Controllers\SystemConfigController::class, 'updateScheduledReport']);
         Route::delete('schedules/{schedule}', [App\Http\Controllers\SystemConfigController::class, 'deleteScheduledReport']);
     });
+
+    // Enhanced Document Management (Refactored)
+    Route::prefix('documents-v2')->group(function () {
+        Route::get('/', [DocumentControllerRefactored::class, 'index'])->middleware('permission:documents.read');
+        Route::post('/', [DocumentControllerRefactored::class, 'store'])->middleware('permission:documents.create');
+        Route::get('/{document}', [DocumentControllerRefactored::class, 'show'])->middleware('permission:documents.read');
+        Route::put('/{document}', [DocumentControllerRefactored::class, 'update'])->middleware('permission:documents.update');
+        Route::delete('/{document}', [DocumentControllerRefactored::class, 'destroy'])->middleware('permission:documents.delete');
+        
+        // Download and preview
+        Route::get('/{document}/download', [DocumentControllerRefactored::class, 'download'])->middleware('permission:documents.read');
+        Route::get('/{document}/preview', [DocumentControllerRefactored::class, 'preview'])->middleware('permission:documents.read');
+        Route::get('/{document}/stats/downloads', [DocumentControllerRefactored::class, 'downloadStats'])->middleware('permission:documents.read');
+        Route::post('/bulk-download', [DocumentControllerRefactored::class, 'bulkDownload'])->middleware('permission:documents.read');
+        
+        // Sharing functionality
+        Route::post('/{document}/share', [DocumentControllerRefactored::class, 'share'])->middleware('permission:documents.share');
+        Route::post('/{document}/public-link', [DocumentControllerRefactored::class, 'createPublicLink'])->middleware('permission:documents.share');
+        Route::get('/{document}/stats/sharing', [DocumentControllerRefactored::class, 'sharingStats'])->middleware('permission:documents.read');
+        Route::delete('/shares/{share}/revoke', [DocumentControllerRefactored::class, 'revokeShare'])->middleware('permission:documents.share');
+        Route::get('/my-shares', [DocumentControllerRefactored::class, 'myShares'])->middleware('permission:documents.read');
+    });
+
+    // Enhanced Institution Management (Refactored)
+    Route::prefix('institutions-v2')->group(function () {
+        Route::get('/', [InstitutionControllerRefactored::class, 'index'])->middleware('permission:institutions.read');
+        Route::post('/', [InstitutionControllerRefactored::class, 'store'])->middleware('permission:institutions.create');
+        Route::get('/hierarchy', [InstitutionControllerRefactored::class, 'hierarchy'])->middleware('permission:institutions.read');
+        Route::get('/statistics', [InstitutionControllerRefactored::class, 'statistics'])->middleware('permission:institutions.read');
+        Route::get('/{institution}', [InstitutionControllerRefactored::class, 'show'])->middleware('permission:institutions.read');
+        Route::put('/{institution}', [InstitutionControllerRefactored::class, 'update'])->middleware('permission:institutions.update');
+        Route::delete('/{institution}', [InstitutionControllerRefactored::class, 'destroy'])->middleware('permission:institutions.delete');
+        
+        // Department management
+        Route::get('/{institution}/departments', [InstitutionControllerRefactored::class, 'departments'])->middleware('permission:institutions.read');
+        Route::post('/{institution}/departments', [InstitutionControllerRefactored::class, 'storeDepartment'])->middleware('permission:institutions.create');
+        Route::get('/{institution}/department-statistics', [InstitutionControllerRefactored::class, 'departmentStatistics'])->middleware('permission:institutions.read');
+        Route::put('/departments/{department}', [InstitutionControllerRefactored::class, 'updateDepartment'])->middleware('permission:institutions.update');
+        Route::delete('/departments/{department}', [InstitutionControllerRefactored::class, 'destroyDepartment'])->middleware('permission:institutions.delete');
+    });
+
+    // Class Attendance Management
+    Route::prefix('attendance')->group(function () {
+        Route::get('/', [ClassAttendanceController::class, 'index'])->middleware('permission:attendance.read');
+        Route::post('/', [ClassAttendanceController::class, 'store'])->middleware('permission:attendance.create');
+        Route::get('/statistics', [ClassAttendanceController::class, 'statistics'])->middleware('permission:attendance.read');
+        Route::get('/{classAttendance}', [ClassAttendanceController::class, 'show'])->middleware('permission:attendance.read');
+        Route::put('/{classAttendance}', [ClassAttendanceController::class, 'update'])->middleware('permission:attendance.update');
+        Route::delete('/{classAttendance}', [ClassAttendanceController::class, 'destroy'])->middleware('permission:attendance.delete');
+        Route::post('/{classAttendance}/approve', [ClassAttendanceController::class, 'approve'])->middleware('permission:attendance.approve');
+        Route::post('/bulk-action', [ClassAttendanceController::class, 'bulkAction'])->middleware('permission:attendance.update');
+    });
+
+    // Schedule Management
+    Route::prefix('schedules')->group(function () {
+        Route::get('/', [ScheduleController::class, 'index'])->middleware('permission:schedules.read');
+        Route::post('/', [ScheduleController::class, 'store'])->middleware('permission:schedules.create');
+        Route::get('/{schedule}', [ScheduleController::class, 'show'])->middleware('permission:schedules.read');
+        Route::put('/{schedule}', [ScheduleController::class, 'update'])->middleware('permission:schedules.update');
+        Route::delete('/{schedule}', [ScheduleController::class, 'destroy'])->middleware('permission:schedules.delete');
+        
+        // Schedule generation and validation
+        Route::post('/generate', [ScheduleController::class, 'generate'])->middleware('permission:schedules.create');
+        Route::post('/validate', [ScheduleController::class, 'validate'])->middleware('permission:schedules.create');
+        Route::post('/{schedule}/approve', [ScheduleController::class, 'approve'])->middleware('permission:schedules.approve');
+        Route::post('/export', [ScheduleController::class, 'export'])->middleware('permission:schedules.read');
+    });
 });
 
 // Public shared document access (no auth required)
 Route::get('shared/{token}', [App\Http\Controllers\DocumentShareController::class, 'access'])->name('documents.shared');
+
+// Public document access via refactored controller
+Route::get('documents/public/{token}', [DocumentControllerRefactored::class, 'accessPublic'])->name('documents.public');

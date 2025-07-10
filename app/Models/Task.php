@@ -26,8 +26,11 @@ class Task extends Model
         'assigned_to',
         'assigned_institution_id',
         'target_institutions',
+        'target_departments',
+        'target_roles',
         'target_scope',
         'notes',
+        'completion_notes',
         'attachments',
         'requires_approval',
         'approved_by',
@@ -40,25 +43,28 @@ class Task extends Model
         'completed_at' => 'datetime',
         'approved_at' => 'datetime',
         'target_institutions' => 'array',
+        'target_departments' => 'array',
+        'target_roles' => 'array',
         'attachments' => 'array',
         'requires_approval' => 'boolean',
         'progress' => 'integer',
     ];
 
-    // Constants for enums
+    // Constants for enums - Updated to English for consistency
     const CATEGORIES = [
-        'hesabat' => 'Hesabat hazırlama',
-        'temir' => 'Təmir və təsərrüfat işləri',
-        'tedbir' => 'Tədbir təşkili və koordinasiya',
-        'audit' => 'Audit və nəzarət tapşırıqları',
-        'telimat' => 'Təlimat və metodiki materialların paylaşılması',
+        'report' => 'Report Preparation',
+        'maintenance' => 'Maintenance and Infrastructure',
+        'event' => 'Event Organization and Coordination',
+        'audit' => 'Audit and Control Tasks',
+        'instruction' => 'Instructions and Methodical Materials',
+        'other' => 'Other Tasks',
     ];
 
     const PRIORITIES = [
-        'asagi' => 'Aşağı',
-        'orta' => 'Orta',
-        'yuksek' => 'Yüksək',
-        'tecili' => 'Təcili',
+        'low' => 'Low',
+        'medium' => 'Medium',
+        'high' => 'High',
+        'urgent' => 'Urgent',
     ];
 
     const STATUSES = [
@@ -114,6 +120,46 @@ class Task extends Model
     public function comments(): HasMany
     {
         return $this->hasMany(TaskComment::class);
+    }
+
+    /**
+     * Task progress logs relationship
+     */
+    public function progressLogs(): HasMany
+    {
+        return $this->hasMany(TaskProgressLog::class);
+    }
+
+    /**
+     * Task notifications relationship
+     */
+    public function notifications(): HasMany
+    {
+        return $this->hasMany(TaskNotification::class);
+    }
+
+    /**
+     * Task assignments relationship
+     */
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(TaskAssignment::class);
+    }
+
+    /**
+     * Task dependencies (tasks this task depends on)
+     */
+    public function dependencies(): HasMany
+    {
+        return $this->hasMany(TaskDependency::class);
+    }
+
+    /**
+     * Tasks that depend on this task
+     */
+    public function dependents(): HasMany
+    {
+        return $this->hasMany(TaskDependency::class, 'depends_on_task_id');
     }
 
     /**
@@ -230,6 +276,184 @@ class Task extends Model
     public function getStatusLabelAttribute(): string
     {
         return self::STATUSES[$this->status] ?? $this->status;
+    }
+
+    /**
+     * HIERARCHICAL AUTHORITY METHODS
+     */
+
+    /**
+     * Check if user can create tasks for given target institutions
+     */
+    public static function canCreateTaskForTargets(User $user, array $targetInstitutionIds): bool
+    {
+        $userRole = $user->roles->first();
+        if (!$userRole) return false;
+
+        $userInstitution = $user->institution;
+        if (!$userInstitution) return false;
+
+        foreach ($targetInstitutionIds as $targetId) {
+            if (!self::canUserTargetInstitution($user, $userRole, $targetId)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if user can target specific institution based on hierarchical authority
+     */
+    private static function canUserTargetInstitution(User $user, $userRole, int $targetInstitutionId): bool
+    {
+        $userInstitution = $user->institution;
+        $targetInstitution = Institution::find($targetInstitutionId);
+        
+        if (!$targetInstitution) return false;
+
+        // SuperAdmin can target anyone
+        if ($userRole->name === 'superadmin') return true;
+
+        // RegionAdmin can target own region and below
+        if ($userRole->name === 'regionadmin') {
+            return self::isInstitutionInRegionalHierarchy($userInstitution, $targetInstitution);
+        }
+
+        // SektorAdmin can target own sector and below
+        if ($userRole->name === 'sektoradmin') {
+            return self::isInstitutionInSectorHierarchy($userInstitution, $targetInstitution);
+        }
+
+        // RegionOperator can target schools in their region
+        if ($userRole->name === 'regionoperator') {
+            return self::isInstitutionInRegionalHierarchy($userInstitution, $targetInstitution) && 
+                   $targetInstitution->type === 'school';
+        }
+
+        // SektorOperator can target schools in their sector
+        if ($userRole->name === 'sektoroperator') {
+            return self::isInstitutionInSectorHierarchy($userInstitution, $targetInstitution) && 
+                   $targetInstitution->type === 'school';
+        }
+
+        // School-level roles can only target their own institution
+        if (in_array($userRole->name, ['schooladmin', 'deputy', 'teacher'])) {
+            return $userInstitution->id === $targetInstitution->id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if target institution is within user's regional hierarchy
+     */
+    private static function isInstitutionInRegionalHierarchy(Institution $userInstitution, Institution $targetInstitution): bool
+    {
+        // If user is at region level
+        if ($userInstitution->type === 'region') {
+            // Target must be in same region or be the region itself
+            return $targetInstitution->region_code === $userInstitution->region_code;
+        }
+
+        // If user is at sector level, get their region and check
+        if ($userInstitution->type === 'sektor') {
+            $userRegion = $userInstitution->parent;
+            return $userRegion && $targetInstitution->region_code === $userRegion->region_code;
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if target institution is within user's sector hierarchy
+     */
+    private static function isInstitutionInSectorHierarchy(Institution $userInstitution, Institution $targetInstitution): bool
+    {
+        // If user is at sector level
+        if ($userInstitution->type === 'sektor') {
+            // Target must be within this sector (schools under this sector)
+            return $targetInstitution->parent_id === $userInstitution->id ||
+                   $targetInstitution->id === $userInstitution->id;
+        }
+
+        return false;
+    }
+
+    /**
+     * Get allowed target roles for a user
+     */
+    public static function getAllowedTargetRoles(User $user): array
+    {
+        $userRole = $user->roles->first();
+        if (!$userRole) return [];
+
+        $allowedRoles = [
+            'superadmin' => ['regionadmin', 'regionoperator', 'sektoradmin', 'sektoroperator', 'schooladmin', 'deputy', 'teacher'],
+            'regionadmin' => ['regionoperator', 'sektoradmin', 'sektoroperator', 'schooladmin', 'deputy', 'teacher'],
+            'regionoperator' => ['schooladmin', 'deputy', 'teacher'],
+            'sektoradmin' => ['sektoroperator', 'schooladmin', 'deputy', 'teacher'],
+            'sektoroperator' => ['schooladmin', 'deputy', 'teacher'],
+            'schooladmin' => ['deputy', 'teacher'],
+            'deputy' => ['teacher'],
+        ];
+
+        return $allowedRoles[$userRole->name] ?? [];
+    }
+
+    /**
+     * Get institutions user can create tasks for
+     */
+    public static function getUserTargetableInstitutions(User $user): array
+    {
+        $userRole = $user->roles->first();
+        if (!$userRole) return [];
+
+        $userInstitution = $user->institution;
+        if (!$userInstitution) return [];
+
+        // SuperAdmin can target all active institutions
+        if ($userRole->name === 'superadmin') {
+            return Institution::where('is_active', true)->pluck('id')->toArray();
+        }
+
+        // RegionAdmin can target all institutions in their region
+        if ($userRole->name === 'regionadmin') {
+            return Institution::where('region_code', $userInstitution->region_code)
+                             ->where('is_active', true)
+                             ->pluck('id')->toArray();
+        }
+
+        // SektorAdmin can target their sector and schools under it
+        if ($userRole->name === 'sektoradmin') {
+            return Institution::where(function($q) use ($userInstitution) {
+                $q->where('id', $userInstitution->id)
+                  ->orWhere('parent_id', $userInstitution->id);
+            })->where('is_active', true)->pluck('id')->toArray();
+        }
+
+        // Operators can target schools
+        if (in_array($userRole->name, ['regionoperator', 'sektoroperator'])) {
+            $query = Institution::where('type', 'school')->where('is_active', true);
+            
+            if ($userRole->name === 'regionoperator') {
+                $query->where('region_code', $userInstitution->region_code);
+            } else {
+                $userSector = $userInstitution->type === 'sektor' ? $userInstitution : $userInstitution->parent;
+                if ($userSector) {
+                    $query->where('parent_id', $userSector->id);
+                }
+            }
+            
+            return $query->pluck('id')->toArray();
+        }
+
+        // School-level roles can only target their own institution
+        if (in_array($userRole->name, ['schooladmin', 'deputy', 'teacher'])) {
+            return [$userInstitution->id];
+        }
+
+        return [];
     }
 
     /**

@@ -40,13 +40,13 @@ class RegionOperatorDashboardController extends Controller
                 ->where('is_active', true)
                 ->count();
 
-            // Mock task data for now (can be replaced with actual task model)
-            $assignedTasks = 12;
-            $completedTasks = 8;
-            $pendingTasks = $assignedTasks - $completedTasks;
+            // TODO: Replace with actual Task model when implemented
+            $assignedTasks = 0;
+            $completedTasks = 0;
+            $pendingTasks = 0;
 
-            // Get recent activities (mock data for now)
-            $recentActivities = $this->getRecentActivities($user, $userDepartment);
+            // TODO: Replace with actual Activity model when implemented
+            $recentActivities = [];
 
             // Department information
             $departmentInfo = [
@@ -83,39 +83,8 @@ class RegionOperatorDashboardController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        // Mock tasks data
-        $tasks = [
-            [
-                'id' => 1,
-                'title' => 'Büdcə hesabatı hazırlama',
-                'description' => 'Mart ayı üçün departament büdcə hesabatının hazırlanması',
-                'status' => 'in_progress',
-                'priority' => 'high',
-                'due_date' => Carbon::now()->addDays(3)->format('Y-m-d'),
-                'assigned_by' => 'Regional İdarə',
-                'created_at' => Carbon::now()->subDays(2)->format('Y-m-d H:i:s')
-            ],
-            [
-                'id' => 2,
-                'title' => 'Sənəd təsdiqi',
-                'description' => 'Yeni maliyyə sənədlərinin nəzərdən keçirilməsi və təsdiqi',
-                'status' => 'pending',
-                'priority' => 'medium',
-                'due_date' => Carbon::now()->addDays(5)->format('Y-m-d'),
-                'assigned_by' => 'Departament Rəhbəri',
-                'created_at' => Carbon::now()->subDays(1)->format('Y-m-d H:i:s')
-            ],
-            [
-                'id' => 3,
-                'title' => 'Kadr təyinatı',
-                'description' => 'Departamentə yeni əməkdaş seçimi prosesi',
-                'status' => 'completed',
-                'priority' => 'medium',
-                'due_date' => Carbon::now()->subDays(1)->format('Y-m-d'),
-                'assigned_by' => 'İnsan Resursları',
-                'created_at' => Carbon::now()->subDays(5)->format('Y-m-d H:i:s')
-            ]
-        ];
+        // TODO: Replace with actual Task model when implemented
+        $tasks = [];
 
         return response()->json([
             'tasks' => $tasks,
@@ -183,47 +152,6 @@ class RegionOperatorDashboardController extends Controller
         }
     }
 
-    /**
-     * Get recent activities for the department
-     */
-    private function getRecentActivities($user, $department): array
-    {
-        // Mock activities - this would be replaced with actual activity logging
-        return [
-            [
-                'id' => '1',
-                'type' => 'task',
-                'title' => 'Büdcə hesabatı hazırlama',
-                'description' => 'Aylıq büdcə hesabatının tamamlanması',
-                'time' => '2 saat əvvəl',
-                'status' => 'in_progress'
-            ],
-            [
-                'id' => '2',
-                'type' => 'document',
-                'title' => 'Maliyyə sənədləri təsdiq',
-                'description' => 'Yeni maliyyə sənədlərinin təsdiq edilməsi',
-                'time' => '1 gün əvvəl',
-                'status' => 'completed'
-            ],
-            [
-                'id' => '3',
-                'type' => 'meeting',
-                'title' => 'Departament toplantısı',
-                'description' => 'Həftəlik iş planının müzakirəsi',
-                'time' => '2 gün əvvəl',
-                'status' => 'completed'
-            ],
-            [
-                'id' => '4',
-                'type' => 'report',
-                'title' => 'Aylıq hesabat təqdim',
-                'description' => 'Fevral ayı fəaliyyət hesabatı',
-                'time' => '3 gün əvvəl',
-                'status' => 'completed'
-            ]
-        ];
-    }
 
     /**
      * Get department type display name

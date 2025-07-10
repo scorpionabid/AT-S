@@ -4,7 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use App\Models\TaskComment;
+use App\Models\TaskAssignment;
+use App\Models\TaskProgressLog;
+use App\Models\TaskNotification;
 use App\Models\Institution;
+use App\Models\Department;
 use App\Services\NotificationService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -404,6 +408,234 @@ class TaskController extends Controller
     }
 
     /**
+     * Get targetable institutions for current user
+     */
+    public function getTargetableInstitutions(): JsonResponse
+    {
+        $user = Auth::user();
+        $targetableIds = Task::getUserTargetableInstitutions($user);
+        
+        $institutions = Institution::whereIn('id', $targetableIds)
+                                  ->where('is_active', true)
+                                  ->with('parent')
+                                  ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $institutions
+        ]);
+    }
+
+    /**
+     * Get allowed target roles for current user
+     */
+    public function getAllowedTargetRoles(): JsonResponse
+    {
+        $user = Auth::user();
+        $allowedRoles = Task::getAllowedTargetRoles($user);
+
+        return response()->json([
+            'success' => true,
+            'data' => $allowedRoles
+        ]);
+    }
+
+    /**
+     * Create task with hierarchical assignments
+     */
+    public function createHierarchicalTask(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Check if user has authority to create tasks
+        if (!$user->hasRole(['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'sektoroperator', 'schooladmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Tapşırıq yaratmaq səlahiyyətiniz yoxdur.'
+            ], 403);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:300',
+            'description' => 'required|string',
+            'category' => ['required', Rule::in(['report', 'maintenance', 'event', 'audit', 'instruction', 'other'])],
+            'priority' => ['required', Rule::in(['low', 'medium', 'high', 'urgent'])],
+            'deadline' => 'nullable|date|after:now',
+            'target_institutions' => 'required|array|min:1',
+            'target_institutions.*' => 'integer|exists:institutions,id',
+            'target_departments' => 'nullable|array',
+            'target_departments.*' => 'integer|exists:departments,id',
+            'target_roles' => 'nullable|array',
+            'target_roles.*' => 'string',
+            'notes' => 'nullable|string',
+            'requires_approval' => 'nullable|boolean',
+        ]);
+
+        // Check if user can target these institutions
+        if (!Task::canCreateTaskForTargets($user, $request->target_institutions)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Seçilən təşkilatlara tapşırıq təyin etməyə səlahiyyətiniz yoxdur.'
+            ], 403);
+        }
+
+        // Create the main task
+        $task = Task::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'category' => $request->category,
+            'priority' => $request->priority,
+            'deadline' => $request->deadline,
+            'created_by' => $user->id,
+            'assigned_to' => $user->id, // Initially assigned to creator
+            'target_institutions' => $request->target_institutions,
+            'target_departments' => $request->target_departments,
+            'target_roles' => $request->target_roles,
+            'target_scope' => 'specific',
+            'notes' => $request->notes,
+            'requires_approval' => $request->requires_approval ?? false,
+        ]);
+
+        // Create task assignments for each target institution
+        foreach ($request->target_institutions as $institutionId) {
+            $assignment = TaskAssignment::create([
+                'task_id' => $task->id,
+                'institution_id' => $institutionId,
+                'assigned_role' => $request->target_roles[0] ?? 'schooladmin', // Default to schooladmin
+                'assignment_status' => 'pending',
+                'assigned_at' => now(),
+            ]);
+
+            // Create notification for each assignment
+            $this->createTaskNotification($task, $assignment);
+        }
+
+        // Log task creation
+        TaskProgressLog::create([
+            'task_id' => $task->id,
+            'updated_by' => $user->id,
+            'old_status' => null,
+            'new_status' => 'pending',
+            'progress_percentage' => 0,
+            'notes' => 'Task created and assigned to ' . count($request->target_institutions) . ' institutions',
+        ]);
+
+        $task->load(['creator', 'assignments.institution', 'assignments.assignedUser']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Tapşırıq uğurla yaradıldı və təyin edildi.',
+            'data' => $task
+        ], 201);
+    }
+
+    /**
+     * Get task assignments for monitoring
+     */
+    public function getTaskAssignments(Task $task): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$this->canUserAccessTask($user, $task)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu tapşırığın təyinatlarını görməyə icazəniz yoxdur.'
+            ], 403);
+        }
+
+        $assignments = TaskAssignment::where('task_id', $task->id)
+                                   ->with(['institution', 'department', 'assignedUser'])
+                                   ->get();
+
+        return response()->json([
+            'success' => true,
+            'data' => $assignments
+        ]);
+    }
+
+    /**
+     * Update task assignment status
+     */
+    public function updateAssignmentStatus(Request $request, TaskAssignment $assignment): JsonResponse
+    {
+        $user = Auth::user();
+
+        // Check if user can update this assignment
+        if (!$this->canUserUpdateAssignment($user, $assignment)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu təyinatı yeniləməyə icazəniz yoxdur.'
+            ], 403);
+        }
+
+        $request->validate([
+            'assignment_status' => ['required', Rule::in(['accepted', 'in_progress', 'completed', 'rejected'])],
+            'assignment_notes' => 'nullable|string',
+            'completion_data' => 'nullable|array',
+        ]);
+
+        $oldStatus = $assignment->assignment_status;
+        
+        $assignment->update([
+            'assignment_status' => $request->assignment_status,
+            'assignment_notes' => $request->assignment_notes,
+            'completion_data' => $request->completion_data,
+            'assigned_user_id' => $assignment->assigned_user_id ?? $user->id,
+        ]);
+
+        // Log progress
+        TaskProgressLog::create([
+            'task_id' => $assignment->task_id,
+            'updated_by' => $user->id,
+            'old_status' => $oldStatus,
+            'new_status' => $request->assignment_status,
+            'progress_percentage' => $this->calculateTaskProgress($assignment->task),
+            'notes' => "Assignment for {$assignment->institution->name} updated to {$request->assignment_status}",
+        ]);
+
+        // Update main task progress
+        $this->updateTaskProgressFromAssignments($assignment->task);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Təyinat statusu yeniləndi.',
+            'data' => $assignment->fresh(['institution', 'assignedUser'])
+        ]);
+    }
+
+    /**
+     * Get task progress overview
+     */
+    public function getTaskProgress(Task $task): JsonResponse
+    {
+        $user = Auth::user();
+
+        if (!$this->canUserAccessTask($user, $task)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu tapşırığın irəliləyişini görməyə icazəniz yoxdur.'
+            ], 403);
+        }
+
+        $assignments = TaskAssignment::where('task_id', $task->id)->get();
+        
+        $progress = [
+            'total_assignments' => $assignments->count(),
+            'pending' => $assignments->where('assignment_status', 'pending')->count(),
+            'accepted' => $assignments->where('assignment_status', 'accepted')->count(),
+            'in_progress' => $assignments->where('assignment_status', 'in_progress')->count(),
+            'completed' => $assignments->where('assignment_status', 'completed')->count(),
+            'rejected' => $assignments->where('assignment_status', 'rejected')->count(),
+            'completion_percentage' => $this->calculateTaskProgress($task),
+        ];
+
+        return response()->json([
+            'success' => true,
+            'data' => $progress
+        ]);
+    }
+
+    /**
      * Check if user can access task
      */
     private function canUserAccessTask($user, $task): bool
@@ -464,5 +696,89 @@ class TaskController extends Controller
         }
         
         return [];
+    }
+
+    /**
+     * Check if user can update task assignment
+     */
+    private function canUserUpdateAssignment($user, $assignment): bool
+    {
+        // SuperAdmin can update any assignment
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        // Task creator can update assignments
+        if ($assignment->task->created_by === $user->id) {
+            return true;
+        }
+
+        // User from the assigned institution with proper role can update
+        if ($user->institution_id === $assignment->institution_id) {
+            $userRole = $user->roles->first();
+            return $userRole && $userRole->name === $assignment->assigned_role;
+        }
+
+        return false;
+    }
+
+    /**
+     * Calculate task progress based on assignments
+     */
+    private function calculateTaskProgress($task): int
+    {
+        $assignments = TaskAssignment::where('task_id', $task->id)->get();
+        
+        if ($assignments->isEmpty()) {
+            return 0;
+        }
+
+        $completedAssignments = $assignments->where('assignment_status', 'completed')->count();
+        $totalAssignments = $assignments->count();
+
+        return (int) round(($completedAssignments / $totalAssignments) * 100);
+    }
+
+    /**
+     * Update main task progress from assignments
+     */
+    private function updateTaskProgressFromAssignments($task): void
+    {
+        $progress = $this->calculateTaskProgress($task);
+        
+        $task->update(['progress' => $progress]);
+
+        // If all assignments are completed, mark task as completed
+        if ($progress === 100) {
+            $task->update([
+                'status' => 'completed',
+                'completed_at' => now()
+            ]);
+        } elseif ($progress > 0 && $task->status === 'pending') {
+            $task->update(['status' => 'in_progress']);
+        }
+    }
+
+    /**
+     * Create task notification for assignment
+     */
+    private function createTaskNotification($task, $assignment): void
+    {
+        // Find users with the assigned role in the target institution
+        $users = \App\Models\User::whereHas('roles', function($q) use ($assignment) {
+            $q->where('name', $assignment->assigned_role);
+        })
+        ->where('institution_id', $assignment->institution_id)
+        ->get();
+
+        foreach ($users as $user) {
+            TaskNotification::create([
+                'task_id' => $task->id,
+                'user_id' => $user->id,
+                'notification_type' => 'assigned',
+                'message' => "Sizə yeni tapşırıq təyin edildi: {$task->title}",
+                'is_read' => false,
+            ]);
+        }
     }
 }
