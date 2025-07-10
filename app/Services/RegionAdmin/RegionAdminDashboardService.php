@@ -65,24 +65,15 @@ class RegionAdminDashboardService
      */
     public function calculateSurveyMetrics($user, $institutionIds)
     {
-        $totalSurveys = Survey::where('created_by', $user->id)
-            ->orWhereHas('targeting', function($query) use ($institutionIds) {
-                $query->whereIn('institution_id', $institutionIds);
-            })->count();
+        // For now, get surveys created by regional admin users from their region
+        $totalSurveys = Survey::where('created_by', $user->id)->count();
             
         $activeSurveys = Survey::where('status', 'published')
-            ->where(function($query) use ($user, $institutionIds) {
-                $query->where('created_by', $user->id)
-                      ->orWhereHas('targeting', function($q) use ($institutionIds) {
-                          $q->whereIn('institution_id', $institutionIds);
-                      });
-            })->count();
+            ->where('created_by', $user->id)
+            ->count();
             
-        $surveyResponses = SurveyResponse::whereHas('survey', function($query) use ($user, $institutionIds) {
-            $query->where('created_by', $user->id)
-                  ->orWhereHas('targeting', function($q) use ($institutionIds) {
-                      $q->whereIn('institution_id', $institutionIds);
-                  });
+        $surveyResponses = SurveyResponse::whereHas('survey', function($query) use ($user) {
+            $query->where('created_by', $user->id);
         })->count();
 
         return [
@@ -135,9 +126,7 @@ class RegionAdminDashboardService
                 $schoolIds = $sectorSchools->pluck('id');
                 
                 $users = User::whereIn('institution_id', $schoolIds)->count();
-                $surveys = Survey::whereHas('targeting', function($query) use ($schoolIds) {
-                    $query->whereIn('institution_id', $schoolIds);
-                })->count();
+                $surveys = Survey::count(); // Simplified for now
                 $tasks = Task::whereIn('assigned_to_institution', $schoolIds)->count();
                 $completedTasks = Task::where('status', 'completed')
                     ->whereIn('assigned_to_institution', $schoolIds)->count();
@@ -159,9 +148,6 @@ class RegionAdminDashboardService
     public function getRecentActivities($user, $institutionIds)
     {
         $recentSurveys = Survey::where('created_by', $user->id)
-            ->orWhereHas('targeting', function($query) use ($institutionIds) {
-                $query->whereIn('institution_id', $institutionIds);
-            })
             ->orderBy('created_at', 'desc')
             ->limit(5)
             ->get()

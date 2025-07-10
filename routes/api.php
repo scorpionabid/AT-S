@@ -20,6 +20,9 @@ use App\Http\Controllers\RegionAdmin\RegionAdminInstitutionController;
 use App\Http\Controllers\RegionAdmin\RegionAdminUserController;
 use App\Http\Controllers\RegionAdmin\RegionAdminSurveyController;
 use App\Http\Controllers\RegionAdmin\RegionAdminReportsController;
+use App\Http\Controllers\RegionOperator\RegionOperatorDashboardController;
+use App\Http\Controllers\SektorAdmin\SektorAdminDashboardController;
+use App\Http\Controllers\MektebAdmin\MektebAdminDashboardController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -71,10 +74,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User management with proper roles
     Route::get('users', [UserController::class, 'index'])->middleware('permission:users.read');
-    Route::post('users', [UserController::class, 'store'])->middleware('permission:users.create');
+    Route::post('users', [UserController::class, 'store'])->middleware(['permission:users.create', 'audit.logging']);
     Route::get('users/{user}', [UserController::class, 'show'])->middleware('permission:users.read');
-    Route::put('users/{user}', [UserController::class, 'update'])->middleware('permission:users.update');
-    Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware('permission:users.delete');
+    Route::put('users/{user}', [UserController::class, 'update'])->middleware(['permission:users.update', 'audit.logging']);
+    Route::delete('users/{user}', [UserController::class, 'destroy'])->middleware(['permission:users.delete', 'audit.logging']);
     
     // User bulk operations
     Route::post('users/bulk/activate', [UserController::class, 'bulkActivate'])->middleware('permission:users.update');
@@ -97,10 +100,10 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Institution management
     Route::get('institutions', [App\Http\Controllers\InstitutionController::class, 'index'])->middleware('permission:institutions.read');
-    Route::post('institutions', [App\Http\Controllers\InstitutionController::class, 'store'])->middleware('permission:institutions.create');
+    Route::post('institutions', [App\Http\Controllers\InstitutionController::class, 'store'])->middleware(['permission:institutions.create', 'audit.logging']);
     Route::get('institutions/{institution}', [App\Http\Controllers\InstitutionController::class, 'show'])->middleware('permission:institutions.read');
-    Route::put('institutions/{institution}', [App\Http\Controllers\InstitutionController::class, 'update'])->middleware('permission:institutions.update');
-    Route::delete('institutions/{institution}', [App\Http\Controllers\InstitutionController::class, 'destroy'])->middleware('permission:institutions.delete');
+    Route::put('institutions/{institution}', [App\Http\Controllers\InstitutionController::class, 'update'])->middleware(['permission:institutions.update', 'audit.logging']);
+    Route::delete('institutions/{institution}', [App\Http\Controllers\InstitutionController::class, 'destroy'])->middleware(['permission:institutions.delete', 'audit.logging']);
     Route::get('institutions/{institution}/departments', [App\Http\Controllers\InstitutionController::class, 'departments'])->middleware('permission:institutions.read');
     Route::get('institutions/{institution}/statistics', [App\Http\Controllers\InstitutionController::class, 'statistics'])->middleware('permission:institutions.read');
 
@@ -114,10 +117,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Role management
     Route::get('roles', [RoleController::class, 'index'])->middleware('permission:roles.read');
-    Route::post('roles', [RoleController::class, 'store'])->middleware('permission:roles.create');
+    Route::post('roles', [RoleController::class, 'store'])->middleware(['permission:roles.create', 'audit.logging']);
     Route::get('roles/{role}', [RoleController::class, 'show'])->middleware('permission:roles.read');
-    Route::put('roles/{role}', [RoleController::class, 'update'])->middleware('permission:roles.update');
-    Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware('permission:roles.delete');
+    Route::put('roles/{role}', [RoleController::class, 'update'])->middleware(['permission:roles.update', 'audit.logging']);
+    Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware(['permission:roles.delete', 'audit.logging']);
     Route::get('permissions', [RoleController::class, 'permissions'])->middleware('permission:roles.read');
 
     // Survey management
@@ -217,19 +220,45 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('reports/export', [App\Http\Controllers\ReportsController::class, 'exportReport'])->middleware('permission:reports.export');
     
     // RegionAdmin Dashboard and Analytics - Refactored Controllers
-    Route::prefix('regionadmin')->middleware('role:regionadmin|superadmin')->group(function () {
+    Route::prefix('regionadmin')->middleware(['role:regionadmin|superadmin', 'regional.access:institutions', 'audit.logging'])->group(function () {
         // Dashboard endpoints
         Route::get('dashboard', [RegionAdminDashboardController::class, 'getDashboardStats']);
         
-        // Institution management endpoints
-        Route::get('institutions', [RegionAdminInstitutionController::class, 'getInstitutionStats']);
+        // Institution management endpoints - READ operations
+        Route::get('institutions', [RegionAdminInstitutionController::class, 'index']);
+        Route::get('institutions/stats', [RegionAdminInstitutionController::class, 'getInstitutionStats']);
         Route::get('institutions/hierarchy', [RegionAdminInstitutionController::class, 'getInstitutionHierarchy']);
         Route::get('institutions/performance', [RegionAdminInstitutionController::class, 'getPerformanceInsights']);
+        Route::get('institutions/{id}', [RegionAdminInstitutionController::class, 'show']);
         
-        // User management endpoints
-        Route::get('users', [RegionAdminUserController::class, 'getUserStats']);
+        // Institution management endpoints - WRITE operations
+        Route::post('institutions', [RegionAdminInstitutionController::class, 'store']);
+        Route::put('institutions/{id}', [RegionAdminInstitutionController::class, 'update']);
+        Route::delete('institutions/{id}', [RegionAdminInstitutionController::class, 'destroy']);
+        
+        // Department management endpoints
+        Route::get('institutions/{institutionId}/departments', [RegionAdminInstitutionController::class, 'getDepartments']);
+        Route::post('institutions/{institutionId}/departments', [RegionAdminInstitutionController::class, 'storeDepartment']);
+        Route::get('institutions/{institutionId}/departments/{departmentId}', [RegionAdminInstitutionController::class, 'showDepartment']);
+        Route::put('institutions/{institutionId}/departments/{departmentId}', [RegionAdminInstitutionController::class, 'updateDepartment']);
+        Route::delete('institutions/{institutionId}/departments/{departmentId}', [RegionAdminInstitutionController::class, 'destroyDepartment']);
+        
+        // User management endpoints - READ operations
+        Route::get('users', [RegionAdminUserController::class, 'index']);
+        Route::get('users/stats', [RegionAdminUserController::class, 'getUserStats']);
         Route::get('users/list', [RegionAdminUserController::class, 'getUsersList']);
         Route::get('users/activity', [RegionAdminUserController::class, 'getUserActivity']);
+        Route::get('users/{id}', [RegionAdminUserController::class, 'show']);
+        
+        // User management endpoints - WRITE operations
+        Route::post('users', [RegionAdminUserController::class, 'store']);
+        Route::put('users/{id}', [RegionAdminUserController::class, 'update']);
+        Route::delete('users/{id}', [RegionAdminUserController::class, 'destroy']);
+        
+        // User management helper endpoints
+        Route::get('roles/available', [RegionAdminUserController::class, 'getAvailableRoles']);
+        Route::get('institutions/available', [RegionAdminUserController::class, 'getAvailableInstitutions']);
+        Route::get('institutions/{institutionId}/departments', [RegionAdminUserController::class, 'getInstitutionDepartments']);
         
         // Survey analytics endpoints
         Route::get('surveys', [RegionAdminSurveyController::class, 'getSurveyAnalytics']);
@@ -242,6 +271,30 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('reports/surveys', [RegionAdminReportsController::class, 'getSurveyReports']);
         Route::get('reports/users', [RegionAdminReportsController::class, 'getUserReports']);
         Route::post('reports/export', [RegionAdminReportsController::class, 'exportReport']);
+    });
+    
+    // RegionOperator Dashboard and Analytics
+    Route::prefix('regionoperator')->middleware(['role:regionoperator', 'regional.access:departments', 'audit.logging'])->group(function () {
+        // Dashboard endpoints
+        Route::get('dashboard', [RegionOperatorDashboardController::class, 'getDashboardStats']);
+        Route::get('tasks', [RegionOperatorDashboardController::class, 'getUserTasks']);
+        Route::get('team', [RegionOperatorDashboardController::class, 'getDepartmentTeam']);
+    });
+    
+    // SektorAdmin Dashboard and Analytics
+    Route::prefix('sektoradmin')->middleware(['role:sektoradmin', 'regional.access:sector', 'audit.logging'])->group(function () {
+        // Dashboard endpoints
+        Route::get('dashboard', [SektorAdminDashboardController::class, 'getDashboardStats']);
+        Route::get('schools', [SektorAdminDashboardController::class, 'getSectorSchools']);
+        Route::get('analytics', [SektorAdminDashboardController::class, 'getSectorAnalytics']);
+    });
+    
+    // MəktəbAdmin Dashboard and Analytics
+    Route::prefix('mektebadmin')->middleware(['role:məktəbadmin', 'regional.access:school', 'audit.logging'])->group(function () {
+        // Dashboard endpoints
+        Route::get('dashboard', [MektebAdminDashboardController::class, 'getDashboardStats']);
+        Route::get('classes', [MektebAdminDashboardController::class, 'getSchoolClasses']);
+        Route::get('teachers', [MektebAdminDashboardController::class, 'getSchoolTeachers']);
     });
     
     // System Configuration (SuperAdmin only)

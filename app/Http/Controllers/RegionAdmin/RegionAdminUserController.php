@@ -5,8 +5,13 @@ namespace App\Http\Controllers\RegionAdmin;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Institution;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 use Carbon\Carbon;
 
 class RegionAdminUserController extends Controller
@@ -235,5 +240,349 @@ class RegionAdminUserController extends Controller
                 'most_active_day' => collect($dailyActivity)->sortByDesc('active_users')->first()
             ]
         ]);
+    }
+
+    // USER MANAGEMENT CRUD OPERATIONS
+
+    /**
+     * Get users list for RegionAdmin with filters
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        // Get all institutions in region
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        $query = User::whereIn('institution_id', $allowedInstitutionIds)
+            ->with(['roles', 'institution', 'department']);
+        
+        // Apply filters
+        if ($request->has('role')) {
+            $query->whereHas('roles', function($q) use ($request) {
+                $q->where('name', $request->role);
+            });
+        }
+        
+        if ($request->has('institution_id')) {
+            $query->where('institution_id', $request->institution_id);
+        }
+        
+        if ($request->has('department_id')) {
+            $query->where('department_id', $request->department_id);
+        }
+        
+        if ($request->has('status')) {
+            $query->where('is_active', $request->status === 'active');
+        }
+        
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('username', 'LIKE', "%{$search}%")
+                  ->orWhere('email', 'LIKE', "%{$search}%")
+                  ->orWhere('first_name', 'LIKE', "%{$search}%")
+                  ->orWhere('last_name', 'LIKE', "%{$search}%");
+            });
+        }
+        
+        $users = $query->orderBy('created_at', 'desc')->paginate(15);
+        
+        return response()->json([
+            'users' => $users->items(),
+            'pagination' => [
+                'current_page' => $users->currentPage(),
+                'last_page' => $users->lastPage(),
+                'per_page' => $users->perPage(),
+                'total' => $users->total()
+            ]
+        ]);
+    }
+
+    /**
+     * Create a new user within RegionAdmin's scope
+     */
+    public function store(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        // Get allowed institutions and departments
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        $validator = Validator::make($request->all(), [
+            'username' => 'required|string|max:255|unique:users,username',
+            'email' => 'required|email|max:255|unique:users,email',
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'password' => 'required|string|min:8|confirmed',
+            'role_name' => ['required', 'string', Rule::in(['regionoperator', 'sektoradmin', 'məktəbadmin', 'müəllim'])],
+            'institution_id' => ['required', 'integer', Rule::in($allowedInstitutionIds)],
+            'department_id' => 'nullable|integer|exists:departments,id'
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        
+        $data = $validator->validated();
+        
+        // Validate department belongs to institution
+        if (!empty($data['department_id'])) {
+            $department = Department::where('id', $data['department_id'])
+                ->where('institution_id', $data['institution_id'])
+                ->first();
+            if (!$department) {
+                return response()->json([
+                    'message' => 'Department must belong to the selected institution'
+                ], 400);
+            }
+        }
+        
+        // Validate role permissions
+        $allowedRoles = ['regionoperator', 'sektoradmin', 'məktəbadmin', 'müəllim'];
+        if (!in_array($data['role_name'], $allowedRoles)) {
+            return response()->json([
+                'message' => 'Invalid role for RegionAdmin'
+            ], 400);
+        }
+        
+        try {
+            // Create user
+            $newUser = User::create([
+                'username' => $data['username'],
+                'email' => $data['email'],
+                'first_name' => $data['first_name'] ?? null,
+                'last_name' => $data['last_name'] ?? null,
+                'password' => Hash::make($data['password']),
+                'institution_id' => $data['institution_id'],
+                'department_id' => $data['department_id'] ?? null,
+                'is_active' => true,
+                'password_changed_at' => now(),
+                'password_change_required' => false
+            ]);
+            
+            // Assign role
+            $role = Role::where('name', $data['role_name'])->where('guard_name', 'web')->first();
+            if ($role) {
+                $newUser->assignRole($role);
+            }
+            
+            return response()->json([
+                'message' => 'User created successfully',
+                'user' => $newUser->load(['roles', 'institution', 'department'])
+            ], 201);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to create user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Show a specific user within RegionAdmin's scope
+     */
+    public function show(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        // Get allowed institutions
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        $targetUser = User::whereIn('institution_id', $allowedInstitutionIds)
+            ->with(['roles', 'institution', 'department'])
+            ->find($id);
+            
+        if (!$targetUser) {
+            return response()->json(['message' => 'User not found in your region'], 404);
+        }
+        
+        return response()->json(['user' => $targetUser]);
+    }
+
+    /**
+     * Update a user within RegionAdmin's scope
+     */
+    public function update(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        // Get allowed institutions
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        $targetUser = User::whereIn('institution_id', $allowedInstitutionIds)->find($id);
+        
+        if (!$targetUser) {
+            return response()->json(['message' => 'User not found in your region'], 404);
+        }
+        
+        $validator = Validator::make($request->all(), [
+            'username' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('users')->ignore($id)],
+            'email' => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users')->ignore($id)],
+            'first_name' => 'nullable|string|max:255',
+            'last_name' => 'nullable|string|max:255',
+            'password' => 'sometimes|string|min:8|confirmed',
+            'role_name' => ['sometimes', 'required', 'string', Rule::in(['regionoperator', 'sektoradmin', 'məktəbadmin', 'müəllim'])],
+            'institution_id' => ['sometimes', 'required', 'integer', Rule::in($allowedInstitutionIds)],
+            'department_id' => 'nullable|integer|exists:departments,id',
+            'is_active' => 'sometimes|boolean'
+        ]);
+        
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+        
+        $data = $validator->validated();
+        
+        // Validate department belongs to institution
+        if (isset($data['department_id']) && $data['department_id']) {
+            $institutionId = $data['institution_id'] ?? $targetUser->institution_id;
+            $department = Department::where('id', $data['department_id'])
+                ->where('institution_id', $institutionId)
+                ->first();
+            if (!$department) {
+                return response()->json([
+                    'message' => 'Department must belong to the selected institution'
+                ], 400);
+            }
+        }
+        
+        try {
+            // Update password if provided
+            if (isset($data['password'])) {
+                $data['password'] = Hash::make($data['password']);
+                $data['password_changed_at'] = now();
+            }
+            
+            $targetUser->update($data);
+            
+            // Update role if provided
+            if (isset($data['role_name'])) {
+                $role = Role::where('name', $data['role_name'])->where('guard_name', 'web')->first();
+                if ($role) {
+                    $targetUser->syncRoles([$role]);
+                }
+            }
+            
+            return response()->json([
+                'message' => 'User updated successfully',
+                'user' => $targetUser->load(['roles', 'institution', 'department'])
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to update user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete a user within RegionAdmin's scope
+     */
+    public function destroy(Request $request, $id): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        // Get allowed institutions
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        $targetUser = User::whereIn('institution_id', $allowedInstitutionIds)->find($id);
+        
+        if (!$targetUser) {
+            return response()->json(['message' => 'User not found in your region'], 404);
+        }
+        
+        // Don't allow deletion of the current user
+        if ($targetUser->id === $user->id) {
+            return response()->json(['message' => 'Cannot delete your own account'], 400);
+        }
+        
+        try {
+            $targetUser->delete();
+            
+            return response()->json(['message' => 'User deleted successfully']);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to delete user',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get available roles for RegionAdmin to assign
+     */
+    public function getAvailableRoles(Request $request): JsonResponse
+    {
+        $allowedRoles = Role::whereIn('name', ['regionoperator', 'sektoradmin', 'məktəbadmin', 'müəllim'])
+            ->select('id', 'name', 'display_name', 'description', 'level')
+            ->orderBy('level')
+            ->get();
+            
+        return response()->json(['roles' => $allowedRoles]);
+    }
+
+    /**
+     * Get available institutions for RegionAdmin
+     */
+    public function getAvailableInstitutions(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        $institutions = Institution::whereIn('id', $allowedInstitutionIds)
+            ->where('is_active', true)
+            ->select('id', 'name', 'type', 'level')
+            ->orderBy('level')
+            ->orderBy('name')
+            ->get();
+            
+        return response()->json(['institutions' => $institutions]);
+    }
+
+    /**
+     * Get departments for a specific institution
+     */
+    public function getInstitutionDepartments(Request $request, $institutionId): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        $region = Institution::find($userRegionId);
+        $allowedInstitutionIds = $region->getAllChildrenIds();
+        
+        if (!in_array($institutionId, $allowedInstitutionIds)) {
+            return response()->json(['message' => 'Institution not in your region'], 404);
+        }
+        
+        $departments = Department::where('institution_id', $institutionId)
+            ->where('is_active', true)
+            ->select('id', 'name', 'department_type')
+            ->orderBy('name')
+            ->get();
+            
+        return response()->json(['departments' => $departments]);
     }
 }

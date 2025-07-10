@@ -18,6 +18,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'role.custom' => \App\Http\Middleware\RoleMiddleware::class,
             'permission.custom' => \App\Http\Middleware\PermissionMiddleware::class,
             'institution.access' => \App\Http\Middleware\InstitutionAccessMiddleware::class,
+            'regional.access' => \App\Http\Middleware\RegionalDataAccessMiddleware::class,
+            'audit.logging' => \App\Http\Middleware\AuditLoggingMiddleware::class,
             
             // Spatie Permission Middleware (keeping for compatibility)
             'role' => \Spatie\Permission\Middleware\RoleMiddleware::class,
