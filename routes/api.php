@@ -27,6 +27,10 @@ use App\Http\Controllers\DocumentControllerRefactored;
 use App\Http\Controllers\InstitutionControllerRefactored;
 use App\Http\Controllers\ClassAttendanceController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\API\ClassAttendanceApiController;
+use App\Http\Controllers\API\ApprovalApiController;
+use App\Http\Controllers\API\TeachingLoadApiController;
+use App\Http\Controllers\API\ScheduleApiController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -223,6 +227,32 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('documents/user-authority', [DocumentController::class, 'getUserAuthority'])->middleware('permission:documents.read');
     Route::get('documents/accessible', [DocumentController::class, 'getAccessibleDocuments'])->middleware('permission:documents.read');
     Route::get('documents/statistics', [DocumentController::class, 'getDocumentStatistics'])->middleware('permission:documents.read');
+
+    // FAZA 12: New Frontend Component API Routes
+    // Class Attendance API Routes
+    Route::prefix('class-attendance')->group(function () {
+        Route::get('/', [ClassAttendanceApiController::class, 'index'])->middleware('permission:attendance.read');
+        Route::post('/', [ClassAttendanceApiController::class, 'store'])->middleware('permission:attendance.create');
+        Route::get('/stats', [ClassAttendanceApiController::class, 'getClassStats'])->middleware('permission:attendance.read');
+        Route::get('/{classId}', [ClassAttendanceApiController::class, 'show'])->middleware('permission:attendance.read');
+    });
+
+    // Approval API Routes
+    Route::prefix('approvals')->group(function () {
+        Route::get('/', [ApprovalApiController::class, 'index'])->middleware('permission:approvals.read');
+        Route::post('/{id}/approve', [ApprovalApiController::class, 'approve'])->middleware('permission:approvals.approve');
+        Route::post('/{id}/reject', [ApprovalApiController::class, 'reject'])->middleware('permission:approvals.approve');
+        Route::get('/stats', [ApprovalApiController::class, 'getStats'])->middleware('permission:approvals.read');
+    });
+
+    // Teaching Load API Routes
+    Route::prefix('teaching-loads')->group(function () {
+        Route::get('/', [TeachingLoadApiController::class, 'index'])->middleware('permission:schedules.read');
+        Route::post('/', [TeachingLoadApiController::class, 'store'])->middleware('permission:schedules.create');
+        Route::get('/teacher/{teacherId}', [TeachingLoadApiController::class, 'getTeacherWorkload'])->middleware('permission:schedules.read');
+        Route::put('/{id}', [TeachingLoadApiController::class, 'update'])->middleware('permission:schedules.update');
+        Route::delete('/{id}', [TeachingLoadApiController::class, 'destroy'])->middleware('permission:schedules.delete');
+    });
     
     // User storage quota
     Route::get('documents/quota/info', [DocumentController::class, 'getQuotaInfo']);
@@ -305,11 +335,16 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('surveys/trends', [RegionAdminSurveyController::class, 'getSurveyTrends']);
         
         // Reports endpoints
-        Route::get('reports/overview', [RegionAdminReportsController::class, 'getRegionalOverview']);
-        Route::get('reports/institutions', [RegionAdminReportsController::class, 'getInstitutionReports']);
-        Route::get('reports/surveys', [RegionAdminReportsController::class, 'getSurveyReports']);
-        Route::get('reports/users', [RegionAdminReportsController::class, 'getUserReports']);
-        Route::post('reports/export', [RegionAdminReportsController::class, 'exportReport']);
+        Route::get('reports/overview', [RegionAdminReportsController::class, 'getRegionalOverview'])
+            ->middleware('permission:reports.read');
+        Route::get('reports/institutions', [RegionAdminReportsController::class, 'getInstitutionReports'])
+            ->middleware('permission:reports.read');
+        Route::get('reports/surveys', [RegionAdminReportsController::class, 'getSurveyReports'])
+            ->middleware('permission:reports.read');
+        Route::get('reports/users', [RegionAdminReportsController::class, 'getUserReports'])
+            ->middleware('permission:reports.read');
+        Route::post('reports/export', [RegionAdminReportsController::class, 'exportReport'])
+            ->middleware('permission:reports.export');
     });
     
     // RegionOperator Dashboard and Analytics
@@ -416,6 +451,31 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/validate', [ScheduleController::class, 'validate'])->middleware('permission:schedules.create');
         Route::post('/{schedule}/approve', [ScheduleController::class, 'approve'])->middleware('permission:schedules.approve');
         Route::post('/export', [ScheduleController::class, 'export'])->middleware('permission:schedules.read');
+    });
+
+    // Assessment System Routes - KSQ/BSQ Results Management
+    Route::prefix('assessments')->middleware('permission:assessments.read')->group(function () {
+        // Assessment overview and analytics
+        Route::get('/', [App\Http\Controllers\AssessmentController::class, 'index']);
+        Route::get('/analytics', [App\Http\Controllers\AssessmentController::class, 'getAnalytics']);
+        Route::get('/rankings', [App\Http\Controllers\AssessmentController::class, 'getRankings']);
+        Route::post('/export', [App\Http\Controllers\AssessmentController::class, 'export']);
+
+        // KSQ (Keyfiyyət Standartları Qiymətləndirməsi) Routes
+        Route::prefix('ksq')->group(function () {
+            Route::post('/', [App\Http\Controllers\AssessmentController::class, 'storeKSQ'])->middleware('permission:assessments.create');
+            Route::post('/{id}/approve', function ($id) {
+                return app(App\Http\Controllers\AssessmentController::class)->approve(request(), 'ksq', $id);
+            })->middleware('permission:assessments.approve');
+        });
+
+        // BSQ (Beynəlxalq Standartlar Qiymətləndirməsi) Routes  
+        Route::prefix('bsq')->group(function () {
+            Route::post('/', [App\Http\Controllers\AssessmentController::class, 'storeBSQ'])->middleware('permission:assessments.create');
+            Route::post('/{id}/approve', function ($id) {
+                return app(App\Http\Controllers\AssessmentController::class)->approve(request(), 'bsq', $id);
+            })->middleware('permission:assessments.approve');
+        });
     });
 });
 

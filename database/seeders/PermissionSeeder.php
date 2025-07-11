@@ -77,6 +77,27 @@ class PermissionSeeder extends Seeder
 
             // Institutions Extended
             'institutions.delete',
+
+            // Assessment Management (KSQ/BSQ)
+            'assessments.create',
+            'assessments.read',
+            'assessments.update',
+            'assessments.delete',
+            'assessments.approve',
+            'assessments.manage',
+            'assessments.export',
+
+            // Attendance Management
+            'attendance.create',
+            'attendance.read',
+            'attendance.update',
+            'attendance.delete',
+            'attendance.approve',
+
+            // Schedule Management  
+            'schedules.update',
+            'schedules.delete',
+            'schedules.approve',
         ];
 
         foreach ($permissions as $permissionName) {
@@ -100,48 +121,53 @@ class PermissionSeeder extends Seeder
                 'institutions.create', 'institutions.read', 'institutions.update', 'institutions.delete',
                 'surveys.create', 'surveys.read', 'surveys.update', 'surveys.delete', 'surveys.publish', 'surveys.manage',
                 'roles.read', 'roles.create', 'roles.update', 'roles.delete',
-                'schedules.create', 'schedules.read',
+                'schedules.create', 'schedules.read', 'schedules.update', 'schedules.delete', 'schedules.approve',
                 'grades.create', 'grades.read',
-                'attendance.manage',
+                'attendance.manage', 'attendance.create', 'attendance.read', 'attendance.update', 'attendance.delete', 'attendance.approve',
                 'documents.create', 'documents.read', 'documents.update', 'documents.delete', 'documents.share',
                 'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
                 'reports.read', 'reports.create', 'reports.export',
+                'assessments.create', 'assessments.read', 'assessments.update', 'assessments.delete', 'assessments.approve', 'assessments.manage', 'assessments.export',
                 'system.config', 'analytics.view'
             ],
             'regionadmin' => [
                 'users.read', 'users.create', 'users.update', 'users.delete',
                 'institutions.create', 'institutions.read', 'institutions.update',
                 'surveys.create', 'surveys.read', 'surveys.update', 'surveys.publish', 'surveys.approve',
-                'schedules.read', 'grades.read', 'attendance.manage',
+                'schedules.read', 'schedules.update', 'grades.read', 'attendance.manage', 'attendance.read', 'attendance.update', 'attendance.approve',
                 'documents.create', 'documents.read', 'documents.update', 'documents.delete', 'documents.share',
                 'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
                 'reports.read', 'reports.create', 'reports.export',
+                'assessments.create', 'assessments.read', 'assessments.update', 'assessments.approve', 'assessments.export',
                 'analytics.view'
             ],
             'schooladmin' => [
                 'users.read', 'users.create', 'users.update',
                 'institutions.read',
                 'surveys.create', 'surveys.read', 'surveys.update',
-                'schedules.create', 'schedules.read',
-                'grades.create', 'grades.read', 'attendance.manage',
+                'schedules.create', 'schedules.read', 'schedules.update',
+                'grades.create', 'grades.read', 'attendance.manage', 'attendance.create', 'attendance.read', 'attendance.update',
                 'documents.create', 'documents.read', 'documents.update', 'documents.share',
                 'tasks.read', 'tasks.update',
+                'assessments.create', 'assessments.read', 'assessments.update',
                 'reports.read'
             ],
             'sektoradmin' => [
                 'users.read', 'users.create', 'users.update',
                 'institutions.read',
                 'surveys.create', 'surveys.read', 'surveys.update',
-                'schedules.read', 'grades.read',
+                'schedules.read', 'schedules.update', 'grades.read', 'attendance.read', 'attendance.update',
                 'documents.create', 'documents.read', 'documents.update', 'documents.share',
                 'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
+                'assessments.read', 'assessments.update',
                 'reports.read'
             ],
             'müəllim' => [
                 'surveys.read', 'surveys.respond',
-                'schedules.read', 'grades.create', 'grades.read', 'attendance.manage',
+                'schedules.read', 'grades.create', 'grades.read', 'attendance.manage', 'attendance.create', 'attendance.read', 'attendance.update',
                 'documents.read', 'documents.create', 'documents.share',
-                'tasks.read', 'tasks.update'
+                'tasks.read', 'tasks.update',
+                'assessments.read'
             ],
         ];
 
