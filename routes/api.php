@@ -138,6 +138,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('roles/{role}', [RoleController::class, 'update'])->middleware(['permission:roles.update', 'audit.logging']);
     Route::delete('roles/{role}', [RoleController::class, 'destroy'])->middleware(['permission:roles.delete', 'audit.logging']);
     Route::get('permissions', [RoleController::class, 'permissions'])->middleware('permission:roles.read');
+    
+    // Enhanced role hierarchy routes
+    Route::get('roles/hierarchy', [RoleController::class, 'hierarchy'])->middleware('permission:roles.read');
+    Route::get('roles/level/{level}/available', [RoleController::class, 'availableForLevel'])->middleware('permission:roles.create');
 
     // Survey management
     Route::get('surveys', [SurveyController::class, 'index'])->middleware('permission:surveys.read');
