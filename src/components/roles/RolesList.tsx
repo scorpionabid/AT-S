@@ -131,7 +131,7 @@ const RolesList: React.FC = () => {
   }
 
   return (
-    <div className="w-full max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8 pb-6 border-b border-gray-200">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex-1">
