@@ -119,7 +119,7 @@ const modalVariants = cva(
         sm: 'max-w-sm w-full mx-4',
         md: 'max-w-md w-full mx-4',
         lg: 'max-w-lg w-full mx-4',
-        xl: 'max-w-xl w-full mx-4',
+        xl: 'max-w-2xl w-full mx-4',
         '2xl': 'max-w-2xl w-full mx-4',
         '3xl': 'max-w-3xl w-full mx-4',
         '4xl': 'max-w-4xl w-full mx-4',
