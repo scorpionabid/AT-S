@@ -1,0 +1,137 @@
+// App Component Styles
+// ===================
+// This file contains styles specific to the main App component.
+
+@use './styles/scss/variables' as *;
+@use './styles/scss/mixins' as *;
+
+// Login Page Styles
+.loginPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: $spacing-6;
+  
+  @include screen-sm {
+    padding: $spacing-8;
+  }
+}
+
+.loginContainer {
+  width: 100%;
+  max-width: 400px;
+  padding: $spacing-5;
+  
+  @include screen-sm {
+    padding: $spacing-6;
+  }
+}
+
+.loginForm {
+  background: $color-white;
+  padding: $spacing-8;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-xl;
+  
+  @include screen-sm {
+    padding: $spacing-10;
+  }
+}
+
+.loginHeader {
+  margin-bottom: $spacing-8;
+  text-align: center;
+  
+  h1 {
+    font-size: $text-2xl;
+    color: $color-text;
+    margin-bottom: $spacing-2;
+    line-height: $line-height-tight;
+    
+    @include screen-sm {
+      font-size: $text-3xl;
+    }
+  }
+  
+  h2 {
+    font-size: $text-lg;
+    color: $color-text-muted;
+    font-weight: $font-weight-normal;
+    line-height: $line-height-normal;
+    
+    @include screen-sm {
+      font-size: $text-xl;
+    }
+  }
+}
+
+// Dashboard Header Styles
+.dashboardHeader {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  margin-bottom: $spacing-8;
+  
+  @include screen-md {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: $spacing-6;
+  }
+  
+  h1 {
+    font-size: $text-2xl;
+    font-weight: $font-weight-bold;
+    color: $color-text;
+    margin: 0;
+    
+    @include screen-sm {
+      font-size: $text-3xl;
+    }
+  }
+  
+  .headerActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-3;
+    align-items: center;
+    
+    @include screen-sm {
+      flex-wrap: nowrap;
+    }
+  }
+}
+
+// Responsive Adjustments
+@include screen-md {
+  .loginPage {
+    padding: $spacing-12 $spacing-8;
+  }
+  
+  .loginContainer {
+    max-width: 440px;
+  }
+}
+
+// Dark Mode Overrides
+[data-theme='dark'] {
+  .loginForm {
+    background: $color-gray-800;
+    
+    h1 {
+      color: $color-gray-100;
+    }
+    
+    h2 {
+      color: $color-gray-400;
+    }
+  }
+  
+  .dashboardHeader {
+    h1 {
+      color: $color-gray-100;
+    }
+  }
+}

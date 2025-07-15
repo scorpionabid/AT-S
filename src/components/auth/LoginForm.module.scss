@@ -1,0 +1,16 @@
+// ====================
+// LoginForm Component Styles
+// ====================
+
+@use '../../styles/tokens' as *;
+
+// This file is intentionally minimal as we're using the unified design system.
+// The main form styles are handled by the global form component system.
+// Any component-specific overrides can be added here using the unified token system.
+
+// Example of how to add component-specific styles:
+// .loginFormSpecific {
+//   @include typography($body-base);
+//   color: var(--color-text-primary);
+//   @include border-radius(md);
+// }

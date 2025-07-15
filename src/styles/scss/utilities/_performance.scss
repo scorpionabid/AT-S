@@ -1,0 +1,531 @@
+// ====================
+// Performance Optimization Utilities
+// ====================
+
+// Performance configuration
+$performance-monitoring: true;
+$critical-css-threshold: 50kb;
+$animation-performance-threshold: 60fps;
+
+// ====================
+// CRITICAL CSS UTILITIES
+// ====================
+
+// Above-the-fold content optimization
+.critical-content {
+  // High priority styles for initial viewport
+  contain: layout style paint;
+  will-change: auto;
+  
+  // Optimize font loading
+  font-display: swap;
+  
+  // Preload critical images
+  img {
+    loading: eager;
+    fetchpriority: high;
+  }
+}
+
+.below-fold-content {
+  // Lower priority for content below initial viewport
+  content-visibility: auto;
+  contain-intrinsic-size: 0 500px;
+  
+  // Lazy load images
+  img {
+    loading: lazy;
+    fetchpriority: low;
+  }
+}
+
+// ====================
+// RENDERING OPTIMIZATIONS
+// ====================
+
+// Hardware acceleration utilities
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  will-change: transform;
+}
+
+.gpu-layer {
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+}
+
+// Composite layer creation
+.composite-layer {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+}
+
+// Paint optimization
+.paint-optimized {
+  contain: paint;
+  isolation: isolate;
+}
+
+// Layout optimization
+.layout-optimized {
+  contain: layout;
+  overflow: hidden;
+}
+
+// Style containment
+.style-contained {
+  contain: style;
+}
+
+// Full containment
+.fully-contained {
+  contain: strict;
+}
+
+// ====================
+// ANIMATION PERFORMANCE
+// ====================
+
+// High-performance animations (only transform and opacity)
+.perf-animation {
+  // Only animate compositor properties
+  will-change: transform, opacity;
+  
+  // Use transform instead of changing layout properties
+  &.move-right {
+    transform: translateX(100px);
+    // DON'T use: left: 100px;
+  }
+  
+  &.scale-up {
+    transform: scale(1.2);
+    // DON'T use: width/height changes
+  }
+  
+  &.fade {
+    opacity: 0.5;
+    // DON'T use: visibility changes during animation
+  }
+}
+
+// Animation performance monitoring
+@if $performance-monitoring {
+  .perf-monitor {
+    &::before {
+      content: 'Performance Monitor Active';
+      position: fixed;
+      top: 0;
+      right: 0;
+      background: #ff6b6b;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      z-index: 999999;
+      font-family: monospace;
+    }
+  }
+}
+
+// Frame rate optimization
+.fps-optimized {
+  // Ensure animations run at 60fps
+  animation-timing-function: linear;
+  transform: translateZ(0);
+  
+  // Avoid expensive operations during animation
+  &:not(.animating) {
+    will-change: auto;
+  }
+  
+  &.animating {
+    will-change: transform, opacity;
+  }
+}
+
+// ====================
+// MEMORY OPTIMIZATION
+// ====================
+
+// Reduce memory usage
+.memory-efficient {
+  // Use CSS instead of JavaScript for simple animations
+  transition: transform $duration-200 $ease-out;
+  
+  // Avoid creating unnecessary composite layers
+  transform: none;
+  will-change: auto;
+  
+  // Clean up after animations
+  &:not(:hover):not(:focus):not(.active) {
+    will-change: auto;
+  }
+}
+
+// Image optimization
+.image-optimized {
+  img {
+    // Modern image formats
+    content: url('data:image/webp;base64,');
+    
+    // Responsive images
+    width: 100%;
+    height: auto;
+    
+    // Avoid layout shift
+    aspect-ratio: attr(width) / attr(height);
+    
+    // Lazy loading
+    loading: lazy;
+    decoding: async;
+  }
+}
+
+// ====================
+// LOADING PERFORMANCE
+// ====================
+
+// Resource hints
+.resource-optimized {
+  // Preload critical resources
+  link[rel="preload"] {
+    as: style;
+    onload: "this.onload=null;this.rel='stylesheet'";
+  }
+  
+  // Preconnect to external domains
+  link[rel="preconnect"] {
+    crossorigin: anonymous;
+  }
+  
+  // DNS prefetch for external resources
+  link[rel="dns-prefetch"] {
+    href: "https://fonts.googleapis.com";
+  }
+}
+
+// Font loading optimization
+.font-optimized {
+  // Use system fonts as fallback
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  // Optimize web font loading
+  .webfont-loaded & {
+    font-family: $font-family-sans;
+  }
+  
+  // Font display strategy
+  font-display: swap;
+  
+  // Reduce font variations
+  font-variation-settings: normal;
+}
+
+// ====================
+// NETWORK PERFORMANCE
+// ====================
+
+// Reduce HTTP requests
+.bundled-assets {
+  // Use CSS sprites for icons
+  .icon {
+    background-image: url('/assets/sprite.svg');
+    background-repeat: no-repeat;
+  }
+  
+  // Inline small SVGs
+  .small-icon {
+    background-image: url('data:image/svg+xml;base64,...');
+  }
+}
+
+// Cache optimization
+.cache-optimized {
+  // Long cache headers for static assets
+  .static-asset {
+    // Will be handled by build system
+    cache-control: public, max-age=31536000, immutable;
+  }
+  
+  // Service worker cache
+  .sw-cached {
+    // Marked for service worker caching
+  }
+}
+
+// ====================
+// RUNTIME PERFORMANCE
+// ====================
+
+// Efficient scrolling
+.smooth-scroll {
+  scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
+  
+  // Use passive event listeners (handled by JS)
+  touch-action: pan-y;
+}
+
+// Virtual scrolling optimization
+.virtual-scroll {
+  // Enable virtual scrolling for large lists
+  contain: strict;
+  overflow: auto;
+  height: 400px;
+  
+  .virtual-item {
+    contain: layout style paint;
+    height: 50px;
+    
+    // Recycle DOM nodes
+    &.recycled {
+      transform: translateY(var(--offset));
+    }
+  }
+}
+
+// Intersection observer optimization
+.lazy-load {
+  // Prepare for intersection observer
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity $duration-300 $ease-out,
+              transform $duration-300 $ease-out;
+  
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  
+  // Root margin for early loading
+  .io-root {
+    intersection-observer: 100px;
+  }
+}
+
+// ====================
+// BUNDLE SIZE OPTIMIZATION
+// ====================
+
+// Tree-shaking friendly classes
+.tree-shakable {
+  // Use modular CSS that can be tree-shaken
+  @include button-base; // Only include when used
+}
+
+// Conditional loading
+.conditional-load {
+  // Load only when needed
+  @supports (display: grid) {
+    display: grid;
+  }
+  
+  @supports not (display: grid) {
+    display: flex;
+    flex-wrap: wrap;
+  }
+}
+
+// ====================
+// MEASUREMENT UTILITIES
+// ====================
+
+// Performance measurement
+.measure-performance {
+  // Mark performance timing
+  &::before {
+    content: '';
+    // Will be used by performance.mark() in JS
+  }
+}
+
+// Layout thrashing detection
+.layout-debug {
+  // Highlight elements that cause layout thrashing
+  @if $performance-monitoring {
+    outline: 2px solid red;
+    outline-offset: -2px;
+  }
+}
+
+// Paint flash detection
+.paint-debug {
+  // Show paint regions
+  @if $performance-monitoring {
+    background: rgba(255, 0, 0, 0.3) !important;
+  }
+}
+
+// ====================
+// RESPONSIVE PERFORMANCE
+// ====================
+
+// Mobile-specific optimizations
+@include mobile-only {
+  .mobile-optimized {
+    // Reduce complexity on mobile
+    box-shadow: none;
+    text-shadow: none;
+    
+    // Simplify animations
+    animation-duration: $duration-150;
+    
+    // Optimize touch interactions
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+// Desktop-specific optimizations
+@include desktop-up {
+  .desktop-optimized {
+    // Use more complex effects on desktop
+    backdrop-filter: blur(10px);
+    
+    // Higher quality animations
+    animation-timing-function: $animation-easing-spring;
+  }
+}
+
+// ====================
+// ADVANCED PERFORMANCE MIXINS
+// ====================
+
+// Performance-aware component
+@mixin perf-component($complexity: 'medium') {
+  contain: layout style paint;
+  
+  @if $complexity == 'high' {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+  } @else if $complexity == 'medium' {
+    will-change: auto;
+  } @else {
+    // Low complexity - minimal optimization
+  }
+}
+
+// Efficient animation mixin
+@mixin perf-animation($properties: transform, $duration: $duration-200) {
+  will-change: $properties;
+  transition: $properties $duration $ease-out;
+  
+  // Clean up after animation
+  &:not(:hover):not(:focus):not(.active) {
+    will-change: auto;
+  }
+}
+
+// Memory-conscious rendering
+@mixin memory-safe {
+  // Avoid creating unnecessary layers
+  transform: none;
+  
+  // Use efficient properties
+  @supports (contain: layout) {
+    contain: layout;
+  }
+  
+  // Cleanup after use
+  &:not(.in-use) {
+    will-change: auto;
+    transform: none;
+  }
+}
+
+// ====================
+// PERFORMANCE MONITORING
+// ====================
+
+// Performance budget enforcement
+@if $performance-monitoring {
+  .budget-warning {
+    &::after {
+      content: 'Performance Budget Exceeded';
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      background: #ff6b6b;
+      color: white;
+      padding: 0.5rem;
+      font-family: monospace;
+      font-size: 0.75rem;
+      z-index: 999999;
+    }
+  }
+}
+
+// Frame rate monitoring
+.fps-monitor {
+  // Will be enhanced by JavaScript
+  &::before {
+    content: 'FPS: ' counter(fps);
+    position: fixed;
+    top: 2rem;
+    right: 0;
+    background: #333;
+    color: #fff;
+    padding: 0.25rem 0.5rem;
+    font-family: monospace;
+    font-size: 0.75rem;
+    z-index: 999999;
+  }
+}
+
+// ====================
+// ACCESSIBILITY PERFORMANCE
+// ====================
+
+// Respect user preferences
+@media (prefers-reduced-motion: reduce) {
+  .perf-animation,
+  .fps-optimized {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (prefers-reduced-data: reduce) {
+  .image-optimized img {
+    // Load lower quality images
+    filter: none;
+  }
+  
+  .heavy-animation {
+    animation: none;
+  }
+}
+
+// ====================
+// DEVELOPMENT HELPERS
+// ====================
+
+// Performance hints for developers
+@mixin perf-hint($message) {
+  @if $performance-monitoring {
+    &::before {
+      content: $message;
+      position: absolute;
+      top: -1.5rem;
+      left: 0;
+      background: #f39c12;
+      color: white;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      font-family: monospace;
+      white-space: nowrap;
+      z-index: 999999;
+      border-radius: 2px;
+    }
+  }
+}
+
+// Usage examples:
+// .heavy-component {
+//   @include perf-hint('Consider virtualization for large lists');
+// }
+
+// .complex-animation {
+//   @include perf-hint('Use transform instead of layout properties');
+// }
