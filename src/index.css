@@ -1,4 +1,9 @@
-/* Import legacy styles (must come before Tailwind directives) */
+/* Import common styles (must come before Tailwind directives) */
+@import './styles/common/variables.css';
+@import './styles/common/utilities.css';
+@import './styles/common/components.css';
+
+/* Import legacy styles */
 @import './styles/theme-toggle.css';
 @import './styles/context-menu.css';
 @import './styles/expandable.css';
