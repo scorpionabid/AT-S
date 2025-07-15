@@ -98,12 +98,12 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="flex items-center justify-between px-4 h-16 bg-white dark:bg-gray-800 shadow-sm z-50">
+      <header className="flex items-center justify-between px-4 h-16 bg-white dark:bg-gray-800 shadow-sm z-50 border-b border-gray-200 dark:border-gray-700">
         {/* Left section - Menu button and title */}
         <div className="flex items-center space-x-4">
           <button
             onClick={handleMenuToggle}
-            className="p-2 rounded-md text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800"
+            className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
             aria-label={screenSize === 'mobile' ? 'Toggle menu' : 'Toggle sidebar'}
           >
             <FiMenu size={20} />

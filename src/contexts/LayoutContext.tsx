@@ -66,8 +66,13 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   
   // Mobile sidebar functionality
   const toggleMobile = () => {
+    console.log('toggleMobile called. Current isMobileOpen:', isMobileOpen, 'screenSize:', screenSize);
     if (screenSize === 'mobile') {
-      setIsMobileOpen(!isMobileOpen);
+      console.log('Setting isMobileOpen to:', !isMobileOpen);
+      setIsMobileOpen(prev => {
+        console.log('isMobileOpen state updated to:', !prev);
+        return !prev;
+      });
     }
   };
   

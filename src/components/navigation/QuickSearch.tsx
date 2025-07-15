@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FiSearch, FiX, FiClock, FiTrendingUp } from 'react-icons/fi';
 import { useNavigation } from '../../hooks/useNavigation';
-import styles from './QuickSearch.module.scss';
+// Removed SCSS module import - using Tailwind CSS classes
 
 interface QuickSearchProps {
   isOpen: boolean;
@@ -227,55 +227,55 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.searchModal} onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-20 z-50" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-2xl mx-4 overflow-hidden max-h-[80vh]" onClick={e => e.stopPropagation()}>
         {/* Search Input */}
-        <div className={styles.searchContainer}>
-          <FiSearch className={styles.searchIcon} size={20} />
+        <div className="flex items-center p-4 border-b border-gray-200">
+          <FiSearch className="text-gray-400 mr-3" size={20} />
           <input
             ref={searchInputRef}
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={placeholder}
-            className={styles.searchInput}
+            className="flex-1 py-2 px-1 border-none outline-none text-lg text-gray-900 placeholder-gray-500 bg-transparent"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className={styles.clearButton}
+              className="p-1 text-gray-400 hover:text-gray-600 transition-colors mr-2"
             >
               <FiX size={16} />
             </button>
           )}
-          <button onClick={onClose} className={styles.closeButton}>
+          <button onClick={onClose} className="p-1 text-gray-400 hover:text-gray-600 transition-colors">
             <FiX size={20} />
           </button>
         </div>
 
         {/* Content */}
-        <div className={styles.content}>
+        <div className="overflow-y-auto max-h-96">
           {isLoading && (
-            <div className={styles.loading}>
-              <div className={styles.loadingSpinner}></div>
+            <div className="flex items-center justify-center py-8">
+              <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
               <span>Searching...</span>
             </div>
           )}
 
           {!query && !isLoading && (
-            <div className={styles.suggestions}>
+            <div className="p-4">
               {recentSearches.length > 0 && (
-                <div className={styles.suggestionGroup}>
-                  <div className={styles.suggestionHeader}>
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-3 text-sm font-medium text-gray-600">
                     <FiClock size={16} />
                     <span>Recent Searches</span>
                   </div>
-                  <div className={styles.suggestionList}>
+                  <div className="flex flex-wrap gap-2">
                     {recentSearches.map((search, index) => (
                       <button
                         key={index}
                         onClick={() => setQuery(search)}
-                        className={styles.suggestionItem}
+                        className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 cursor-pointer transition-colors"
                       >
                         {search}
                       </button>
@@ -294,7 +294,7 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
                     <button
                       key={index}
                       onClick={() => setQuery(search)}
-                      className={styles.suggestionItem}
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 rounded-full text-sm text-gray-700 cursor-pointer transition-colors"
                     >
                       {search}
                     </button>
@@ -305,33 +305,33 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
           )}
 
           {query && !isLoading && results.length > 0 && (
-            <div className={styles.results}>
-              <div className={styles.resultsHeader}>
+            <div className="">
+              <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-b border-gray-100">
                 <span>Search Results</span>
-                <span className={styles.resultCount}>{results.length} found</span>
+                <span className="text-sm font-medium text-gray-600">{results.length} found</span>
               </div>
-              <div className={styles.resultList}>
+              <div className="">
                 {results.map((result, index) => (
                   <div
                     key={result.id}
-                    className={`${styles.resultItem} ${
-                      index === selectedIndex ? styles.selected : ''
+                    className={`flex items-center p-4 cursor-pointer transition-colors hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${
+                      index === selectedIndex ? 'bg-blue-50 border-r-2 border-blue-500' : ''
                     }`}
                     onClick={() => handleResultSelect(result)}
                     onMouseEnter={() => setSelectedIndex(index)}
                   >
                     {result.icon && (
-                      <div className={styles.resultIcon}>{result.icon}</div>
+                      <div className="w-10 h-10 flex items-center justify-center text-gray-500 mr-3">{result.icon}</div>
                     )}
-                    <div className={styles.resultContent}>
-                      <div className={styles.resultTitle}>{result.title}</div>
-                      <div className={styles.resultDescription}>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium text-gray-900 mb-1 truncate">{result.title}</div>
+                      <div className="text-sm text-gray-500 truncate">
                         {result.description}
                       </div>
                     </div>
-                    <div className={styles.resultMeta}>
-                      <span className={styles.resultCategory}>{result.category}</span>
-                      <span className={styles.resultType}>{result.type}</span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded">{result.category}</span>
+                      <span className="text-xs text-blue-600 font-medium">{result.type}</span>
                     </div>
                   </div>
                 ))}
@@ -340,7 +340,7 @@ const QuickSearch: React.FC<QuickSearchProps> = ({
           )}
 
           {query && !isLoading && results.length === 0 && (
-            <div className={styles.noResults}>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
               <FiSearch size={32} />
               <h3>No results found</h3>
               <p>Try adjusting your search or browse popular searches above</p>

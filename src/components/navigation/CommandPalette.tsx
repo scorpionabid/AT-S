@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigation } from '../../hooks/useNavigation';
 import { FiSearch, FiCommand, FiX, FiClock, FiArrowRight, FiStar } from 'react-icons/fi';
-import styles from './CommandPalette.module.scss';
+// Removed SCSS module import - using Tailwind CSS classes
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -254,12 +254,12 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.palette} onClick={e => e.stopPropagation()}>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center pt-32 z-50" onClick={onClose}>
+      <div className="bg-white rounded-xl shadow-2xl border border-gray-200 w-full max-w-lg mx-4 overflow-hidden" onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className={styles.header}>
-          <div className={styles.searchContainer}>
-            <FiSearch className={styles.searchIcon} size={20} />
+        <div className="flex items-center p-4 border-b border-gray-200">
+          <div className="flex items-center flex-1 relative">
+            <FiSearch className="absolute left-3 text-gray-400" size={20} />
             <input
               ref={searchInputRef}
               type="text"
@@ -269,66 +269,66 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
                 setSelectedIndex(0);
               }}
               placeholder="Type a command or search..."
-              className={styles.searchInput}
+              className="w-full pl-10 pr-16 py-2 border-none outline-none text-gray-900 placeholder-gray-500 bg-transparent"
             />
-            <div className={styles.shortcut}>
+            <div className="absolute right-3 flex items-center gap-1 px-2 py-1 bg-gray-100 rounded text-xs text-gray-500">
               <FiCommand size={14} />
               <span>K</span>
             </div>
           </div>
-          <button onClick={onClose} className={styles.closeButton}>
+          <button onClick={onClose} className="ml-3 p-1 text-gray-400 hover:text-gray-600 transition-colors">&
             <FiX size={20} />
           </button>
         </div>
 
         {/* Results */}
-        <div className={styles.content}>
+        <div className="max-h-80 overflow-y-auto">
           {filteredCommands.length > 0 ? (
             <>
               {!query && (
-                <div className={styles.sectionHeader}>
+                <div className="flex items-center gap-2 px-4 py-2 text-sm text-gray-500 bg-gray-50 border-b border-gray-100">
                   <FiClock size={16} />
                   <span>Recent & Favorites</span>
                 </div>
               )}
               
-              <ul ref={resultListRef} className={styles.resultList}>
+              <ul ref={resultListRef} className="py-1">&
                 {filteredCommands.map((command, index) => (
                   <li
                     key={command.id}
-                    className={`${styles.resultItem} ${
-                      index === selectedIndex ? styles.selected : ''
+                    className={`flex items-center px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 ${
+                      index === selectedIndex ? 'bg-blue-50 border-r-2 border-blue-500' : ''
                     }`}
                     onClick={() => {
                       command.action();
                       setSelectedIndex(index);
                     }}
                     onMouseEnter={() => setSelectedIndex(index)}
-                  >
-                    <div className={styles.resultIcon}>
+                  >&
+                    <div className="w-8 h-8 flex items-center justify-center text-gray-500 mr-3">
                       {command.icon}
                     </div>
                     
-                    <div className={styles.resultContent}>
-                      <div className={styles.resultTitle}>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
                         {command.title}
                         {command.isFavorite && (
-                          <FiStar className={styles.favoriteIcon} size={12} />
+                          <FiStar className="text-yellow-500" size={12} />
                         )}
                       </div>
                       {command.description && (
-                        <div className={styles.resultDescription}>
+                        <div className="text-sm text-gray-500 truncate">
                           {command.description}
                         </div>
                       )}
                     </div>
                     
-                    <div className={styles.resultMeta}>
-                      <span className={styles.category}>{command.category}</span>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="text-xs text-gray-400 px-2 py-1 bg-gray-100 rounded">{command.category}</span>
                       {command.shortcut && (
-                        <div className={styles.shortcutDisplay}>
+                        <div className="flex gap-1">
                           {command.shortcut.map((key, i) => (
-                            <kbd key={i} className={styles.key}>{key}</kbd>
+                            <kbd key={i} className="px-1.5 py-0.5 text-xs bg-gray-200 rounded border border-gray-300 font-mono">{key}</kbd>
                           ))}
                         </div>
                       )}
@@ -337,7 +337,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
                           e.stopPropagation();
                           toggleFavorite(command.id);
                         }}
-                        className={styles.favoriteButton}
+                        className="p-1 text-gray-400 hover:text-yellow-500 transition-colors"
                         title={command.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                       >
                         <FiStar 
@@ -351,7 +351,7 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
               </ul>
             </>
           ) : (
-            <div className={styles.noResults}>
+            <div className="flex flex-col items-center justify-center py-12 text-center">
               <FiSearch size={24} />
               <p>No commands found</p>
               <p>Try searching for something else</p>
@@ -360,18 +360,18 @@ const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className={styles.footer}>
-          <div className={styles.footerItem}>
-            <kbd className={styles.key}>↑</kbd>
-            <kbd className={styles.key}>↓</kbd>
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 bg-white rounded border border-gray-300 font-mono">↑</kbd>
+            <kbd className="px-1.5 py-0.5 bg-white rounded border border-gray-300 font-mono">↓</kbd>
             <span>navigate</span>
           </div>
-          <div className={styles.footerItem}>
-            <kbd className={styles.key}>↵</kbd>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 bg-white rounded border border-gray-300 font-mono">↵</kbd>
             <span>select</span>
           </div>
-          <div className={styles.footerItem}>
-            <kbd className={styles.key}>esc</kbd>
+          <div className="flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 bg-white rounded border border-gray-300 font-mono">esc</kbd>
             <span>close</span>
           </div>
         </div>

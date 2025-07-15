@@ -23,7 +23,7 @@ import DocumentPage from './pages/DocumentPage';
 import SchedulePage from './pages/SchedulePage';
 import TeachingLoadPage from './pages/TeachingLoadPage';
 import { ROLES, ROLE_GROUPS } from './constants/roles';
-import styles from './App.module.scss';
+// Removed SCSS module import - using Tailwind CSS classes
 import TestTailwind from './components/TestTailwind';
 import TailwindTest from './components/test/TailwindTest';
 

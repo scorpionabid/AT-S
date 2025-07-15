@@ -26,12 +26,12 @@ const maxWidthClasses = {
   md: 'sm:max-w-md',
   lg: 'sm:max-w-lg',
   xl: 'sm:max-w-xl',
-  '2xl': 'sm:max-w-2xl',
+  '2xl': 'sm:max-w-xl',
   '3xl': 'sm:max-w-3xl',
-  '4xl': 'sm:max-w-2xl',
+  '4xl': 'sm:max-w-xl',
   '5xl': 'sm:max-w-5xl',
-  '6xl': 'sm:max-w-2xl',
-  '7xl': 'sm:max-w-2xl',
+  '6xl': 'sm:max-w-xl',
+  '7xl': 'sm:max-w-xl',
 };
 
 export const Dialog: React.FC<DialogProps> = ({

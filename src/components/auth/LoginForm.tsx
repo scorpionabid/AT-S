@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import type { LoginCredentials } from '../../types/auth';
 import { FiEye, FiEyeOff, FiInfo } from 'react-icons/fi';
-import styles from './LoginForm.module.scss';
+// Removed SCSS module import - using Tailwind CSS classes
 
 const LoginForm: React.FC = () => {
   const { login, isLoading } = useAuth();
@@ -88,22 +88,22 @@ const LoginForm: React.FC = () => {
   };
 
   return (
-    <div className={styles['login-container']}>
-      <div className={styles['login-form']}>
-        <div className={styles['login-header']}>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-500 to-purple-600 p-6">
+      <div className="w-full max-w-md bg-white rounded-lg shadow-xl p-8">
+        <div className="text-center mb-8">
           <h1>ATİS - Azərbaycan Təhsil İdarəetmə Sistemi</h1>
           <h2>Sisteme Giriş</h2>
         </div>
 
         <form onSubmit={handleSubmit}>
           {error && (
-            <div className={styles['error-message']} data-testid="error-message">
+            <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded" data-testid="error-message">
               {error}
             </div>
           )}
 
-          <div className={styles['form-group']}>
-            <label htmlFor="login">İstifadəçi adı və ya Email:</label>
+          <div className="mb-4">
+            <label htmlFor="login" className="block text-sm font-medium text-gray-700 mb-1">İstifadəçi adı və ya Email:</label>
             <input
               type="text"
               id="login"
@@ -113,21 +113,22 @@ const LoginForm: React.FC = () => {
               placeholder="İstifadəçi adı və ya email daxil edin"
               disabled={isLoading}
               required
+              className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
             />
             {credentials.login && (
-              <div className={styles['input-hint']}>
-                <FiInfo size={12} />
+              <div className="flex items-center mt-1 text-xs text-gray-500">
+                <FiInfo size={12} className="mr-1" />
                 <span>{detectInputType(credentials.login)}</span>
               </div>
             )}
           </div>
 
-          <div className={styles['form-group']}>
-            <div className={styles['password-label-group']}>
-              <label htmlFor="password">Şifrə:</label>
+          <div className="mb-4">
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">Şifrə:</label>
               <button
                 type="button"
-                className={styles['info-button']}
+                className="text-gray-400 hover:text-gray-600 p-1"
                 onMouseEnter={() => setShowPasswordRequirements(true)}
                 onMouseLeave={() => setShowPasswordRequirements(false)}
                 onClick={() => setShowPasswordRequirements(!showPasswordRequirements)}
@@ -135,7 +136,7 @@ const LoginForm: React.FC = () => {
                 <FiInfo size={16} />
               </button>
             </div>
-            <div className={styles['password-input-group']}>
+            <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 id="password"
@@ -146,10 +147,11 @@ const LoginForm: React.FC = () => {
                 disabled={isLoading}
                 required
                 minLength={8}
+                className="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100"
               />
               <button
                 type="button"
-                className={styles['password-toggle']}
+                className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
                 onClick={togglePasswordVisibility}
                 disabled={isLoading}
               >
@@ -157,26 +159,26 @@ const LoginForm: React.FC = () => {
               </button>
             </div>
             {credentials.password && (
-              <div className={styles['password-strength']}>
+              <div className="mt-1 text-xs">
                 <span style={{ color: getPasswordStrength(credentials.password).color }}>
                   Şifrə gücü: {getPasswordStrength(credentials.password).strength}
                 </span>
               </div>
             )}
             {showPasswordRequirements && (
-              <div className={styles['password-requirements']}>
-                <h4>Şifrə tələbləri:</h4>
-                <ul>
-                  <li className={credentials.password.length >= 8 ? 'met' : 'unmet'}>
+              <div className="mt-2 p-3 bg-gray-50 rounded text-xs">
+                <h4 className="font-medium text-gray-700 mb-2">Şifrə tələbləri:</h4>
+                <ul className="space-y-1">
+                  <li className={credentials.password.length >= 8 ? 'text-green-600' : 'text-red-600'}>
                     Ən azı 8 simvol
                   </li>
-                  <li className={/[a-z]/.test(credentials.password) ? 'met' : 'unmet'}>
+                  <li className={/[a-z]/.test(credentials.password) ? 'text-green-600' : 'text-red-600'}>
                     Kiçik hərf (a-z)
                   </li>
-                  <li className={/[A-Z]/.test(credentials.password) ? 'met' : 'unmet'}>
+                  <li className={/[A-Z]/.test(credentials.password) ? 'text-green-600' : 'text-red-600'}>
                     Böyük hərf (A-Z)
                   </li>
-                  <li className={/\d/.test(credentials.password) ? 'met' : 'unmet'}>
+                  <li className={/\d/.test(credentials.password) ? 'text-green-600' : 'text-red-600'}>
                     Rəqəm (0-9)
                   </li>
                 </ul>
@@ -184,29 +186,30 @@ const LoginForm: React.FC = () => {
             )}
           </div>
 
-          <div className={`${styles['form-group']} ${styles['remember-me']}`}>
-            <label className="checkbox-label">
+          <div className="flex items-center mb-6">
+            <label className="flex items-center">
               <input
                 type="checkbox"
                 checked={rememberMe}
                 onChange={(e) => setRememberMe(e.target.checked)}
                 disabled={isLoading}
+                className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
               />
-              <span className={styles['checkbox-text']}>Məni xatırla (30 gün)</span>
+              <span className="ml-2 text-sm text-gray-600">Məni xatırla (30 gün)</span>
             </label>
           </div>
 
           <button
             type="submit"
-            className={styles['login-button']}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           >
             {isLoading ? 'Giriş edilir...' : 'Giriş'}
           </button>
         </form>
 
-        <div className="login-footer">
-          <p>© 2025 Azərbaycan Təhsil Nazirliyi</p>
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">© 2025 Azərbaycan Təhsil Nazirliyi</p>
         </div>
       </div>
     </div>
