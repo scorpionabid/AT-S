@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import classNames from 'classnames';
 import { Icon, IconName } from './Icon';
-import { Card, CardHeader, CardContent } from './Card';
-import { Button } from './Button';
+import { Card, CardHeader, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
 
 interface ExpandableCardProps {
   title: string;

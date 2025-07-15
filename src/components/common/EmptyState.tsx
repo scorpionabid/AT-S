@@ -1,6 +1,6 @@
 import React from 'react';
 import { FiAlertCircle, FiInbox, FiSearch, FiAlertTriangle } from 'react-icons/fi';
-import { Button } from './Button';
+import { Button } from '../ui/Button';
 
 type EmptyStateVariant = 'info' | 'warning' | 'error' | 'success' | 'default';
 

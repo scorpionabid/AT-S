@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useToast, type Toast as ToastType, ToastVariant } from '../../contexts/ToastContext';
 import { FiX, FiCheckCircle, FiAlertCircle, FiInfo, FiAlertTriangle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from './Button';
+import { Button } from '../ui/Button';
 
 const variantIcons: Record<ToastVariant, React.ReactNode> = {
   [ToastVariant.SUCCESS]: <FiCheckCircle className="h-5 w-5" />,
