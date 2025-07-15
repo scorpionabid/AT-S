@@ -27,7 +27,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card
 import { Button } from '../ui/Button';
 import { Badge } from '../common/Badge';
 import { EmptyState } from '../common/EmptyState';
-import { Dialog } from '../common/Dialog';
+import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../ui/Modal';
 import '../../styles/institutions.css';
 
 // TODO: Uncomment and implement these when needed
@@ -645,39 +645,48 @@ export const EnhancedInstitutionsList: React.FC = () => {
       )}
 
       {/* Add modals here */}
-      <Dialog
-        isOpen={showCreateModal || !!editingInstitution}
+      <Modal
+        open={showCreateModal || !!editingInstitution}
         onClose={() => {
           setShowCreateModal(false);
           setEditingInstitution(null);
         }}
-        title={
-          editingInstitution
-            ? t('institutions.editInstitution')
-            : t('institutions.addInstitution')
-        }
+        size="lg"
       >
-        <InstitutionForm
-          initialValues={editingInstitution || undefined}
-          onSubmit={async (values: InstitutionFormValues) => {
-            try {
-              if (editingInstitution) {
-                await updateInstitution(editingInstitution.id, values);
-              } else {
-                await createInstitution(values);
+        <ModalHeader onClose={() => {
+          setShowCreateModal(false);
+          setEditingInstitution(null);
+        }}>
+          <ModalTitle>
+            {editingInstitution
+              ? t('institutions.editInstitution')
+              : t('institutions.addInstitution')
+            }
+          </ModalTitle>
+        </ModalHeader>
+        <ModalContent>
+          <InstitutionForm
+            initialValues={editingInstitution || undefined}
+            onSubmit={async (values: InstitutionFormValues) => {
+              try {
+                if (editingInstitution) {
+                  await updateInstitution(editingInstitution.id, values);
+                } else {
+                  await createInstitution(values);
+                }
+                setShowCreateModal(false);
+                setEditingInstitution(null);
+              } catch (error) {
+                console.error('Error saving institution:', error);
               }
+            }}
+            onCancel={() => {
               setShowCreateModal(false);
               setEditingInstitution(null);
-            } catch (error) {
-              console.error('Error saving institution:', error);
-            }
-          }}
-          onCancel={() => {
-            setShowCreateModal(false);
-            setEditingInstitution(null);
-          }}
-        />
-      </Dialog>
+            }}
+          />
+        </ModalContent>
+      </Modal>
     </div>
   );
 };

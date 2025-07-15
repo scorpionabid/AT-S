@@ -130,8 +130,8 @@ const UserStatsOverview: React.FC<UserStatsOverviewProps> = ({ userStats, loadin
                   <span className="user-email">{user.email}</span>
                 </div>
                 <div className="user-meta">
-                  <span className="user-role">{user.role}</span>
-                  <span className="user-institution">{user.institution}</span>
+                  <span className="user-role">{typeof user.role === 'string' ? user.role : user.role?.display_name || user.role?.name || 'N/A'}</span>
+                  <span className="user-institution">{typeof user.institution === 'string' ? user.institution : user.institution?.name || user.institution?.display_name || 'N/A'}</span>
                 </div>
               </div>
               <div className="user-status">

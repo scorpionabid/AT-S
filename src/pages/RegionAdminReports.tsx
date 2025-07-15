@@ -11,7 +11,7 @@ import type {
   SurveyAnalyticsData,
   UserActivityData 
 } from '../services/reportsService';
-import '../styles/regionadmin-reports.css';
+import '../styles/regionadmin-consolidated.css';
 
 interface RegionalReportData {
   overview: {

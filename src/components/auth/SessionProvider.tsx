@@ -37,20 +37,20 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({
   autoLogoutDelay = 300
 }) => {
   const sessionTimeout = useSessionTimeout({
-    warningThreshold,
-    checkInterval,
-    autoLogoutDelay
+    warningTimeBeforeExpiry: warningThreshold,
+    checkInterval: checkInterval / 1000, // Convert to seconds
+    extendSessionBy: autoLogoutDelay / 60 // Convert to minutes
   });
 
   const contextValue: SessionContextType = {
-    isActive: sessionTimeout.isActive,
+    isActive: !sessionTimeout.isSessionExpiring,
     showWarning: sessionTimeout.showWarning,
-    timeLeft: sessionTimeout.timeLeft,
-    autoLogoutIn: sessionTimeout.autoLogoutIn,
-    isExpired: sessionTimeout.isExpired,
+    timeLeft: sessionTimeout.timeRemaining,
+    autoLogoutIn: sessionTimeout.timeRemaining,
+    isExpired: sessionTimeout.isSessionExpiring,
     extendSession: sessionTimeout.extendSession,
-    dismissWarning: sessionTimeout.dismissWarning,
-    forceLogout: sessionTimeout.forceLogout
+    dismissWarning: () => Promise.resolve(true),
+    forceLogout: () => Promise.resolve()
   };
 
   return (

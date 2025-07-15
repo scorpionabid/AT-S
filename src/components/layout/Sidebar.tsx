@@ -297,7 +297,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                     {user.firstName || user.username || 'User'}
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                    {user.role || 'User'}
+                    {typeof user.role === 'string' ? user.role : user.role?.name || user.role?.display_name || 'User'}
                   </p>
                 </div>
               )}

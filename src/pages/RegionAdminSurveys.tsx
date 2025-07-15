@@ -5,7 +5,7 @@ import type { RegionSurveyAnalytics } from '../services/regionAdminService';
 import SurveyStatsOverview from '../components/surveys/SurveyStatsOverview';
 import SurveysManagement from '../components/surveys/SurveysManagement';
 import SurveyAnalyticsView from '../components/surveys/SurveyAnalyticsView';
-import '../styles/regionadmin-surveys.css';
+import '../styles/regionadmin-consolidated.css';
 
 const RegionAdminSurveys: React.FC = () => {
   const { user } = useAuth();

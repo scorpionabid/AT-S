@@ -153,7 +153,7 @@ const DeviceCard: React.FC<DeviceCardProps> = ({
         )}
       </div>
 
-      <style jsx>{`
+      <style>{`
         .device-card {
           background: white;
           border: 1px solid #e9ecef;

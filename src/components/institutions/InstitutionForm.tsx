@@ -3,7 +3,7 @@ import { useForm, Controller } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { api } from '../../services/api';
-import { Dialog } from '../common/Dialog';
+import { Modal, ModalHeader, ModalTitle, ModalContent, ModalFooter } from '../ui/Modal';
 import { Input } from '../common/Input';
 import { Select } from '../common/Select';
 import { Button } from '../ui/Button';
@@ -142,7 +142,7 @@ export const InstitutionForm: React.FC<InstitutionFormProps> = ({
   };
 
   return (
-    <Dialog isOpen={true} onClose={onClose}>
+    <Modal open={true} onClose={onClose} size="lg">
       <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -351,7 +351,7 @@ export const InstitutionForm: React.FC<InstitutionFormProps> = ({
           </div>
         </form>
       </div>
-    </Dialog>
+    </Modal>
   );
 };
 

@@ -208,7 +208,7 @@ const DeviceManagement: React.FC = () => {
         />
       )}
 
-      <style jsx>{`
+      <style>{`
         .device-management {
           padding: 20px;
           max-width: 1200px;

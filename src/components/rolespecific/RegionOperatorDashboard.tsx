@@ -254,7 +254,7 @@ const RegionOperatorDashboard: React.FC = () => {
               </div>
               <div className="info-item">
                 <span className="info-label">Təşkilat:</span>
-                <span className="info-value">{stats.departmentInfo.institution}</span>
+                <span className="info-value">{typeof stats.departmentInfo.institution === 'string' ? stats.departmentInfo.institution : stats.departmentInfo.institution?.name || 'N/A'}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Üzv sayı:</span>

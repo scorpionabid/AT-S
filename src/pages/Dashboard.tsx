@@ -317,7 +317,7 @@ const DashboardHome: React.FC = () => {
                     </div>
                     <div className="activity-content">
                       <p className="activity-text">
-                        <strong>{activity.user}</strong> {activity.action}
+                        <strong>{typeof activity.user === 'string' ? activity.user : activity.user?.username || activity.user?.name || 'N/A'}</strong> {activity.action}
                       </p>
                       <span className="activity-time">{activity.time}</span>
                     </div>

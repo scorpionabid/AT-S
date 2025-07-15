@@ -76,7 +76,7 @@ const DeviceStatsCard: React.FC<DeviceStatsCardProps> = ({ stats }) => {
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .device-stats-card {
           background: white;
           border: 1px solid #dee2e6;

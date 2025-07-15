@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
+import { Card, CardContent, CardTitle } from '../../../ui/Card';
+import { Progress } from '../../../ui/Loading';
+import { cn } from '../../../../utils/cn';
 
 interface PerformanceCardProps {
   title: string;
@@ -8,54 +11,102 @@ interface PerformanceCardProps {
   color?: 'green' | 'yellow' | 'red' | 'blue';
   size?: 'small' | 'medium' | 'large';
   showProgress?: boolean;
+  className?: string;
 }
 
-const PerformanceCard: React.FC<PerformanceCardProps> = ({
+const PerformanceCard = forwardRef<HTMLDivElement, PerformanceCardProps>(({
   title,
   score,
   maxScore = 100,
   description,
   color = 'blue',
   size = 'medium',
-  showProgress = true
-}) => {
+  showProgress = true,
+  className
+}, ref) => {
   const percentage = Math.min((score / maxScore) * 100, 100);
   
-  const getScoreColor = (score: number): string => {
-    if (score >= 80) return 'green';
-    if (score >= 60) return 'yellow';
-    return 'red';
+  const getScoreColor = (score: number): 'success' | 'warning' | 'error' => {
+    if (score >= 80) return 'success';
+    if (score >= 60) return 'warning';
+    return 'error';
   };
 
-  const scoreColor = color === 'blue' ? getScoreColor(percentage) : color;
+  const getCardVariant = (score: number): 'default' | 'success' | 'warning' | 'error' => {
+    if (color === 'blue') {
+      const scoreColor = getScoreColor(percentage);
+      return scoreColor === 'success' ? 'success' : scoreColor === 'warning' ? 'warning' : 'error';
+    }
+    return color === 'green' ? 'success' : color === 'yellow' ? 'warning' : color === 'red' ? 'error' : 'default';
+  };
+
+  const cardSize = size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'md';
+  const progressVariant = color === 'blue' ? getScoreColor(percentage) : 
+                         color === 'green' ? 'success' : 
+                         color === 'yellow' ? 'warning' : 
+                         color === 'red' ? 'error' : 'primary';
 
   return (
-    <div className={`performance-card performance-card--${size} performance-card--${scoreColor}`}>
-      <div className="performance-header">
-        <h4 className="performance-title">{title}</h4>
-        <div className="performance-score">
-          <span className="score-value">{score}</span>
-          {maxScore !== 100 && <span className="score-max">/{maxScore}</span>}
+    <Card 
+      ref={ref}
+      variant={getCardVariant(percentage)}
+      size={cardSize}
+      className={cn('text-center', className)}
+    >
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <CardTitle level={4} className={cn(
+            'text-center',
+            size === 'small' && 'text-sm',
+            size === 'large' && 'text-lg'
+          )}>
+            {title}
+          </CardTitle>
+          
+          <div className="flex items-center justify-center space-x-1">
+            <span className={cn(
+              'font-bold',
+              size === 'small' ? 'text-lg' : size === 'large' ? 'text-3xl' : 'text-2xl',
+              getCardVariant(percentage) === 'success' && 'text-success-700',
+              getCardVariant(percentage) === 'warning' && 'text-warning-700',
+              getCardVariant(percentage) === 'error' && 'text-error-700',
+              getCardVariant(percentage) === 'default' && 'text-neutral-900'
+            )}>
+              {score}
+            </span>
+            {maxScore !== 100 && (
+              <span className="text-neutral-500 text-sm">
+                /{maxScore}
+              </span>
+            )}
+          </div>
         </div>
-      </div>
-      
-      {showProgress && (
-        <div className="performance-progress">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill"
-              style={{ width: `${percentage}%` }}
+        
+        {showProgress && (
+          <div className="space-y-2">
+            <Progress
+              value={percentage}
+              variant={progressVariant}
+              size={size === 'small' ? 'sm' : size === 'large' ? 'lg' : 'md'}
+              showValue={size !== 'small'}
+              className="w-full"
             />
           </div>
-          <span className="progress-percentage">{percentage.toFixed(1)}%</span>
-        </div>
-      )}
-      
-      {description && (
-        <p className="performance-description">{description}</p>
-      )}
-    </div>
+        )}
+        
+        {description && (
+          <p className={cn(
+            'text-neutral-600',
+            size === 'small' ? 'text-xs' : 'text-sm'
+          )}>
+            {description}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
-};
+});
+
+PerformanceCard.displayName = 'PerformanceCard';
 
 export default PerformanceCard;

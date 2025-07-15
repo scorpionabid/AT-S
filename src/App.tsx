@@ -23,15 +23,17 @@ import DocumentPage from './pages/DocumentPage';
 import SchedulePage from './pages/SchedulePage';
 import TeachingLoadPage from './pages/TeachingLoadPage';
 import { ROLES, ROLE_GROUPS } from './constants/roles';
+import ErrorBoundary from './components/debug/ErrorBoundary';
 // Removed SCSS module import - using Tailwind CSS classes
 import TestTailwind from './components/TestTailwind';
 import TailwindTest from './components/test/TailwindTest';
 
 const App: React.FC = () => {
   return (
-    <ThemeProvider>
-      <LanguageProvider>
-        <AuthProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <LanguageProvider>
+          <AuthProvider>
           <SessionProvider>
             <LayoutProvider>
             <Router>
@@ -192,6 +194,7 @@ const App: React.FC = () => {
         </AuthProvider>
       </LanguageProvider>
     </ThemeProvider>
+    </ErrorBoundary>
   );
 };
 

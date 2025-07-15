@@ -4,7 +4,7 @@ import { regionAdminService } from '../services/regionAdminService';
 import type { RegionUserStats } from '../services/regionAdminService';
 import UserStatsOverview from '../components/users/UserStatsOverview';
 import UsersList from '../components/users/UsersList';
-import '../styles/regionadmin-users.css';
+import '../styles/regionadmin-consolidated.css';
 
 const RegionAdminUsers: React.FC = () => {
   const { user } = useAuth();

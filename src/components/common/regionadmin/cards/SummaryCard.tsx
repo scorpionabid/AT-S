@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { forwardRef } from 'react';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../../ui/Card';
+import { Button } from '../../../ui/Button';
+import { cn } from '../../../../utils/cn';
 
 interface SummaryCardProps {
   title: string;
@@ -7,7 +10,7 @@ interface SummaryCardProps {
     value: string | number;
     highlight?: boolean;
   }>;
-  icon?: string;
+  icon?: React.ReactNode;
   actionButton?: {
     label: string;
     onClick: () => void;
@@ -15,44 +18,68 @@ interface SummaryCardProps {
   className?: string;
 }
 
-const SummaryCard: React.FC<SummaryCardProps> = ({
+const SummaryCard = forwardRef<HTMLDivElement, SummaryCardProps>(({
   title,
   items,
   icon,
   actionButton,
-  className = ''
-}) => {
+  className
+}, ref) => {
   return (
-    <div className={`summary-card ${className}`}>
-      <div className="summary-header">
-        {icon && <span className="summary-icon">{icon}</span>}
-        <h3 className="summary-title">{title}</h3>
-      </div>
+    <Card ref={ref} className={cn('h-full', className)}>
+      <CardHeader>
+        <div className="flex items-center space-x-2">
+          {icon && (
+            <div className="flex-shrink-0 p-1 bg-primary-100 rounded text-primary-600">
+              {icon}
+            </div>
+          )}
+          <CardTitle level={4}>{title}</CardTitle>
+        </div>
+      </CardHeader>
       
-      <div className="summary-content">
-        {items.map((item, index) => (
-          <div 
-            key={index} 
-            className={`summary-item ${item.highlight ? 'highlighted' : ''}`}
-          >
-            <span className="summary-label">{item.label}:</span>
-            <span className="summary-value">{item.value}</span>
-          </div>
-        ))}
-      </div>
+      <CardContent>
+        <div className="space-y-3">
+          {items.map((item, index) => (
+            <div 
+              key={index} 
+              className={cn(
+                'flex items-center justify-between py-2 px-3 rounded-md transition-colors',
+                item.highlight 
+                  ? 'bg-primary-50 border border-primary-200' 
+                  : 'bg-neutral-50 hover:bg-neutral-100'
+              )}
+            >
+              <span className="text-sm font-medium text-neutral-700">
+                {item.label}:
+              </span>
+              <span className={cn(
+                'text-sm font-semibold',
+                item.highlight ? 'text-primary-700' : 'text-neutral-900'
+              )}>
+                {item.value}
+              </span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
       
       {actionButton && (
-        <div className="summary-footer">
-          <button 
-            className="summary-action-btn"
+        <CardFooter>
+          <Button 
+            variant="outline"
+            size="sm"
             onClick={actionButton.onClick}
+            className="w-full"
           >
             {actionButton.label}
-          </button>
-        </div>
+          </Button>
+        </CardFooter>
       )}
-    </div>
+    </Card>
   );
-};
+});
+
+SummaryCard.displayName = 'SummaryCard';
 
 export default SummaryCard;

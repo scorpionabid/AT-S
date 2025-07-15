@@ -103,7 +103,7 @@ const TeacherWorkloadView: React.FC<TeacherWorkloadViewProps> = ({
               <h4>{teacher.first_name} {teacher.last_name}</h4>
               <p className="teacher-position">{teacher.position}</p>
               {teacher.department && (
-                <p className="teacher-department">{teacher.department}</p>
+                <p className="teacher-department">{typeof teacher.department === 'string' ? teacher.department : teacher.department?.name || 'N/A'}</p>
               )}
             </div>
           </div>
@@ -189,7 +189,7 @@ const TeacherWorkloadView: React.FC<TeacherWorkloadViewProps> = ({
             <div className="teacher-info">
               <h3>{selectedTeacher.first_name} {selectedTeacher.last_name}</h3>
               <p>{selectedTeacher.position}</p>
-              {selectedTeacher.department && <p>{selectedTeacher.department}</p>}
+              {selectedTeacher.department && <p>{typeof selectedTeacher.department === 'string' ? selectedTeacher.department : selectedTeacher.department?.name || 'N/A'}</p>}
             </div>
             <div className={getStatusClass(summary?.status || 'unknown')}>
               {getStatusIcon(summary?.status || 'unknown')}
@@ -262,7 +262,7 @@ const TeacherWorkloadView: React.FC<TeacherWorkloadViewProps> = ({
                     </div>
                   </div>
                   <div className="load-actions">
-                    <Button variant="ghost" size="xs">
+                    <Button variant="ghost" size="icon">
                       <Edit3 size={12} />
                     </Button>
                   </div>
