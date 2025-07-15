@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import UserCreateForm from './forms/UserCreateForm';
-import UserEditForm from './forms/UserEditForm';
+import UserCreateForm from '../../users/UserCreateForm';
+import UserEditForm from '../../users/UserEditForm';
 import { LoadingSpinner } from '../../ui/Loading';
 import { EmptyState } from '../../common/EmptyState';
 import '../../../styles/regionadmin-users.css';
