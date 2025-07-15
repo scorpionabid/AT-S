@@ -3,9 +3,9 @@ import { render, screen, fireEvent, waitFor, within } from '@testing-library/rea
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter } from 'react-router-dom';
 import { AuthProvider } from '../../contexts/AuthContext';
-import AttendanceList from '../../components/attendance/AttendanceList';
-import AttendanceForm from '../../components/attendance/AttendanceForm';
-import AttendanceStats from '../../components/attendance/AttendanceStats';
+import ClassAttendanceTracker from '../../components/academic/ClassAttendanceTracker';
+// import AttendanceForm from '../../components/attendance/AttendanceForm';
+// import AttendanceStats from '../../components/attendance/AttendanceStats';
 import * as attendanceService from '../../services/attendanceService';
 
 // Mock API responses
