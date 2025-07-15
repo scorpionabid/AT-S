@@ -543,7 +543,4 @@ export {
   progressVariants,
   skeletonVariants,
   type SpinnerSize,
-  // Legacy compatibility
-  LoadingSpinner,
-  LoadingSkeleton,
 };
