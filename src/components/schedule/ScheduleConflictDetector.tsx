@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { AlertTriangle, Users, BookOpen, Clock, MapPin, CheckCircle, X } from 'lucide-react';
-import { Button } from '../common/Button';
-import { Card } from '../common/Card';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import { 
   ScheduleSlot, 
   TimeSlot, 

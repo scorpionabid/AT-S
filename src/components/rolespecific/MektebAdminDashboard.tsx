@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { LoadingSpinner } from '../ui/Loading';
 import '../../styles/rolespecific-dashboards.css';
 
 interface MektebAdminStats {

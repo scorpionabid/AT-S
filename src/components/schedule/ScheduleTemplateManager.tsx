@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Download, Upload, Copy, Trash2, Eye, Edit3, Plus } from 'lucide-react';
-import { Button } from '../common/Button';
-import { Card } from '../common/Card';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import { ScheduleTemplate, ScheduleSlot, GenerationSettings } from './types/scheduleTypes';
 import { toast } from 'react-toastify';
 

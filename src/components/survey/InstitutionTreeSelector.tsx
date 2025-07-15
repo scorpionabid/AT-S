@@ -9,8 +9,8 @@ import {
   FiMinus,
   FiFilter
 } from 'react-icons/fi';
-import { Button } from '../common/Button';
-import { Card } from '../common/Card';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import type { Institution } from '../../services/surveyTargetingService';
 
 interface InstitutionTreeSelectorProps {

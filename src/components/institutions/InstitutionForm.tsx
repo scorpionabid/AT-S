@@ -6,7 +6,7 @@ import { api } from '../../services/api';
 import { Dialog } from '../common/Dialog';
 import { Input } from '../common/Input';
 import { Select } from '../common/Select';
-import { Button } from '../common/Button';
+import { Button } from '../ui/Button';
 import { FiX, FiSave, FiArrowLeft } from 'react-icons/fi';
 import { toast } from 'react-toastify';
 

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import InstitutionCreateForm from './forms/InstitutionCreateForm';
-import InstitutionEditForm from './forms/InstitutionEditForm';
+import InstitutionCreateForm from '../../institutions/InstitutionCreateForm';
+import InstitutionEditForm from '../../institutions/InstitutionEditForm';
 import DepartmentManagement from './components/DepartmentManagement';
-import LoadingSpinner from '../../common/LoadingSpinner';
+import { LoadingSpinner } from '../../ui/Loading';
 import { EmptyState } from '../../common/EmptyState';
 
 // Types

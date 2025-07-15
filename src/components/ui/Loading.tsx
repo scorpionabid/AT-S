@@ -527,6 +527,10 @@ const LoadingStyles = () => (
   `}</style>
 );
 
+// Legacy compatibility exports
+export const LoadingSpinner = Spinner;
+export const LoadingSkeleton = Skeleton;
+
 export {
   Spinner,
   DotsSpinner,
@@ -539,4 +543,7 @@ export {
   progressVariants,
   skeletonVariants,
   type SpinnerSize,
+  // Legacy compatibility
+  LoadingSpinner,
+  LoadingSkeleton,
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { PieChart, BarChart3, TrendingUp, Users, Clock, BookOpen, Download, Filter } from 'lucide-react';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { TeacherInfo, TeachingLoad, WorkloadSummary, AnalyticsData } from './types/teachingLoadTypes';
 
 interface WorkloadAnalyticsProps {

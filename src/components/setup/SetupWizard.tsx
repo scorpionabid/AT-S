@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import LoadingSpinner from '../common/LoadingSpinner';
+import { LoadingSpinner } from '../ui/Loading';
 import './setup-wizard.css';
 
 interface SetupStatus {

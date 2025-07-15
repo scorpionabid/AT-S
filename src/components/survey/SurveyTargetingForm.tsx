@@ -10,8 +10,8 @@ import {
   FiInfo,
   FiRefreshCw
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../common/Card';
-import { Button } from '../common/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { useToast } from '../../contexts/ToastContext';
 import { 
   surveyTargetingService,

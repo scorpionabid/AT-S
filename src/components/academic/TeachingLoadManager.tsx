@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { User, BarChart3, PieChart, FileText, Plus } from 'lucide-react';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
-import { LoadingSpinner } from '../common/LoadingSpinner';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { LoadingSpinner } from '../ui/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 
 // Import separated components

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Save, X, Clock, Users, BookOpen, MapPin, AlertTriangle } from 'lucide-react';
-import { Button } from '../common/Button';
-import { Card } from '../common/Card';
+import { Button } from '../ui/Button';
+import { Card } from '../ui/Card';
 import { 
   ScheduleSlot, 
   TimeSlot, 

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, AlertCircle } from 'lucide-react';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
-import { LoadingSpinner } from '../common/LoadingSpinner';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { LoadingSpinner } from '../ui/Loading';
 
 interface KSQResultFormProps {
   onClose: () => void;

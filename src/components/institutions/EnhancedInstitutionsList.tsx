@@ -23,8 +23,8 @@ const levelOptions: Array<{value: string, label: string}> = [
   { value: '4', label: 'Səviyyə 4 - Məktəb' },
   { value: '5', label: 'Səviyyə 5 - Şöbə' }
 ];
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../common/Card';
-import { Button } from '../common/Button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { Badge } from '../common/Badge';
 import { EmptyState } from '../common/EmptyState';
 import { Dialog } from '../common/Dialog';

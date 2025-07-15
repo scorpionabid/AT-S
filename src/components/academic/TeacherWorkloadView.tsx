@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { User, Clock, BookOpen, Users, TrendingUp, AlertTriangle, CheckCircle, Edit3, Search, Filter } from 'lucide-react';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
 import { TeacherInfo, TeachingLoad, WorkloadSummary } from './types/teachingLoadTypes';
 
 interface TeacherWorkloadViewProps {

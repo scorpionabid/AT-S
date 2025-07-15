@@ -9,8 +9,8 @@ import {
   FiChevronUp,
   FiRefreshCw
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../common/Card';
-import { Button } from '../common/Button';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { Button } from '../ui/Button';
 import type { RecipientEstimation } from '../../services/surveyTargetingService';
 
 interface RecipientEstimationDisplayProps {

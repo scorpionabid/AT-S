@@ -10,9 +10,9 @@ import {
   Zap,
   RefreshCw
 } from 'lucide-react';
-import { Card } from '../common/Card';
-import { Button } from '../common/Button';
-import { LoadingSpinner } from '../common/LoadingSpinner';
+import { Card } from '../ui/Card';
+import { Button } from '../ui/Button';
+import { LoadingSpinner } from '../ui/Loading';
 
 interface AnalyticsData {
   performance_trends: {

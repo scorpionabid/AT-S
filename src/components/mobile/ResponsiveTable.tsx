@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import classNames from 'classnames';
 import { Icon, IconName } from '../common/Icon';
-import { Button } from '../common/Button';
-import { Card, CardContent } from '../common/Card';
+import { Button } from '../ui/Button';
+import { Card, CardContent } from '../ui/Card';
 import { ContextMenu } from '../common/ContextMenu';
 
 interface TableColumn {

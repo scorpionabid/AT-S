@@ -7,7 +7,6 @@ import UserDeleteConfirm from './UserDeleteConfirm';
 import UserStatusConfirm from './UserStatusConfirm';
 import UserViewModal from './UserViewModal';
 import '../../styles/users.css';
-import '../../styles/users-enhanced.css';
 
 interface User {
   id: number;
