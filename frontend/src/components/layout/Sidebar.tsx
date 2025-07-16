@@ -10,12 +10,14 @@ import { useKeyboardNavigation } from './sidebar/useKeyboardNavigation';
 interface SidebarProps {
   className?: string;
   variant?: 'modern' | 'classic';
+  contentVariant?: 'default' | 'compact' | 'minimal';
   children?: ReactNode;
 }
 
 const Sidebar: React.FC<SidebarProps> = memo(({
   className = '',
   variant = 'modern',
+  contentVariant = 'default',
   children
 }) => {
   const { 
@@ -52,10 +54,15 @@ const Sidebar: React.FC<SidebarProps> = memo(({
     'flex flex-col h-screen fixed left-0 top-0 z-40',
     'transition-all duration-300 ease-in-out',
     'bg-[var(--sidebar-bg)]',
-    'shadow-lg',
+    'backdrop-blur-sm',
     isCollapsed ? 'w-16' : 'w-64',
     className,
-    variant === 'modern' && 'border-r border-[var(--sidebar-border)]',
+    variant === 'modern' && [
+      'border-r border-[var(--sidebar-border)]',
+      'shadow-[var(--sidebar-shadow)]',
+      'before:absolute before:inset-0 before:bg-[var(--sidebar-gradient)] before:opacity-50'
+    ],
+    variant === 'classic' && 'shadow-lg',
     {
       'translate-x-0': isMobileOpen || screenSize !== 'mobile',
       '-translate-x-full': !isMobileOpen && screenSize === 'mobile'
@@ -84,6 +91,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
           isCollapsed={isCollapsed}
           expandedItems={expandedItems}
           onToggleSubmenu={toggleSubmenu}
+          variant={contentVariant}
         />
 
         <UserProfile isCollapsed={isCollapsed} />

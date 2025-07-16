@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getVisibleMenuItems } from '../../utils/navigation';
-import SidebarItem from './SidebarItem';
+import EnhancedSidebarItem from './sidebar/EnhancedSidebarItem';
 import { FiHome, FiSettings, FiUsers, FiFolder, FiFileText, FiBell, FiMessageSquare, FiHelpCircle } from 'react-icons/fi';
 
 export interface NavigationItem {
@@ -19,6 +19,7 @@ interface SidebarContentProps {
   isCollapsed: boolean;
   expandedItems: string[];
   onToggleSubmenu: (itemId: string) => void;
+  variant?: 'default' | 'compact' | 'minimal';
 }
 
 // Helper function to get icon component by name
@@ -54,6 +55,7 @@ const SidebarContent: React.FC<SidebarContentProps> = memo(({
   isCollapsed,
   expandedItems,
   onToggleSubmenu,
+  variant = 'default'
 }) => {
   const { user } = useAuth();
 
@@ -70,24 +72,44 @@ const SidebarContent: React.FC<SidebarContentProps> = memo(({
 
   if (!Array.isArray(menuItems) || menuItems.length === 0) {
     return (
-      <div className="flex-1 p-4 text-sm text-gray-500">
-        No menu items available
+      <div className="flex-1 p-4 text-sm text-[var(--text-tertiary)] text-center">
+        {isCollapsed ? (
+          <div className="w-8 h-8 mx-auto bg-[var(--color-neutral-200)] rounded-full animate-pulse" />
+        ) : (
+          <div className="space-y-2">
+            <div className="w-full h-4 bg-[var(--color-neutral-200)] rounded animate-pulse" />
+            <div className="w-3/4 h-4 bg-[var(--color-neutral-200)] rounded animate-pulse mx-auto" />
+            <div className="w-1/2 h-4 bg-[var(--color-neutral-200)] rounded animate-pulse mx-auto" />
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-      {menuItems.map((item) => {
+    <nav 
+      className="flex-1 px-3 py-4 space-y-1 overflow-y-auto scrollbar-thin scrollbar-thumb-[var(--sidebar-border)] scrollbar-track-transparent"
+      role="navigation"
+      aria-label="Main navigation"
+    >
+      {menuItems.map((item, index) => {
         const itemId = item.id || item.name || '';
         return (
-          <SidebarItem
+          <div
             key={itemId}
-            item={item}
-            isCollapsed={isCollapsed}
-            isExpanded={expandedItems.includes(itemId)}
-            onToggle={onToggleSubmenu}
-          />
+            className="stagger-animation"
+            style={{
+              animationDelay: `${index * 50}ms`
+            }}
+          >
+            <EnhancedSidebarItem
+              item={item}
+              isCollapsed={isCollapsed}
+              isExpanded={expandedItems.includes(itemId)}
+              onToggle={onToggleSubmenu}
+              variant={variant}
+            />
+          </div>
         );
       })}
     </nav>

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useLayout } from '../../../contexts/LayoutContext';
 import { FiSettings, FiUser, FiLogOut, FiSun, FiMoon, FiMessageSquare, FiBell, FiHelpCircle } from 'react-icons/fi';
+import Badge from './Badge';
 
 interface UserProfileProps {
   isCollapsed: boolean;
@@ -14,6 +15,46 @@ const UserProfile: React.FC<UserProfileProps> = memo(({ isCollapsed }) => {
   const navigate = useNavigate();
   const settingsRef = useRef<HTMLDivElement>(null);
   const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [notifications, setNotifications] = useState(3);
+  const [messages, setMessages] = useState(2);
+  
+  // Hover effects for interactive elements (simplified)
+  const [isSettingsHovered, setIsSettingsHovered] = useState(false);
+  const settingsHover = {
+    handlers: {
+      onMouseEnter: () => setIsSettingsHovered(true),
+      onMouseLeave: () => setIsSettingsHovered(false),
+      onClick: (e: React.MouseEvent) => {},
+      onMouseDown: () => {},
+      onMouseUp: () => {},
+      onFocus: () => {},
+      onBlur: () => {}
+    },
+    styles: {
+      transform: isSettingsHovered ? 'scale(1.05)' : 'scale(1)',
+      opacity: 1,
+      boxShadow: isSettingsHovered ? '0 2px 8px rgba(0,0,0,0.1)' : 'none',
+      transition: 'all 0.2s ease-out'
+    }
+  };
+  
+  const actionButtonHover = {
+    handlers: {
+      onMouseEnter: () => {},
+      onMouseLeave: () => {},
+      onClick: (e: React.MouseEvent) => {},
+      onMouseDown: () => {},
+      onMouseUp: () => {},
+      onFocus: () => {},
+      onBlur: () => {}
+    },
+    styles: {
+      transform: 'scale(1)',
+      opacity: 1,
+      boxShadow: 'none',
+      transition: 'all 0.2s ease-out'
+    }
+  };
 
   // Close settings menu when clicking outside
   useEffect(() => {
@@ -38,12 +79,37 @@ const UserProfile: React.FC<UserProfileProps> = memo(({ isCollapsed }) => {
 
   if (isCollapsed) {
     return (
-      <div className="sidebar-footer border-t border-neutral-200 dark:border-neutral-700 p-3 mt-auto">
-        <div className="user-profile flex items-center justify-center">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-medium shadow-sm" title={user?.username || 'User'}>
-            {user?.username?.charAt(0).toUpperCase() || 'U'}
+      <div className="sidebar-footer border-t border-[var(--sidebar-border)] p-3 mt-auto">
+        <div className="user-profile flex items-center justify-center relative group">
+          <div className="relative">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-[var(--color-primary-500)] to-[var(--color-primary-600)] flex items-center justify-center text-white font-medium shadow-sm transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg" title={user?.username || 'User'}>
+              {user?.username?.charAt(0).toUpperCase() || 'U'}
+            </div>
+            <Badge
+              type="indicator"
+              variant="success"
+              className="absolute -bottom-0.5 -right-0.5"
+              pulse={true}
+            />
+            
+            {/* Notification indicators for collapsed state */}
+            {notifications > 0 && (
+              <Badge
+                type="count"
+                variant="error"
+                count={notifications}
+                size="sm"
+                className="absolute -top-1 -right-1"
+                pulse={true}
+              />
+            )}
           </div>
-          <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-white dark:border-neutral-800 rounded-full"></span>
+          
+          {/* Tooltip for collapsed state */}
+          <div className="absolute left-full ml-2 px-3 py-2 bg-[var(--color-neutral-900)] text-white text-sm rounded-lg shadow-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-300 whitespace-nowrap z-50">
+            {user?.username || 'User'}
+            <div className="absolute right-full top-1/2 -translate-y-1/2 border-[6px] border-transparent border-r-[var(--color-neutral-900)]" />
+          </div>
         </div>
       </div>
     );
