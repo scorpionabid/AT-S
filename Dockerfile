@@ -1,4 +1,7 @@
-FROM php:8.2-fpm
+# ATİS Multi-stage Dockerfile for Backend and Frontend
+
+# Backend stage (Laravel)
+FROM php:8.2-fpm as backend
 
 # Set working directory
 WORKDIR /var/www/html
@@ -58,3 +61,23 @@ RUN chmod 0644 /etc/cron.d/laravel-scheduler && crontab /etc/cron.d/laravel-sche
 EXPOSE 9000
 
 CMD ["supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+# Frontend stage (React)
+FROM node:20-alpine as frontend
+
+WORKDIR /app
+
+# Copy package files
+COPY frontend/package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy app source
+COPY frontend/ .
+
+# Expose port
+EXPOSE 3000
+
+# Start development server
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]

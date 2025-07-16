@@ -1,0 +1,308 @@
+// ====================
+// Users Management Page - Modern SCSS Implementation
+// ====================
+
+// Users page configuration
+$users-table-border-radius: $radius-lg;
+$users-avatar-size: spacing(10);
+$users-action-button-size: spacing(8);
+$users-modal-max-width: 900px;
+
+// ====================
+// PAGE LAYOUT
+// ====================
+
+.users-list {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: spacing(6);
+  
+  @include mobile-only {
+    padding: spacing(4);
+  }
+}
+
+// ====================
+// LOADING STATES
+// ====================
+
+.users-loading {
+  @include flex-center;
+  min-height: 400px;
+}
+
+.loading-spinner {
+  @include flex-column;
+  @include flex-center;
+  gap: spacing(4);
+  
+  .spinner {
+    @include loading-spinner;
+    width: spacing(10);
+    height: spacing(10);
+    border-width: 4px;
+    border-color: color('neutral', 200) color('neutral', 200) color('primary', 500) color('neutral', 200);
+  }
+  
+  .loading-text {
+    @include typography('sm', $font-weight-medium);
+    color: var(--text-secondary);
+  }
+}
+
+// ====================
+// ERROR HANDLING
+// ====================
+
+.error-message {
+  @include alert('error');
+  @include flex(row, nowrap, flex-start, center);
+  gap: spacing(3);
+  margin-bottom: spacing(6);
+  
+  .error-icon {
+    font-size: font-size('lg');
+    flex-shrink: 0;
+  }
+  
+  .error-close {
+    @include button-ghost;
+    @include flex-center;
+    width: spacing(6);
+    height: spacing(6);
+    margin-left: auto;
+    padding: 0;
+    color: inherit;
+    
+    &:hover {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+}
+
+// ====================
+// CONTROLS & FILTERS
+// ====================
+
+.users-controls {
+  @include flex(row, wrap, space-between, flex-end);
+  gap: spacing(6);
+  margin-bottom: spacing(8);
+  
+  @include tablet-down {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.users-filters {
+  @include flex(row, wrap, flex-start, flex-end);
+  gap: spacing(4);
+  
+  @include tablet-down {
+    justify-content: space-between;
+  }
+  
+  @include mobile-only {
+    flex-direction: column;
+    gap: spacing(3);
+  }
+}
+
+// Search Form
+.search-form {
+  @include flex(row, nowrap, flex-start, stretch);
+  gap: spacing(2);
+  
+  @include mobile-only {
+    flex-direction: column;
+  }
+}
+
+.search-input {
+  @include input-base;
+  width: 300px;
+  padding: spacing(3) spacing(4);
+  font-size: font-size('sm');
+  
+  &:focus {
+    @include input-focus;
+    border-color: color('primary', 500);
+    box-shadow: 0 0 0 3px rgba(#{color('primary', 500)}, 0.1);
+  }
+  
+  @include mobile-only {
+    width: 100%;
+  }
+}
+
+.search-button {
+  @include button-primary;
+  padding: spacing(3) spacing(6);
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(#{color('primary', 600)}, 0.4);
+  }
+}
+
+// Filter Select
+.filter-select {
+  @include input-base;
+  padding: spacing(3) spacing(4);
+  background: var(--bg-surface);
+  font-size: font-size('sm');
+  cursor: pointer;
+  min-width: 150px;
+  
+  &:focus {
+    @include input-focus;
+  }
+}
+
+// Add User Button
+.add-user-button {
+  @include button-success;
+  padding: spacing(3) spacing(6);
+  font-weight: $font-weight-medium;
+  white-space: nowrap;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(#{color('success', 600)}, 0.4);
+  }
+}
+
+// ====================
+// USERS TABLE
+// ====================
+
+.users-table-container {
+  @include card('default', 0);
+  border-radius: $users-table-border-radius;
+  overflow: hidden;
+  border: $border-width-default solid var(--border-primary);
+  
+  @include mobile-only {
+    overflow-x: auto;
+  }
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  
+  @include mobile-only {
+    min-width: 800px;
+  }
+  
+  th {
+    @include typography('sm', $font-weight-semibold);
+    background: var(--bg-secondary);
+    padding: spacing(4);
+    text-align: left;
+    color: var(--text-primary);
+    border-bottom: $border-width-default solid var(--border-primary);
+  }
+  
+  td {
+    padding: spacing(4);
+    border-bottom: $border-width-default solid var(--border-primary);
+    vertical-align: middle;
+  }
+  
+  tbody tr {
+    @include transition(background-color, $duration-200, $ease-in-out);
+    
+    &:hover {
+      background: var(--bg-secondary);
+    }
+    
+    &:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+// ====================
+// USER CELL COMPONENTS
+// ====================
+
+.user-cell {
+  @include flex(row, nowrap, flex-start, center);
+  gap: spacing(3);
+}
+
+.user-avatar {
+  @include flex-center;
+  width: $users-avatar-size;
+  height: $users-avatar-size;
+  border-radius: $radius-full;
+  background: linear-gradient(135deg, color('primary', 600) 0%, color('secondary', 700) 100%);
+  color: white;
+  font-weight: $font-weight-bold;
+  font-size: font-size('base');
+  flex-shrink: 0;
+  
+  // Avatar variants for different roles
+  &--admin {
+    background: linear-gradient(135deg, color('error', 500) 0%, color('error', 700) 100%);
+  }
+  
+  &--teacher {
+    background: linear-gradient(135deg, color('warning', 500) 0%, color('warning', 700) 100%);
+  }
+  
+  &--student {
+    background: linear-gradient(135deg, color('info', 500) 0%, color('info', 700) 100%);
+  }
+}
+
+.user-info {
+  @include flex-column;
+  gap: spacing(0.5);
+  flex: 1;
+  min-width: 0;
+}
+
+.username {
+  @include typography('base', $font-weight-semibold);
+  color: var(--text-primary);
+  @include text-truncate;
+}
+
+.user-id {
+  @include typography('xs', $font-weight-normal);
+  color: var(--text-tertiary);
+}
+
+// ====================
+// ROLE BADGES
+// ====================
+
+.role-badge {
+  @include typography('xs', $font-weight-medium);
+  display: inline-block;
+  padding: spacing(1) spacing(3);
+  border-radius: $radius-full;
+  text-transform: capitalize;
+  white-space: nowrap;
+  
+  // Role-specific styling
+  &.superadmin {
+    background: color('error', 100);
+    color: color('error', 800);
+  }
+  
+  &.regionadmin {
+    background: color('info', 100);
+    color: color('info', 800);
+  }
+  
+  &.schooladmin {
+    background: color('success', 100);
+    color: color('success', 800);
+  }
+  
