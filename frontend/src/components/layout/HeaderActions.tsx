@@ -24,8 +24,6 @@ const ActionButton: React.FC<ActionButtonProps> = ({ onClick, 'aria-label': aria
 
 
 interface HeaderActionsProps {
-  onCommandPaletteToggle: () => void;
-  showCommandPalette?: boolean;
   showThemeToggle?: boolean;
   showLanguageSwitcher?: boolean;
 }
@@ -33,8 +31,6 @@ interface HeaderActionsProps {
 // This component now ONLY renders app-related actions.
 // User actions (Notifications, Profile) have been moved to Header.tsx for better layout control.
 const HeaderActions: React.FC<HeaderActionsProps> = ({
-  onCommandPaletteToggle,
-  showCommandPalette = true,
   showThemeToggle = true,
   showLanguageSwitcher = true,
 }) => {
@@ -58,12 +54,6 @@ const HeaderActions: React.FC<HeaderActionsProps> = ({
 
   return (
     <div className="flex items-center justify-center gap-2">
-      {showCommandPalette && (
-        <ActionButton onClick={onCommandPaletteToggle} aria-label="Open command palette">
-          <FiCommand size={20} />
-        </ActionButton>
-      )}
-
       {showThemeToggle && (
         <ActionButton onClick={toggleTheme} aria-label="Toggle theme">
           {getThemeIcon()}

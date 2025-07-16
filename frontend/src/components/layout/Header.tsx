@@ -1,46 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import MenuToggle from './MenuToggle';
 import HeaderActions from './HeaderActions';
 import SessionStatus from '../auth/SessionStatus';
-import CommandPalette from '../navigation/CommandPalette';
 import NotificationDropdown from '../dropdown/NotificationDropdown';
 import ProfileDropdown from '../dropdown/ProfileDropdown';
 
 interface HeaderProps {
-  commandPalette?: boolean;
   themeToggle?: boolean;
   languageSwitcher?: boolean;
   compact?: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
-  commandPalette = true,
   themeToggle = true,
   languageSwitcher = true,
   compact = false,
 }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
-
-  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
-
-  const handleCommandPaletteToggle = () => {
-    setIsCommandPaletteOpen((prev) => !prev);
-  };
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        handleCommandPaletteToggle();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
 
   return (
     <>
@@ -70,10 +49,8 @@ const Header: React.FC<HeaderProps> = ({
               {/* Qrup 1: Tətbiq ikonları + Bildirişlər */}
               <div className="flex items-center gap-2">
                 <HeaderActions
-                  showCommandPalette={commandPalette}
                   showThemeToggle={themeToggle}
                   showLanguageSwitcher={languageSwitcher}
-                  onCommandPaletteToggle={handleCommandPaletteToggle}
                 />
                 <NotificationDropdown />
               </div>
@@ -92,15 +69,10 @@ const Header: React.FC<HeaderProps> = ({
 
       {/* Sessiya statusu */}
       <SessionStatus />
-
-      {/* Komanda palitrası */}
-      <CommandPalette
-        isOpen={isCommandPaletteOpen}
-        onClose={handleCommandPaletteToggle}
-      />
     </>
   );
 };
 
 export default Header;
+
 
