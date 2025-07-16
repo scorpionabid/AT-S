@@ -1,0 +1,258 @@
+@import "tailwindcss";
+
+/* ATİS Design Tokens - Must be imported first */
+@import './styles/tokens/design-tokens.css';
+
+/* Import essential styles only */
+@import './styles/theme-toggle.css';
+@import './styles/mobile.css';
+
+/* Reset and base styles */
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-normal);
+  font-weight: var(--font-weight-normal);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Base styles using design tokens */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family-base);
+  line-height: var(--line-height-normal);
+}
+
+/* Remove default button styles to let Tailwind handle */
+button {
+  font-family: inherit;
+}
+
+/* Remove default heading styles to let Tailwind handle */
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: inherit;
+  font-size: inherit;
+}
+
+/* Link styles using design tokens */
+a {
+  color: var(--interactive-primary);
+  text-decoration: none;
+  transition: color var(--duration-150) var(--ease-out);
+}
+
+a:hover {
+  color: var(--interactive-primary-hover);
+}
+
+a:focus {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Enhanced focus styles for accessibility */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Smooth transitions for interactive elements */
+button,
+input,
+select,
+textarea {
+  transition: all var(--duration-150) var(--ease-out);
+}
+
+/* Print optimizations */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* ====================
+ * CRITICAL LAYOUT FIXES
+ * ==================== */
+
+/* App Layout Structure */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-primary);
+}
+
+/* Header - Fixed positioning */
+.app-header {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: var(--header-height);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-primary);
+  z-index: var(--z-index-fixed) !important;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* Sidebar - Fixed positioning */
+.app-sidebar {
+  position: fixed !important;
+  top: var(--header-height);
+  left: 0;
+  width: var(--sidebar-width);
+  height: calc(100vh - var(--header-height));
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-primary);
+  overflow-y: auto;
+  z-index: var(--z-index-sticky) !important;
+  transition: all var(--duration-300) var(--ease-in-out);
+}
+
+.app-sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+/* Main Content - Proper margins */
+.app-main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+  padding: var(--content-padding);
+  transition: margin-left var(--duration-300) var(--ease-in-out);
+  background: var(--bg-primary);
+}
+
+.app-main.sidebar-collapsed {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
+/* Content area */
+.app-content {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Mobile Layout Fixes */
+@media (max-width: 768px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+    z-index: var(--z-index-offcanvas) !important;
+    width: 100vw;
+    max-width: 320px;
+  }
+  
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+  
+  .app-main {
+    margin-left: 0 !important;
+  }
+  
+  .app-header {
+    padding: 0 0.75rem;
+  }
+}
+
+/* Tablet Layout Fixes */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .app-sidebar {
+    width: 240px;
+  }
+  
+  .app-main {
+    margin-left: 240px;
+  }
+  
+  .app-main.sidebar-collapsed {
+    margin-left: var(--sidebar-width-collapsed);
+  }
+}
+
+/* Mobile Overlay */
+.mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: var(--z-index-modal-backdrop);
+  opacity: 0;
+  visibility: hidden;
+  transition: all var(--duration-300) var(--ease-in-out);
+}
+
+.mobile-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Navigation Link Active States */
+.nav-link-active {
+  background: var(--color-primary-100) !important;
+  color: var(--color-primary-700) !important;
+  border-right: 3px solid var(--color-primary-600);
+}
+
+/* Scrollbar Styling */
+.app-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb {
+  background: var(--color-neutral-300);
+  border-radius: 3px;
+}
+
+.app-sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--color-neutral-400);
+}
+
+/* Focus States for Accessibility */
+.app-layout button:focus-visible,
+.app-layout a:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* High Contrast Support */
+@media (prefers-contrast: high) {
+  .app-header {
+    border-bottom-width: 2px;
+  }
+  
+  .app-sidebar {
+    border-right-width: 2px;
+  }
+}

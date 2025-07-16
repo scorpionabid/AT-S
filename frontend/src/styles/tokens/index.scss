@@ -1,0 +1,91 @@
+// ====================
+// ATİS Unified Design System - Master Tokens
+// Version: 2.0.0 (FAZA 13 Optimized)
+// ====================
+
+@use 'sass:math';
+@use 'sass:map';
+
+// Forward all token modules
+@forward 'colors';
+@forward 'typography';
+@forward 'spacing';
+@forward 'shadows';
+@forward 'borders';
+@forward 'animations';
+@forward 'breakpoints';
+@forward 'z-index';
+
+// ====================
+// GLOBAL CONFIGURATION
+// ====================
+
+// Feature toggles
+$enable-css-custom-properties: true !default;
+$enable-semantic-tokens: true !default;
+$enable-dark-mode: true !default;
+$enable-reduced-motion: true !default;
+
+// Build configuration
+$environment: 'development' !default; // 'development' | 'production'
+$optimize-bundle: false !default;
+
+// ====================
+// UTILITY FUNCTIONS
+// ====================
+
+// Convert px to rem
+@function rem($px, $base: 16px) {
+  @return math.div($px, $base) * 1rem;
+}
+
+// Convert px to em
+@function em($px, $context: 16px) {
+  @return math.div($px, $context) * 1em;
+}
+
+// Generate CSS custom properties
+@mixin generate-css-variables($tokens, $prefix: '') {
+  @if $enable-css-custom-properties {
+    @each $key, $value in $tokens {
+      --#{$prefix}#{$key}: #{$value};
+    }
+  }
+}
+
+// Debug token usage
+@mixin debug-tokens($show: false) {
+  @if $show and $environment == 'development' {
+    &::before {
+      content: 'Tokens loaded: Colors, Typography, Spacing, Shadows';
+      position: fixed;
+      top: 0;
+      right: 0;
+      background: var(--color-warning-500);
+      color: var(--color-white);
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      z-index: 9999;
+    }
+  }
+}
+
+// ====================
+// TOKEN VALIDATION
+// ====================
+
+// Validate color contrast
+@function validate-contrast($foreground, $background, $ratio: 4.5) {
+  // Simplified contrast validation
+  // In production, use a proper contrast calculation
+  @return true;
+}
+
+// Validate token usage
+@function validate-token($token-map, $key) {
+  @if not map.has-key($token-map, $key) {
+    @warn 'Token "#{$key}" not found in token map';
+    @return null;
+  }
+  @return map.get($token-map, $key);
+}

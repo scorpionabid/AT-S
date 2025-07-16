@@ -1,0 +1,495 @@
+// ====================
+// ATİS Design System - Responsive Utilities
+// Mobile-first responsive design system
+// ====================
+
+@use '../design-system/tokens' as *;
+
+// ====================
+// RESPONSIVE MIXINS
+// ====================
+
+// Mobile-first breakpoint mixins
+@mixin mobile {
+  @media (max-width: #{$breakpoint-sm - 1px}) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (min-width: #{$breakpoint-sm}) and (max-width: #{$breakpoint-lg - 1px}) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (min-width: #{$breakpoint-lg}) {
+    @content;
+  }
+}
+
+@mixin large-desktop {
+  @media (min-width: #{$breakpoint-xl}) {
+    @content;
+  }
+}
+
+// Specific breakpoint mixins
+@mixin min-width($breakpoint) {
+  @media (min-width: #{$breakpoint}) {
+    @content;
+  }
+}
+
+@mixin max-width($breakpoint) {
+  @media (max-width: #{$breakpoint - 1px}) {
+    @content;
+  }
+}
+
+@mixin between($min, $max) {
+  @media (min-width: #{$min}) and (max-width: #{$max - 1px}) {
+    @content;
+  }
+}
+
+// ====================
+// RESPONSIVE UTILITY CLASSES
+// ====================
+
+// Display utilities
+.block { display: block; }
+.inline-block { display: inline-block; }
+.inline { display: inline; }
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.grid { display: grid; }
+.hidden { display: none; }
+
+// Mobile-specific display
+@include mobile {
+  .mobile\:block { display: block; }
+  .mobile\:hidden { display: none; }
+  .mobile\:flex { display: flex; }
+  .mobile\:grid { display: grid; }
+}
+
+// Tablet-specific display
+@include tablet {
+  .tablet\:block { display: block; }
+  .tablet\:hidden { display: none; }
+  .tablet\:flex { display: flex; }
+  .tablet\:grid { display: grid; }
+}
+
+// Desktop-specific display
+@include desktop {
+  .desktop\:block { display: block; }
+  .desktop\:hidden { display: none; }
+  .desktop\:flex { display: flex; }
+  .desktop\:grid { display: grid; }
+}
+
+// ====================
+// RESPONSIVE CONTAINERS
+// ====================
+
+.container {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 $space-4;
+  
+  @include min-width($breakpoint-sm) {
+    max-width: $container-sm;
+    padding: 0 $space-6;
+  }
+  
+  @include min-width($breakpoint-md) {
+    max-width: $container-md;
+    padding: 0 $space-8;
+  }
+  
+  @include min-width($breakpoint-lg) {
+    max-width: $container-lg;
+  }
+  
+  @include min-width($breakpoint-xl) {
+    max-width: $container-xl;
+  }
+  
+  @include min-width($breakpoint-2xl) {
+    max-width: $container-xxl;
+  }
+}
+
+// Fluid container
+.container-fluid {
+  width: 100%;
+  padding: 0 $space-4;
+  
+  @include min-width($breakpoint-sm) {
+    padding: 0 $space-6;
+  }
+  
+  @include min-width($breakpoint-md) {
+    padding: 0 $space-8;
+  }
+}
+
+// ====================
+// RESPONSIVE GRID SYSTEM
+// ====================
+
+.grid {
+  display: grid;
+  gap: $grid-gutter-width;
+  
+  // Grid column utilities
+  &--cols-1 { grid-template-columns: repeat(1, 1fr); }
+  &--cols-2 { grid-template-columns: repeat(2, 1fr); }
+  &--cols-3 { grid-template-columns: repeat(3, 1fr); }
+  &--cols-4 { grid-template-columns: repeat(4, 1fr); }
+  &--cols-6 { grid-template-columns: repeat(6, 1fr); }
+  &--cols-12 { grid-template-columns: repeat(12, 1fr); }
+  
+  // Responsive grid columns
+  @include mobile {
+    &--mobile-cols-1 { grid-template-columns: repeat(1, 1fr); }
+    &--mobile-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  }
+  
+  @include tablet {
+    &--tablet-cols-2 { grid-template-columns: repeat(2, 1fr); }
+    &--tablet-cols-3 { grid-template-columns: repeat(3, 1fr); }
+    &--tablet-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  }
+  
+  @include desktop {
+    &--desktop-cols-3 { grid-template-columns: repeat(3, 1fr); }
+    &--desktop-cols-4 { grid-template-columns: repeat(4, 1fr); }
+    &--desktop-cols-6 { grid-template-columns: repeat(6, 1fr); }
+    &--desktop-cols-12 { grid-template-columns: repeat(12, 1fr); }
+  }
+}
+
+// Grid item utilities
+.col-span-1 { grid-column: span 1; }
+.col-span-2 { grid-column: span 2; }
+.col-span-3 { grid-column: span 3; }
+.col-span-4 { grid-column: span 4; }
+.col-span-6 { grid-column: span 6; }
+.col-span-12 { grid-column: span 12; }
+.col-span-full { grid-column: 1 / -1; }
+
+// Responsive column spans
+@include mobile {
+  .mobile\:col-span-1 { grid-column: span 1; }
+  .mobile\:col-span-2 { grid-column: span 2; }
+  .mobile\:col-span-full { grid-column: 1 / -1; }
+}
+
+@include tablet {
+  .tablet\:col-span-2 { grid-column: span 2; }
+  .tablet\:col-span-3 { grid-column: span 3; }
+  .tablet\:col-span-4 { grid-column: span 4; }
+}
+
+@include desktop {
+  .desktop\:col-span-3 { grid-column: span 3; }
+  .desktop\:col-span-4 { grid-column: span 4; }
+  .desktop\:col-span-6 { grid-column: span 6; }
+}
+
+// ====================
+// RESPONSIVE FLEXBOX
+// ====================
+
+.flex {
+  display: flex;
+  
+  // Flex direction
+  &--row { flex-direction: row; }
+  &--col { flex-direction: column; }
+  &--row-reverse { flex-direction: row-reverse; }
+  &--col-reverse { flex-direction: column-reverse; }
+  
+  // Justify content
+  &--justify-start { justify-content: flex-start; }
+  &--justify-center { justify-content: center; }
+  &--justify-end { justify-content: flex-end; }
+  &--justify-between { justify-content: space-between; }
+  &--justify-around { justify-content: space-around; }
+  &--justify-evenly { justify-content: space-evenly; }
+  
+  // Align items
+  &--items-start { align-items: flex-start; }
+  &--items-center { align-items: center; }
+  &--items-end { align-items: flex-end; }
+  &--items-stretch { align-items: stretch; }
+  &--items-baseline { align-items: baseline; }
+  
+  // Flex wrap
+  &--wrap { flex-wrap: wrap; }
+  &--nowrap { flex-wrap: nowrap; }
+  &--wrap-reverse { flex-wrap: wrap-reverse; }
+  
+  // Gap
+  &--gap-2 { gap: $space-2; }
+  &--gap-4 { gap: $space-4; }
+  &--gap-6 { gap: $space-6; }
+  &--gap-8 { gap: $space-8; }
+}
+
+// Responsive flex direction
+@include mobile {
+  .mobile\:flex--col { flex-direction: column; }
+  .mobile\:flex--row { flex-direction: row; }
+}
+
+@include tablet {
+  .tablet\:flex--row { flex-direction: row; }
+  .tablet\:flex--col { flex-direction: column; }
+}
+
+@include desktop {
+  .desktop\:flex--row { flex-direction: row; }
+}
+
+// ====================
+// RESPONSIVE SPACING
+// ====================
+
+// Generate responsive spacing utilities
+$spacing-sizes: (1, 2, 3, 4, 5, 6, 8, 10, 12, 16, 20, 24);
+
+@each $size in $spacing-sizes {
+  $value: map-get($spacing, $size);
+  
+  // Mobile spacing
+  @include mobile {
+    .mobile\:m-#{$size} { margin: $value; }
+    .mobile\:mt-#{$size} { margin-top: $value; }
+    .mobile\:mr-#{$size} { margin-right: $value; }
+    .mobile\:mb-#{$size} { margin-bottom: $value; }
+    .mobile\:ml-#{$size} { margin-left: $value; }
+    .mobile\:mx-#{$size} { margin-left: $value; margin-right: $value; }
+    .mobile\:my-#{$size} { margin-top: $value; margin-bottom: $value; }
+    
+    .mobile\:p-#{$size} { padding: $value; }
+    .mobile\:pt-#{$size} { padding-top: $value; }
+    .mobile\:pr-#{$size} { padding-right: $value; }
+    .mobile\:pb-#{$size} { padding-bottom: $value; }
+    .mobile\:pl-#{$size} { padding-left: $value; }
+    .mobile\:px-#{$size} { padding-left: $value; padding-right: $value; }
+    .mobile\:py-#{$size} { padding-top: $value; padding-bottom: $value; }
+  }
+  
+  // Tablet spacing
+  @include tablet {
+    .tablet\:m-#{$size} { margin: $value; }
+    .tablet\:p-#{$size} { padding: $value; }
+    .tablet\:px-#{$size} { padding-left: $value; padding-right: $value; }
+    .tablet\:py-#{$size} { padding-top: $value; padding-bottom: $value; }
+  }
+  
+  // Desktop spacing
+  @include desktop {
+    .desktop\:m-#{$size} { margin: $value; }
+    .desktop\:p-#{$size} { padding: $value; }
+    .desktop\:px-#{$size} { padding-left: $value; padding-right: $value; }
+    .desktop\:py-#{$size} { padding-top: $value; padding-bottom: $value; }
+  }
+}
+
+// ====================
+// RESPONSIVE TYPOGRAPHY
+// ====================
+
+// Font size utilities
+.text-xs { font-size: $font-size-xs; }
+.text-sm { font-size: $font-size-sm; }
+.text-base { font-size: $font-size-base; }
+.text-lg { font-size: $font-size-lg; }
+.text-xl { font-size: $font-size-xl; }
+.text-2xl { font-size: $font-size-2xl; }
+.text-3xl { font-size: $font-size-3xl; }
+
+// Responsive typography
+@include mobile {
+  .mobile\:text-sm { font-size: $font-size-sm; }
+  .mobile\:text-base { font-size: $font-size-base; }
+  .mobile\:text-lg { font-size: $font-size-lg; }
+}
+
+@include tablet {
+  .tablet\:text-base { font-size: $font-size-base; }
+  .tablet\:text-lg { font-size: $font-size-lg; }
+  .tablet\:text-xl { font-size: $font-size-xl; }
+}
+
+@include desktop {
+  .desktop\:text-lg { font-size: $font-size-lg; }
+  .desktop\:text-xl { font-size: $font-size-xl; }
+  .desktop\:text-2xl { font-size: $font-size-2xl; }
+  .desktop\:text-3xl { font-size: $font-size-3xl; }
+}
+
+// Text alignment
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+
+@include mobile {
+  .mobile\:text-center { text-align: center; }
+  .mobile\:text-left { text-align: left; }
+}
+
+@include desktop {
+  .desktop\:text-left { text-align: left; }
+  .desktop\:text-center { text-align: center; }
+}
+
+// ====================
+// RESPONSIVE POSITIONING
+// ====================
+
+.relative { position: relative; }
+.absolute { position: absolute; }
+.fixed { position: fixed; }
+.sticky { position: sticky; }
+.static { position: static; }
+
+// Width utilities
+.w-full { width: 100%; }
+.w-auto { width: auto; }
+.w-fit { width: fit-content; }
+
+@include mobile {
+  .mobile\:w-full { width: 100%; }
+  .mobile\:w-auto { width: auto; }
+}
+
+@include desktop {
+  .desktop\:w-auto { width: auto; }
+  .desktop\:w-fit { width: fit-content; }
+}
+
+// Height utilities
+.h-full { height: 100%; }
+.h-auto { height: auto; }
+.h-screen { height: 100vh; }
+
+// ====================
+// MOBILE-SPECIFIC UTILITIES
+// ====================
+
+// Touch-friendly elements
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  
+  @include mobile {
+    min-height: 48px;
+    min-width: 48px;
+  }
+}
+
+// Mobile navigation
+.mobile-nav {
+  @include mobile {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: $z-index-fixed;
+    background: $bg-surface;
+    border-top: 1px solid $border-primary;
+    padding: $space-2;
+  }
+}
+
+// Mobile-only content
+.mobile-only {
+  @include tablet {
+    display: none;
+  }
+}
+
+.desktop-only {
+  @include mobile {
+    display: none;
+  }
+}
+
+// ====================
+// PRINT UTILITIES
+// ====================
+
+@media print {
+  .print-hidden { display: none !important; }
+  .print-visible { display: block !important; }
+  
+  // Ensure proper page breaks
+  .page-break-before { page-break-before: always; }
+  .page-break-after { page-break-after: always; }
+  .page-break-inside-avoid { page-break-inside: avoid; }
+}
+
+// ====================
+// RESPONSIVE COMPONENT HELPERS
+// ====================
+
+// Card responsive padding
+.card {
+  padding: $space-4;
+  
+  @include tablet {
+    padding: $space-6;
+  }
+  
+  @include desktop {
+    padding: $space-8;
+  }
+}
+
+// Button responsive sizing
+.btn {
+  padding: $space-2 $space-4;
+  font-size: $font-size-sm;
+  
+  @include tablet {
+    padding: $space-2_5 $space-5;
+    font-size: $font-size-base;
+  }
+  
+  @include desktop {
+    padding: $space-3 $space-6;
+  }
+  
+  &--large {
+    @include mobile {
+      width: 100%;
+      padding: $space-4;
+    }
+  }
+}
+
+// Form responsive adjustments
+.form-group {
+  margin-bottom: $space-4;
+  
+  @include tablet {
+    margin-bottom: $space-6;
+  }
+}
+
+.form-input {
+  width: 100%;
+  padding: $space-3;
+  font-size: $font-size-base;
+  
+  @include mobile {
+    padding: $space-4;
+    font-size: $font-size-lg; // Prevent zoom on iOS
+  }
+}

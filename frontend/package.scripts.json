@@ -1,0 +1,30 @@
+{
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "build": "tsc && vite build",
+    "build:production": "tsc && vite build --config vite.config.ts --mode production",
+    "build:analyze": "npm run build && npx vite-bundle-analyzer dist",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix",
+    "type-check": "tsc --noEmit",
+    
+    "tailwind:build": "tailwindcss -c tailwind.config.js -i ./src/index.css -o ./dist/tailwind.css --watch",
+    "tailwind:build:production": "tailwindcss -c tailwind.bundle.config.js -i ./src/index.css -o ./dist/tailwind.min.css --minify",
+    "tailwind:analyze": "tailwindcss -c tailwind.config.js -i ./src/index.css -o ./dist/tailwind-analysis.css --verbose",
+    
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest --watch",
+    
+    "css:analyze": "postcss src/index.css -o dist/css-analysis.css --verbose",
+    "css:purge": "purgecss --css dist/*.css --content src/**/*.{js,ts,jsx,tsx} --output dist/purged/",
+    
+    "bundle:analyze": "npm run build && npx bundle-analyzer dist/assets/*.js",
+    "bundle:size": "npm run build && du -sh dist/ && ls -lah dist/assets/",
+    
+    "performance:lighthouse": "npm run build && npx lighthouse http://localhost:4173 --output-path=./lighthouse-report.html",
+    "performance:bundle": "npm run build && npx webpack-bundle-analyzer dist/assets/index-*.js"
+  }
+}
