@@ -1,7 +1,7 @@
 /* CSS Variables for Layout System */
 :root {
-  --sidebar-width-expanded: 280px;
-  --sidebar-width-collapsed: 80px;
+  --sidebar-width-expanded: 260px;
+  --sidebar-width-collapsed: 70px;
   --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --header-height: 70px;
   --z-sidebar: 1000;
@@ -13,8 +13,8 @@
 
 /* Dashboard Layout */
 :root {
-  --sidebar-width-expanded: 280px;
-  --sidebar-width-collapsed: 80px;
+  --sidebar-width-expanded: 260px;
+  --sidebar-width-collapsed: 70px;
 }
 
 .dashboard {
@@ -26,6 +26,7 @@
   overflow-x: hidden;
   position: relative;
   padding-left: var(--sidebar-width-expanded);
+  padding-right: 0;
 }
 
 .dashboard-main {
@@ -53,22 +54,60 @@
   background-color: #f8fafc;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
+/* ====================
+ * RESPONSIVE ADJUSTMENTS
+ * ==================== */
+
+/* Large desktop screens */
+@media (min-width: 1440px) {
   .dashboard-content {
-    padding: 1.5rem;
+    padding: 2rem 2.5rem;
   }
 }
 
+/* Standard desktop */
+@media (max-width: 1439px) {
+  .dashboard-content {
+    padding: 1.75rem 2rem;
+  }
+}
+
+/* Small desktop / large tablet */
+@media (max-width: 1200px) {
+  .dashboard-content {
+    padding: 1.5rem 1.75rem;
+  }
+}
+
+/* Tablet */
+@media (max-width: 992px) {
+  .dashboard-content {
+    padding: 1.25rem 1.5rem;
+  }
+}
+
+/* Large mobile */
 @media (max-width: 768px) {
+  .dashboard {
+    padding-left: 0;
+  }
+  
   .dashboard-main {
     margin-left: 0;
+    padding-left: 0;
   }
   
   .dashboard-main.collapsed {
-    margin-left: var(--sidebar-width-collapsed);
+    margin-left: 0;
   }
   
+  .dashboard-content {
+    padding: 1.25rem;
+  }
+}
+
+/* Small mobile */
+@media (max-width: 480px) {
   .dashboard-content {
     padding: 1rem;
   }
@@ -237,7 +276,7 @@
 }
 
 .card-footer {
-  padding: 1.5rem 2rem;
+  padding: 1.25rem 1.5rem;
   border-top: 1px solid rgba(226, 232, 240, 0.6);
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
 }

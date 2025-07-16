@@ -1,19 +1,8 @@
 import React, { memo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FiChevronDown } from 'react-icons/fi';
-import { Icon } from '../common/Icon';
 import { isPathActive } from '../../utils/navigation';
-
-interface NavigationItem {
-  id?: string;
-  name?: string;
-  title?: string;
-  path?: string;
-  href?: string;
-  icon?: string;
-  badge?: string | { text: string; color?: string } | number;
-  children?: NavigationItem[];
-}
+import { NavigationItem } from './SidebarContent';
 
 interface SidebarItemProps {
   item: NavigationItem;
@@ -35,8 +24,8 @@ const SidebarItem: React.FC<SidebarItemProps> = memo(({
   const isActive = item.path ? isPathActive(location.pathname, item.path) : false;
   const hasChildren = item.children && item.children.length > 0;
   
-  const itemTitle = item.title || item.name || '';
-  const itemId = item.id || item.name || '';
+  const itemTitle = item.title || item.name;
+  const itemId = item.id;
 
   const renderBadge = () => {
     if (!item.badge) return null;
@@ -49,7 +38,7 @@ const SidebarItem: React.FC<SidebarItemProps> = memo(({
       );
     }
     
-    if (typeof item.badge === 'object' && item.badge.text) {
+    if (item.badge && typeof item.badge === 'object' && 'text' in item.badge) {
       const badgeColor = item.badge.color || 'primary';
       return (
         <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-${badgeColor}-600 bg-${badgeColor}-100 rounded-full dark:bg-${badgeColor}-900 dark:text-${badgeColor}-300`}>
@@ -61,35 +50,38 @@ const SidebarItem: React.FC<SidebarItemProps> = memo(({
     return null;
   };
 
-  const baseClasses = `
-    flex items-center w-full px-3 py-2.5 text-sm font-medium rounded-lg
-    transition-smooth group relative
-    ${level > 0 ? 'ml-6' : ''}
+    const baseClasses = `
+    flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg
+    transition-all duration-200 ease-in-out group relative overflow-hidden
+    ${level > 0 ? 'ml-4' : ''}
     ${isActive 
-      ? 'bg-primary-100 text-primary-700 dark:bg-primary-900 dark:text-primary-300' 
-      : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-700'
+      ? 'bg-primary-50/80 text-primary-700 dark:bg-primary-900/60 dark:text-primary-100 font-semibold shadow-sm' 
+      : 'text-neutral-700 hover:bg-neutral-100/80 dark:text-neutral-300 dark:hover:bg-neutral-700/40 hover:text-neutral-900 dark:hover:text-white'
     }
+    ${isCollapsed && level === 0 ? 'justify-center' : ''}
   `;
 
-  const iconClasses = `
+    const iconClasses = `
     ${isCollapsed ? 'mx-auto' : 'mr-3'} 
-    flex-shrink-0 w-5 h-5
-    ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-neutral-500 dark:text-neutral-400'}
+    flex-shrink-0 w-5 h-5 transition-all duration-200
+    ${isActive 
+      ? 'text-primary-600 dark:text-primary-300 scale-110' 
+      : 'text-neutral-500 dark:text-neutral-400 group-hover:text-neutral-700 dark:group-hover:text-neutral-200 group-hover:scale-105'
+    }
   `;
 
   if (hasChildren) {
     return (
-      <div>
+      <div className="relative group/item">
         <button
           onClick={() => onToggle(itemId)}
           className={baseClasses}
           aria-expanded={isExpanded}
         >
           {item.icon && (
-            <Icon 
-              name={item.icon} 
-              className={iconClasses}
-            />
+            <span className={iconClasses}>
+              {item.icon}
+            </span>
           )}
           
           {!isCollapsed && (
@@ -122,28 +114,7 @@ const SidebarItem: React.FC<SidebarItemProps> = memo(({
   }
 
   if (item.href) {
-    return (
-      <a
-        href={item.href}
-        className={baseClasses}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        {item.icon && (
-          <Icon 
-            name={item.icon} 
-            className={iconClasses}
-          />
-        )}
-        
-        {!isCollapsed && (
-          <>
-            <span className="flex-1">{itemTitle}</span>
-            {renderBadge()}
-          </>
-        )}
-      </a>
-    );
+    return null;
   }
 
   if (item.path) {
@@ -151,14 +122,13 @@ const SidebarItem: React.FC<SidebarItemProps> = memo(({
       <Link
         to={item.path}
         className={baseClasses}
+        title={isCollapsed ? itemTitle : undefined}
       >
         {item.icon && (
-          <Icon 
-            name={item.icon} 
-            className={iconClasses}
-          />
+          <span className={iconClasses}>
+            {item.icon}
+          </span>
         )}
-        
         {!isCollapsed && (
           <>
             <span className="flex-1">{itemTitle}</span>
@@ -169,11 +139,37 @@ const SidebarItem: React.FC<SidebarItemProps> = memo(({
     );
   }
 
+  if (isActive) {
+    return (
+      <div className={baseClasses}>
+        {/* Active indicator line */}
+        <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary-500 dark:bg-primary-400 rounded-r-md"></div>
+        {item.icon && (
+          <span className={iconClasses}>
+            {item.icon}
+          </span>
+        )}
+        
+        {!isCollapsed && (
+          <>
+            <span className="flex-1">{itemTitle}</span>
+            {renderBadge()}
+          </>
+        )}
+        
+        {/* Subtle pulse animation for active items */}
+        {isActive && (
+          <span className="absolute inset-0 rounded-lg bg-primary-100/30 dark:bg-primary-900/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={baseClasses}>
       {item.icon && (
         <Icon 
-          name={item.icon} 
+          name={item.icon as IconName} 
           className={iconClasses}
         />
       )}

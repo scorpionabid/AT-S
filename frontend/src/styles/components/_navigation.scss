@@ -10,8 +10,8 @@
 // ====================
 
 :root {
-  --nav-sidebar-width: 280px;
-  --nav-sidebar-collapsed-width: 64px;
+  --nav-sidebar-width: 260px;
+  --nav-sidebar-collapsed-width: 70px;
   --nav-mobile-height: 72px;
   --nav-app-bar-height: 56px;
   --nav-transition-duration: var(--duration-normal);
@@ -551,7 +551,7 @@
 
 .mobile-drawer__content {
   position: relative;
-  width: 280px;
+  width: 260px;
   max-width: 80vw;
   height: 100%;
   background: var(--color-surface);

@@ -234,8 +234,208 @@ textarea {
   border-radius: 3px;
 }
 
+/* ====================
+ * SIDEBAR STYLES
+ * ==================== */
+
+/* Base Sidebar Styles */
+.app-sidebar {
+  background: var(--sidebar-gradient);
+  border-right: 1px solid var(--sidebar-border);
+  box-shadow: var(--sidebar-shadow);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Sidebar Collapsed State */
+.app-sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+/* Sidebar Header */
+.sidebar-header {
+  background: var(--sidebar-header-bg);
+  border-bottom: 1px solid var(--sidebar-divider);
+  transition: all 0.2s ease;
+  padding: 1rem 1.25rem;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Navigation Items */
+.sidebar-item {
+  color: var(--sidebar-text);
+  transition: all 0.2s ease;
+  padding: 0.75rem 1.25rem;
+  margin: 0.25rem 0.5rem;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9375rem;
+  line-height: 1.25rem;
+}
+
+.sidebar-item:hover {
+  background-color: var(--color-neutral-100);
+  color: var(--color-primary-600);
+}
+
+.sidebar-item.active {
+  background-color: var(--color-primary-50);
+  color: var(--color-primary-700);
+  font-weight: 500;
+}
+
+/* Sidebar Footer */
+.sidebar-footer {
+  margin-top: auto;
+  padding: 1rem 0.5rem;
+  border-top: 1px solid var(--sidebar-divider);
+}
+
+/* User Profile in Footer */
+.user-profile {
+  padding: 0.5rem;
+  border-radius: var(--radius-md);
+  transition: background-color 0.2s ease;
+}
+
+.user-profile:hover {
+  background-color: var(--color-neutral-100);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .app-sidebar {
+    transform: translateX(-100%);
+  }
+  
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+}
+
+.sidebar-item {
+  position: relative;
+  border-radius: var(--radius-md);
+  margin: 0.25rem 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.sidebar-item:hover {
+  background: var(--sidebar-hover-bg);
+  color: var(--sidebar-hover-text, var(--sidebar-text));
+}
+
+.sidebar-item.active {
+  background: var(--sidebar-active-bg);
+  color: var(--sidebar-active-text);
+  font-weight: 500;
+}
+
+/* Active Item Indicator */
+.sidebar-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 60%;
+  background: var(--sidebar-active-border);
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  transition: all 0.2s ease;
+}
+
+/* Icons */
+.sidebar-icon {
+  color: var(--sidebar-icon);
+  transition: all 0.2s ease;
+}
+
+.sidebar-item:hover .sidebar-icon {
+  color: var(--sidebar-hover-icon);
+}
+
+.sidebar-item.active .sidebar-icon {
+  color: var(--sidebar-active-icon);
+  transform: scale(1.1);
+}
+
+/* Subtle Hover Effects */
+.sidebar-item {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-origin: left center;
+}
+
+.sidebar-item:hover {
+  transform: translateX(4px);
+}
+
+/* Footer Styles */
+.sidebar-footer {
+  border-top: 1px solid var(--sidebar-divider);
+  background: var(--sidebar-footer-bg);
+  padding: 0.75rem;
+}
+
+/* User Profile in Footer */
+.user-profile {
+  transition: all 0.2s ease;
+  border-radius: var(--radius-md);
+  padding: 0.5rem;
+}
+
+.user-profile:hover {
+  background: var(--sidebar-hover-bg);
+}
+
+/* Settings Menu */
+.settings-menu {
+  background: var(--sidebar-footer-bg);
+  border: 1px solid var(--sidebar-border);
+  box-shadow: var(--sidebar-drop-shadow);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s ease;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+
+.settings-menu.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+/* Scrollbar Styling */
 .app-sidebar::-webkit-scrollbar-thumb:hover {
-  background: var(--color-neutral-400);
+  background: var(--sidebar-hover-bg);
+}
+
+/* Enhanced Focus States for Sidebar */
+.sidebar-item:focus-visible {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+}
+
+.settings-button:focus-visible {
+  outline: 2px solid var(--color-primary-400);
+  outline-offset: 2px;
+  border-radius: var(--radius-full);
 }
 
 /* Focus States for Accessibility */

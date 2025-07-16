@@ -169,15 +169,43 @@
   --radius-full: 9999px;
 
   /* ====================
+   * SIDEBAR TOKENS
+   * ==================== */
+  --sidebar-bg: var(--color-neutral-50);
+  --sidebar-text: var(--color-neutral-800);
+  --sidebar-border: var(--color-neutral-200);
+  --sidebar-hover-bg: var(--color-neutral-100);
+  --sidebar-active-bg: var(--color-primary-50);
+  --sidebar-active-text: var(--color-primary-700);
+  --sidebar-active-border: var(--color-primary-500);
+  --sidebar-icon: var(--color-neutral-500);
+  --sidebar-hover-icon: var(--color-primary-600);
+  --sidebar-active-icon: var(--color-primary-600);
+  --sidebar-header-bg: var(--color-white);
+  --sidebar-footer-bg: var(--color-white);
+  --sidebar-divider: var(--color-neutral-200);
+  
+  /* Sidebar Gradients */
+  --sidebar-gradient-start: var(--color-primary-50);
+  --sidebar-gradient-end: var(--color-white);
+  --sidebar-gradient: linear-gradient(135deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
+  
+  /* Subtle Shadows */
+  --sidebar-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --sidebar-drop-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+  
+  /* ====================
    * SHADOW TOKENS
    * ==================== */
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-default: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
-  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 2px 4px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 4px 6px -1px rgb(0 0 0 / 0.03), 0 2px 4px -2px rgb(0 0 0 / 0.03);
+  --shadow-xl: 0 10px 15px -3px rgb(0 0 0 / 0.03), 0 4px 6px -4px rgb(0 0 0 / 0.03);
+  --shadow-2xl: 0 20px 25px -5px rgb(0 0 0 / 0.05), 0 8px 10px -6px rgb(0 0 0 / 0.05);
+  --shadow-inner: inset 0 1px 2px 0 rgb(0 0 0 / 0.03);
+  --shadow-none: 0 0 #0000;
   --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
 
   /* Colored Shadows */
@@ -231,8 +259,8 @@
   /* ====================
    * LAYOUT TOKENS
    * ==================== */
-  --sidebar-width: 280px;
-  --sidebar-width-collapsed: 80px;
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 70px;
   --header-height: 70px;
   --footer-height: 60px;
   --content-padding: 2rem;
@@ -272,9 +300,35 @@
   --interactive-secondary-active: var(--color-neutral-300);
 }
 
-/* ====================
- * DARK MODE TOKENS
- * ==================== */
+  /* ====================
+   * DARK MODE SIDEBAR TOKENS
+   * ==================== */
+  --sidebar-bg: var(--color-neutral-900);
+  --sidebar-text: var(--color-neutral-200);
+  --sidebar-border: var(--color-neutral-800);
+  --sidebar-hover-bg: var(--color-neutral-800);
+  --sidebar-active-bg: var(--color-primary-900);
+  --sidebar-active-text: var(--color-white);
+  --sidebar-active-border: var(--color-primary-500);
+  --sidebar-icon: var(--color-neutral-400);
+  --sidebar-hover-icon: var(--color-primary-400);
+  --sidebar-active-icon: var(--color-primary-400);
+  --sidebar-header-bg: var(--color-neutral-900);
+  --sidebar-footer-bg: var(--color-neutral-900);
+  --sidebar-divider: var(--color-neutral-800);
+  
+  /* Dark Mode Gradients */
+  --sidebar-gradient-start: var(--color-neutral-900);
+  --sidebar-gradient-end: var(--color-neutral-800);
+  --sidebar-gradient: linear-gradient(135deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
+  
+  /* Dark Mode Shadows */
+  --sidebar-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.2), 0 1px 2px -1px rgb(0 0 0 / 0.2);
+  --sidebar-drop-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 4px 6px -4px rgb(0 0 0 / 0.2);
+
+  /* ====================
+   * DARK MODE TOKENS
+   * ==================== */
 [data-theme="dark"] {
   /* Background Colors */
   --bg-primary: var(--color-neutral-900);

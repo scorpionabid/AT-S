@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+
+type Theme = 'light' | 'dark' | 'system';
 
 interface LayoutContextType {
   // Desktop sidebar states
@@ -14,6 +16,12 @@ interface LayoutContextType {
   screenSize: 'mobile' | 'desktop';
   sidebarWidth: number; // computed value
   
+  // Theme management
+  theme: 'light' | 'dark';
+  systemTheme: 'light' | 'dark';
+  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
+  
   // Legacy support (will be removed)
   isSidebarOpen: boolean;
   toggleSidebar: () => void;
@@ -26,6 +34,45 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [screenSize, setScreenSize] = useState<'mobile' | 'desktop'>('desktop');
+  const [theme, setTheme] = useState<Theme>('system');
+  const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(
+    window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+  );
+  
+  // Apply theme class to document element
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const isDark = theme === 'system' 
+      ? systemTheme === 'dark' 
+      : theme === 'dark';
+    
+    if (isDark) {
+      root.classList.add('dark');
+      root.setAttribute('data-theme', 'dark');
+    } else {
+      root.classList.remove('dark');
+      root.setAttribute('data-theme', 'light');
+    }
+  }, [theme, systemTheme]);
+  
+  // Listen for system theme changes
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleChange = () => {
+      setSystemTheme(mediaQuery.matches ? 'dark' : 'light');
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
+  
+  const toggleTheme = useCallback(() => {
+    setTheme(prev => {
+      if (prev === 'system') return 'dark';
+      if (prev === 'dark') return 'light';
+      return 'system';
+    });
+  }, []);
   
   // Screen size detection
   useEffect(() => {
@@ -102,19 +149,27 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   
   return (
     <LayoutContext.Provider value={{
-      // New API
+      // Current state
       isCollapsed,
-      toggleCollapse,
       isMobileOpen,
-      toggleMobile,
-      closeMobile,
       screenSize,
       sidebarWidth,
       
-      // Legacy API
-      isSidebarOpen,
-      toggleSidebar,
-      closeSidebar
+      // Theme
+      theme: theme === 'system' ? systemTheme : theme,
+      systemTheme,
+      toggleTheme,
+      setTheme,
+      
+      // Actions
+      toggleCollapse,
+      toggleMobile,
+      closeMobile,
+      
+      // Legacy support (will be removed)
+      isSidebarOpen: !isCollapsed,
+      toggleSidebar: toggleCollapse,
+      closeSidebar: () => setIsCollapsed(true)
     }}>
       {children}
     </LayoutContext.Provider>
