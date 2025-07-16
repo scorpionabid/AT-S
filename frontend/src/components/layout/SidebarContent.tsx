@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { getVisibleMenuItems } from '../../utils/navigation';
+import { getVisibleMenuItems } from '../../utils/navigation/menuConfig';
 import EnhancedSidebarItem from './sidebar/EnhancedSidebarItem';
 import { FiHome, FiSettings, FiUsers, FiFolder, FiFileText, FiBell, FiMessageSquare, FiHelpCircle } from 'react-icons/fi';
 
@@ -58,7 +58,7 @@ const SidebarContent: React.FC<SidebarContentProps> = memo(({
   variant = 'default'
 }) => {
   const { user } = useAuth();
-
+  
   // Memoize menu items to prevent unnecessary recalculations
   const menuItems = useMemo(() => {
     try {

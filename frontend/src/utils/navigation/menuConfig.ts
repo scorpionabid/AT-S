@@ -133,6 +133,48 @@ export const menuItems: MenuItem[] = [
     ]
   },
 
+  // Regional Departments Section
+  {
+    id: 'regional-departments',
+    title: 'Regional Şöbələr',
+    path: '/regional-departments',
+    icon: FiUsers,
+    roles: ['superadmin', 'regionadmin'],
+    description: 'Regional şöbələrin idarəetməsi və koordinasiyası',
+    category: 'Regional Management',
+    children: [
+      {
+        id: 'departments-overview',
+        title: 'Şöbələr Ümumi Baxış',
+        path: '/regional-departments',
+        icon: FiGrid,
+        roles: ['superadmin', 'regionadmin'],
+        exactMatch: true,
+      },
+      {
+        id: 'finance-department',
+        title: 'Maliyyə Şöbəsi',
+        path: '/regional-departments/finance',
+        icon: FiTrendingUp,
+        roles: ['superadmin', 'regionadmin', 'regionoperator_maliyye'],
+      },
+      {
+        id: 'admin-department',
+        title: 'İnzibati Şöbəsi',
+        path: '/regional-departments/administrative',
+        icon: FiSettings,
+        roles: ['superadmin', 'regionadmin', 'regionoperator_inzibati'],
+      },
+      {
+        id: 'facility-department',
+        title: 'Təsərrüfat Şöbəsi',
+        path: '/regional-departments/facility',
+        icon: FiFolder,
+        roles: ['superadmin', 'regionadmin', 'regionoperator_tesserrufat'],
+      }
+    ]
+  },
+
   // Survey Management Section
   {
     id: 'surveys',
@@ -216,7 +258,7 @@ export const menuItems: MenuItem[] = [
     title: 'Məktəb İdarəetməsi',
     path: '/school',
     icon: FiBookOpen,
-    permission: 'attendance.read',
+    roles: ['superadmin', 'regionadmin', 'sektoradmin', 'schooladmin', 'muavin_mudir', 'muellim'],
     description: 'Məktəb akademik funksiyalarının idarəetməsi',
     category: 'School Management',
     children: [
@@ -225,7 +267,7 @@ export const menuItems: MenuItem[] = [
         title: 'Davamiyyət',
         path: '/attendance',
         icon: FiUserCheck,
-        permission: 'attendance.read',
+        roles: ['superadmin', 'schooladmin', 'muavin_mudir', 'muellim'],
         description: 'Sinif səviyyəsində davamiyyət idarəetməsi'
       },
       {
@@ -233,7 +275,7 @@ export const menuItems: MenuItem[] = [
         title: 'Cədvəllər',
         path: '/schedules',
         icon: FiCalendar,
-        permission: 'schedules.read',
+        roles: ['superadmin', 'schooladmin', 'muavin_mudir'],
         description: 'Dərs cədvəlləri və planlaşdırma'
       },
       {
@@ -241,7 +283,7 @@ export const menuItems: MenuItem[] = [
         title: 'Dərs Yükləri',
         path: '/teaching-loads',
         icon: FiClock,
-        permission: 'teaching_loads.read',
+        roles: ['superadmin', 'schooladmin', 'muavin_mudir'],
         description: 'Müəllim dərs yüklərinin idarəetməsi'
       }
     ]
@@ -430,6 +472,15 @@ export const menuItems: MenuItem[] = [
 export const canAccessMenuItem = (user: User | null, item: MenuItem): boolean => {
   if (!user) return false;
 
+  // SUPERADMIN BYPASS: Superadmin should have access to everything
+  const isSuperAdmin = (typeof user.role === 'string' && user.role === 'superadmin') ||
+                      (typeof user.role === 'object' && user.role?.name === 'superadmin') ||
+                      (user.roles && user.roles.includes('superadmin'));
+
+  if (isSuperAdmin) {
+    return true;
+  }
+
   // Check role-based access first (more restrictive)
   if (item.roles && item.roles.length > 0) {
     const hasRequiredRole = item.roles.some(role => hasRole(user, role));
@@ -476,9 +527,16 @@ export const getVisibleMenuItems = (user: User | null): MenuItem[] => {
     return item;
   };
 
-  return menuItems
+  const filteredItems = menuItems
     .map(filterMenuItem)
     .filter(Boolean) as MenuItem[];
+
+  // Remove duplicates based on item id
+  const uniqueItems = filteredItems.filter((item, index, arr) => 
+    arr.findIndex(i => i.id === item.id) === index
+  );
+
+  return uniqueItems;
 };
 
 /**

@@ -1,7 +1,7 @@
 import api from './api';
 
 export interface UserPreferences {
-  theme: 'light' | 'dark' | 'auto';
+  theme: 'light' | 'dark' | 'high-contrast' | 'auto';
   language: 'az' | 'en';
   sidebar: {
     collapsed: boolean;
@@ -69,7 +69,7 @@ class PreferencesService {
   /**
    * Update theme preference
    */
-  async updateTheme(theme: 'light' | 'dark' | 'auto'): Promise<PreferencesResponse> {
+  async updateTheme(theme: 'light' | 'dark' | 'high-contrast' | 'auto'): Promise<PreferencesResponse> {
     const response = await api.put('/user/theme', { theme });
     return response.data;
   }
@@ -157,7 +157,7 @@ class PreferencesService {
   /**
    * Sync theme with server
    */
-  async syncTheme(theme: 'light' | 'dark' | 'auto'): Promise<void> {
+  async syncTheme(theme: 'light' | 'dark' | 'high-contrast' | 'auto'): Promise<void> {
     try {
       await this.updateTheme(theme);
       console.log('🎨 Theme synced with server:', theme);

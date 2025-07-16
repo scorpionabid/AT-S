@@ -77,6 +77,13 @@ const AssessmentDashboard: React.FC = () => {
       setLoading(true);
       console.log('🔄 Fetching assessment overview...');
       
+      // Check auth token
+      const token = localStorage.getItem('auth_token');
+      console.log('🔑 Auth token check:', token ? 'Token exists' : 'No token found');
+      
+      // Check API base URL
+      console.log('🌐 API Base URL:', import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api');
+      
       const response = await api.get('/assessments');
       console.log('📊 Assessment API response received:', response.data);
       
@@ -91,8 +98,23 @@ const AssessmentDashboard: React.FC = () => {
     } catch (err: any) {
       console.error('❌ fetchAssessmentOverview error:', err);
       console.error('❌ Error response:', err.response);
+      console.error('❌ Error code:', err.code);
+      console.error('❌ Error message:', err.message);
       
-      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'Qiymətləndirmə məlumatları yüklənə bilmədi';
+      let errorMessage = 'Qiymətləndirmə məlumatları yüklənə bilmədi';
+      
+      if (err.code === 'NETWORK_ERROR' || err.message.includes('Network Error')) {
+        errorMessage = 'Şəbəkə xətası: Server ilə əlaqə qurula bilmədi';
+      } else if (err.response?.status === 401) {
+        errorMessage = 'Giriş icazəsi yoxdur. Yenidən daxil olun';
+      } else if (err.response?.status === 403) {
+        errorMessage = 'Bu səhifəyə giriş icazəniz yoxdur';
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      }
+      
       setError(errorMessage);
     } finally {
       setLoading(false);

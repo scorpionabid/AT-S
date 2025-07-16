@@ -1,34 +1,12 @@
 /**
  * AT0S SCSS Integration - Main Export File
  * Complete integration between SCSS design system and TypeScript/React
+ * 
+ * Note: Theme management has been moved to src/contexts/ThemeContext.tsx
  */
 
-// Theme Management
-export {
-  themeManager,
-  useTheme,
-  ThemeProvider,
-  themeUtils,
-  THEME_NAMES,
-  THEME_STORAGE_KEY
-} from './themeManager';
-
-export type {
-  ThemeName,
-  ThemeColors,
-  ThemeConfig
-} from './themeManager';
-
 // SCSS Utilities
-export {
-  scssUtils,
-  SCSSVariableAccess,
-  StyledComponentUtils,
-  AnimationUtils,
-  ResponsiveUtils,
-  PerformanceUtils,
-  ColorUtils
-} from './scssUtils';
+import scssUtils from './scssUtils';
 
 export type {
   DesignTokens,
@@ -43,38 +21,86 @@ export type {
   AnimationTokens
 } from './scssUtils';
 
+// Re-export classes for backward compatibility
+export {
+  SCSSVariableAccess,
+  StyledComponentUtils as StyledUtils,
+  AnimationUtils,
+  ResponsiveUtils,
+  PerformanceUtils,
+  ColorUtils
+} from './scssUtils';
+
 // Additional React hooks and utilities
-import React from 'react';
-import { scssUtils } from './scssUtils';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
+
+// Create instances of all utilities
+const { 
+  variables, 
+  styled, 
+  animation, 
+  responsive, 
+  performance, 
+  color 
+} = scssUtils;
 
 /**
  * Hook for accessing SCSS design tokens
  */
 export function useDesignTokens() {
-  const [tokens, setTokens] = React.useState<Record<string, string>>({});
+  const [tokens, setTokens] = useState<Record<string, string>>({});
 
   React.useEffect(() => {
     // Load design tokens from CSS variables
     const loadTokens = () => {
-      const newTokens: Record<string, string> = {};
-      
-      // Common design tokens
       const tokenKeys = [
         'color-primary-500',
         'color-secondary-500',
         'space-4',
-        'space-8',
         'font-size-base',
-        'font-size-lg',
-        'radius-md',
         'shadow-md',
-        'duration-200',
-        'ease-out'
+        'radius-md',
+        'breakpoint-md',
+        'z-modal',
+        'duration-300',
+        'ease-in-out'
       ];
 
-      tokenKeys.forEach(key => {
-        newTokens[key] = scssUtils.variables.getCSSVariable(key);
-      });
+      const newTokens = tokenKeys.reduce((acc, key) => {
+        // Use the appropriate getter method based on the token type
+        let value = '';
+        if (key.startsWith('color-')) {
+          const [_, type, shade] = key.split('-');
+          value = variables.getColor(type as any, shade as any);
+        } else if (key.startsWith('space-')) {
+          const size = key.replace('space-', '');
+          value = variables.getSpacing(size as any);
+        } else if (key.startsWith('font-size-')) {
+          const size = key.replace('font-size-', '');
+          value = variables.getFontSize(size as any);
+        } else if (key.startsWith('shadow-')) {
+          const level = key.replace('shadow-', '');
+          value = variables.getShadow(level as any);
+        } else if (key.startsWith('radius-')) {
+          const size = key.replace('radius-', '');
+          value = variables.getRadius(size as any);
+        } else if (key.startsWith('breakpoint-')) {
+          const size = key.replace('breakpoint-', '');
+          value = variables.getBreakpoint(size as any);
+        } else if (key.startsWith('z-')) {
+          value = ''; // Handle z-index separately if needed
+        } else if (key.startsWith('duration-')) {
+          const speed = key.replace('duration-', '');
+          value = variables.getDuration(speed as any);
+        } else if (key.startsWith('ease-')) {
+          const type = key.replace('ease-', '');
+          value = variables.getEasing(type as any);
+        }
+        
+        acc[key] = value;
+        return acc;
+      }, {} as Record<string, string>);
 
       setTokens(newTokens);
     };
@@ -128,10 +154,14 @@ export function useResponsive() {
       const width = window.innerWidth;
       const height = window.innerHeight;
 
+      const isMobile = responsive.isMobile();
+      const isTablet = responsive.isTablet();
+      const isDesktop = responsive.isDesktop();
+
       setScreenSize({
-        isMobile: scssUtils.responsive.isMobile(),
-        isTablet: scssUtils.responsive.isTablet(),
-        isDesktop: scssUtils.responsive.isDesktop(),
+        isMobile,
+        isTablet,
+        isDesktop,
         width,
         height
       });
@@ -158,20 +188,21 @@ export function useAnimation(element: React.RefObject<HTMLElement>) {
     if (!element.current) return;
 
     setIsAnimating(true);
-    scssUtils.performance.optimizeForAnimation(element.current, properties);
-  }, [element]);
+    // Use the PerformanceUtils instance
+    performance.optimizeForAnimation(element.current);
+  }, [element, performance]);
 
   const endAnimation = React.useCallback(() => {
     if (!element.current) return;
 
     setIsAnimating(false);
-    scssUtils.performance.cleanupAnimation(element.current);
+    performance.cleanupAnimation(element.current);
   }, [element]);
 
   React.useEffect(() => {
     return () => {
       if (element.current) {
-        scssUtils.performance.cleanupAnimation(element.current);
+        performance.cleanupAnimation(element.current);
       }
     };
   }, [element]);
@@ -233,18 +264,24 @@ export function useStyledComponent(baseComponent: string) {
     modifiers?: string[],
     customClasses?: string[]
   ) => {
-    const base = scssUtils.styled.createClassName(baseComponent, variant, modifiers);
+    const base = styled.createClassName(baseComponent, variant, modifiers);
     const custom = customClasses ? customClasses.join(' ') : '';
     return `${base} ${custom}`.trim();
   }, [baseComponent]);
 
   const createProps = React.useCallback((props: Record<string, any>) => {
-    return scssUtils.styled.createStyledProps(props);
+    // Use the styled instance from scssUtils
+    return styled.createStyledProps(props);
+  }, [styled]);
+
+  const createMediaQuery = React.useCallback((minWidth?: string, maxWidth?: string): string => {
+    return responsive.createMediaQuery(minWidth as any, maxWidth as any);
   }, []);
 
   return {
     createClassName,
-    createProps
+    createProps,
+    createMediaQuery
   };
 }
 
@@ -354,10 +391,9 @@ export function useColorAccessibility() {
  * Main utility object for easy access
  */
 export const atisDesignSystem = {
-  theme: themeUtils,
   scss: scssUtils,
   hooks: {
-    useTheme: useTheme,
+    useTheme,
     useDesignTokens,
     useResponsive,
     useAnimation,

@@ -16,7 +16,7 @@ const ActionButton: React.FC<ActionButtonProps> = ({ onClick, 'aria-label': aria
   <button
     onClick={onClick}
     aria-label={ariaLabel}
-    className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-900 text-neutral-600 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800 h-10 w-10 flex items-center justify-center ${className}`}
+    className={`p-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 h-10 w-10 flex items-center justify-center ${className}`}
   >
     {children}
   </button>

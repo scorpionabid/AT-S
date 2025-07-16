@@ -24,6 +24,8 @@ import TaskPage from './pages/TaskPage';
 import DocumentPage from './pages/DocumentPage';
 import SchedulePage from './pages/SchedulePage';
 import TeachingLoadPage from './pages/TeachingLoadPage';
+import SchoolDashboardPage from './pages/SchoolDashboardPage';
+import RegionalDepartmentsPage from './pages/RegionalDepartmentsPage';
 import { ROLES, ROLE_GROUPS } from './constants/roles';
 import ErrorBoundary from './components/debug/ErrorBoundary';
 import TestTailwind from './components/TestTailwind';
@@ -101,6 +103,16 @@ const App: React.FC = () => {
                 </ProtectedRoute>
               } 
             />
+
+            {/* Regional Departments */}
+            <Route 
+              path="/regional-departments" 
+              element={
+                <ProtectedRoute requiredRoles={['superadmin', 'regionadmin']}>
+                  <RegionalDepartmentsPage />
+                </ProtectedRoute>
+              } 
+            />
             
             <Route 
               path="/assessments" 
@@ -133,7 +145,7 @@ const App: React.FC = () => {
             <Route 
               path="/attendance" 
               element={
-                <ProtectedRoute requiredRoles={[...ROLE_GROUPS.CAN_MANAGE_ATTENDANCE]}>
+                <ProtectedRoute requiredRoles={['superadmin', 'schooladmin', 'muavin_mudir', 'muellim']}>
                   <ClassAttendancePage />
                 </ProtectedRoute>
               } 
@@ -169,7 +181,7 @@ const App: React.FC = () => {
             <Route 
               path="/schedules" 
               element={
-                <ProtectedRoute requiredRoles={[...ROLE_GROUPS.CAN_MANAGE_SCHEDULES]}>
+                <ProtectedRoute requiredRoles={['superadmin', 'schooladmin', 'muavin_mudir']}>
                   <SchedulePage />
                 </ProtectedRoute>
               } 
@@ -178,8 +190,18 @@ const App: React.FC = () => {
             <Route 
               path="/teaching-loads" 
               element={
-                <ProtectedRoute requiredRoles={[...ROLE_GROUPS.CAN_MANAGE_TEACHING_LOADS]}>
+                <ProtectedRoute requiredRoles={['superadmin', 'schooladmin', 'muavin_mudir']}>
                   <TeachingLoadPage />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* School Management Overview Page */}
+            <Route 
+              path="/school" 
+              element={
+                <ProtectedRoute requiredRoles={[...ROLE_GROUPS.ALL_ADMINS, ...ROLE_GROUPS.ALL_SCHOOL]}>
+                  <SchoolDashboardPage />
                 </ProtectedRoute>
               } 
             />

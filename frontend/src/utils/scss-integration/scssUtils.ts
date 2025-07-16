@@ -166,76 +166,85 @@ export interface AnimationTokens {
 }
 
 // SCSS Variable Access
-class SCSSVariableAccess {
-  private static cache = new Map<string, string>();
+export class SCSSVariableAccess {
+  private cache: Map<string, string>;
 
-  static getCSSVariable(name: string): string {
-    if (typeof document === 'undefined') return '';
-    
-    // Check cache first
+  constructor() {
+    this.cache = new Map<string, string>();
+  }
+
+  private getCSSVariable(name: string): string {
     if (this.cache.has(name)) {
       return this.cache.get(name)!;
     }
 
+    if (typeof window === 'undefined') return '';
+
     const value = getComputedStyle(document.documentElement)
       .getPropertyValue(`--${name}`)
       .trim();
-    
-    // Cache the value
-    this.cache.set(name, value);
+
+    if (value) {
+      this.cache.set(name, value);
+    }
+
     return value;
   }
 
-  static setCSSVariable(name: string, value: string): void {
+  setCSSVariable(name: string, value: string): void {
     if (typeof document === 'undefined') return;
     
     document.documentElement.style.setProperty(`--${name}`, value);
     this.cache.set(name, value);
   }
 
-  static clearCache(): void {
+  clearCache(): void {
     this.cache.clear();
   }
 
   // Design token accessors
-  static getColor(colorName: keyof ColorTokens, shade: keyof ColorScale): string {
+  getColor(colorName: keyof ColorTokens, shade: keyof ColorScale): string {
     return this.getCSSVariable(`color-${colorName}-${shade}`);
   }
 
-  static getSpacing(size: keyof SpacingTokens): string {
+  getSpacing(size: keyof SpacingTokens): string {
     return this.getCSSVariable(`space-${size}`);
   }
 
-  static getFontSize(size: keyof TypographyTokens['fontSizes']): string {
+  getFontSize(size: keyof TypographyTokens['fontSizes']): string {
     return this.getCSSVariable(`font-size-${size}`);
   }
 
-  static getShadow(level: keyof ShadowTokens): string {
+  getShadow(level: keyof ShadowTokens): string {
     return this.getCSSVariable(`shadow-${level}`);
   }
 
-  static getRadius(size: keyof RadiusTokens): string {
+  getRadius(size: keyof RadiusTokens): string {
     return this.getCSSVariable(`radius-${size}`);
   }
 
-  static getBreakpoint(size: keyof BreakpointTokens): string {
+  getBreakpoint(size: keyof BreakpointTokens): string {
     return this.getCSSVariable(`breakpoint-${size}`);
   }
 
-  static getDuration(speed: keyof AnimationTokens['durations']): string {
+  getDuration(speed: keyof AnimationTokens['durations']): string {
     return this.getCSSVariable(`duration-${speed}`);
   }
 
-  static getEasing(type: keyof AnimationTokens['easings']): string {
+  getEasing(type: keyof AnimationTokens['easings']): string {
     return this.getCSSVariable(`ease-${type}`);
   }
 }
 
 // CSS-in-JS utilities
 export class StyledComponentUtils {
-  private static prefix = 'atis';
+  private prefix: string;
 
-  static createClassName(component: string, variant?: string, modifiers?: string[]): string {
+  constructor(prefix: string = 'atis') {
+    this.prefix = prefix;
+  }
+
+  createClassName(component: string, variant?: string, modifiers?: string[]): string {
     let className = `${this.prefix}-${component}`;
     
     if (variant) {
@@ -261,7 +270,7 @@ export class StyledComponentUtils {
     return dataAttrs;
   }
 
-  static createStyledProps(props: {
+  createStyledProps(props: {
     variant?: string;
     size?: string;
     color?: string;
@@ -278,6 +287,19 @@ export class StyledComponentUtils {
     if (props.radius) styledProps['data-radius'] = props.radius;
     
     return styledProps;
+  }
+
+  // Static version for backward compatibility
+  static createStyledProps(props: {
+    variant?: string;
+    size?: string;
+    color?: string;
+    spacing?: string;
+    radius?: string;
+    [key: string]: any;
+  }): Record<string, string> {
+    const instance = new StyledComponentUtils();
+    return instance.createStyledProps(props);
   }
 }
 
@@ -321,65 +343,105 @@ export class AnimationUtils {
 
 // Responsive utilities
 export class ResponsiveUtils {
-  private static breakpoints: BreakpointTokens = {
-    xs: '475px',
-    sm: '640px',
-    md: '768px',
-    lg: '1024px',
-    xl: '1280px',
-    '2xl': '1536px'
-  };
+  private breakpoints: BreakpointTokens;
 
-  static getBreakpointValue(size: keyof BreakpointTokens): string {
-    return SCSSVariableAccess.getBreakpoint(size) || this.breakpoints[size];
+  constructor(customBreakpoints?: Partial<BreakpointTokens>) {
+    this.breakpoints = {
+      xs: '475px',
+      sm: '640px',
+      md: '768px',
+      lg: '1024px',
+      xl: '1280px',
+      '2xl': '1536px',
+      ...customBreakpoints
+    };
   }
 
-  static createMediaQuery(minWidth?: keyof BreakpointTokens, maxWidth?: keyof BreakpointTokens): string {
-    const conditions: string[] = [];
-    
-    if (minWidth) {
-      conditions.push(`(min-width: ${this.getBreakpointValue(minWidth)})`);
+  getBreakpointValue(size: keyof BreakpointTokens): string {
+    return this.breakpoints[size];
+  }
+
+  createMediaQuery(
+    minWidth?: keyof BreakpointTokens,
+    maxWidth?: keyof BreakpointTokens
+  ): string {
+    const min = minWidth ? `(min-width: ${this.breakpoints[minWidth]})` : '';
+    const max = maxWidth ? `(max-width: ${this.breakpoints[maxWidth]})` : '';
+
+    if (min && max) {
+      return `@media ${min} and ${max}`;
     }
-    
-    if (maxWidth) {
-      conditions.push(`(max-width: ${this.getBreakpointValue(maxWidth)})`);
-    }
-    
-    return `@media ${conditions.join(' and ')}`;
+
+    return `@media ${min || max}`;
   }
 
-  static isMobile(): boolean {
+  isMobile(): boolean {
     if (typeof window === 'undefined') return false;
-    return window.innerWidth < parseInt(this.getBreakpointValue('md'));
+    return window.matchMedia(`(max-width: ${this.breakpoints.sm})`).matches;
   }
 
-  static isTablet(): boolean {
+  isTablet(): boolean {
     if (typeof window === 'undefined') return false;
-    const width = window.innerWidth;
-    return width >= parseInt(this.getBreakpointValue('md')) && 
-           width < parseInt(this.getBreakpointValue('lg'));
+    return (
+      window.matchMedia(`(min-width: ${this.breakpoints.sm})`).matches &&
+      window.matchMedia(`(max-width: ${this.breakpoints.lg})`).matches
+    );
   }
 
-  static isDesktop(): boolean {
+  isDesktop(): boolean {
     if (typeof window === 'undefined') return false;
-    return window.innerWidth >= parseInt(this.getBreakpointValue('lg'));
+    return window.matchMedia(`(min-width: ${this.breakpoints.lg})`).matches;
   }
 }
 
 // Performance utilities
 export class PerformanceUtils {
+  private optimizedElements: Map<HTMLElement, string>;
+
+  constructor() {
+    this.optimizedElements = new Map<HTMLElement, string>();
+  }
+
+  optimizeForAnimation(element: HTMLElement): void {
+    if (this.optimizedElements.has(element)) return;
+
+    // Save original styles
+    const originalWillChange = element.style.willChange;
+    const originalTransform = element.style.transform;
+    const originalBackfaceVisibility = element.style.backfaceVisibility;
+    const originalPerspective = element.style.perspective;
+
+    // Apply optimizations
+    element.style.willChange = 'transform, opacity';
+    element.style.transform = 'translateZ(0)';
+    element.style.backfaceVisibility = 'hidden';
+    element.style.perspective = '1000px';
+
+    // Save original styles for cleanup
+    this.optimizedElements.set(element, JSON.stringify({
+      willChange: originalWillChange,
+      transform: originalTransform,
+      backfaceVisibility: originalBackfaceVisibility,
+      perspective: originalPerspective
+    }));
+  }
+
+  cleanupAnimation(element: HTMLElement): void {
+    const originalStyles = this.optimizedElements.get(element);
+    if (!originalStyles) return;
+
+    const styles = JSON.parse(originalStyles);
+    Object.entries(styles).forEach(([property, value]) => {
+      (element.style as any)[property] = value;
+    });
+
+    this.optimizedElements.delete(element);
+  }
+
   static enableGPUAcceleration(element: HTMLElement): void {
     element.style.transform = 'translateZ(0)';
     element.style.backfaceVisibility = 'hidden';
     element.style.perspective = '1000px';
-  }
-
-  static optimizeForAnimation(element: HTMLElement, properties: string[]): void {
-    element.style.willChange = properties.join(', ');
-  }
-
-  static cleanupAnimation(element: HTMLElement): void {
-    element.style.willChange = 'auto';
   }
 
   static deferNonCriticalCSS(href: string): void {
@@ -410,57 +472,22 @@ export class PerformanceUtils {
 
 // Color utilities
 export class ColorUtils {
-  static hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  private hexToRgb(hex: string): { r: number; g: number; b: number } | null {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16)
+        }
+      : null;
   }
 
-  static rgbToHex(r: number, g: number, b: number): string {
+  private rgbToHex(r: number, g: number, b: number): string {
     return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
   }
 
-  static hexToHsl(hex: string): { h: number; s: number; l: number } | null {
-    const rgb = this.hexToRgb(hex);
-    if (!rgb) return null;
-
-    const { r, g, b } = rgb;
-    const rNorm = r / 255;
-    const gNorm = g / 255;
-    const bNorm = b / 255;
-
-    const max = Math.max(rNorm, gNorm, bNorm);
-    const min = Math.min(rNorm, gNorm, bNorm);
-    const diff = max - min;
-
-    let h = 0;
-    let s = 0;
-    const l = (max + min) / 2;
-
-    if (diff !== 0) {
-      s = l > 0.5 ? diff / (2 - max - min) : diff / (max + min);
-
-      switch (max) {
-        case rNorm:
-          h = (gNorm - bNorm) / diff + (gNorm < bNorm ? 6 : 0);
-          break;
-        case gNorm:
-          h = (bNorm - rNorm) / diff + 2;
-          break;
-        case bNorm:
-          h = (rNorm - gNorm) / diff + 4;
-          break;
-      }
-      h /= 6;
-    }
-
-    return { h: h * 360, s: s * 100, l: l * 100 };
-  }
-
-  static adjustBrightness(hex: string, percent: number): string {
+  adjustBrightness(hex: string, percent: number): string {
     const rgb = this.hexToRgb(hex);
     if (!rgb) return hex;
 
@@ -476,15 +503,17 @@ export class ColorUtils {
     );
   }
 
-  static getContrastRatio(color1: string, color2: string): number {
+  getContrastRatio(color1: string, color2: string): number {
     const getLuminance = (hex: string): number => {
       const rgb = this.hexToRgb(hex);
       if (!rgb) return 0;
 
       const { r, g, b } = rgb;
       const [rNorm, gNorm, bNorm] = [r, g, b].map(c => {
-        c = c / 255;
-        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        const normalized = c / 255;
+        return normalized <= 0.03928 
+          ? normalized / 12.92 
+          : Math.pow((normalized + 0.055) / 1.055, 2.4);
       });
 
       return 0.2126 * rNorm + 0.7152 * gNorm + 0.0722 * bNorm;
@@ -492,19 +521,21 @@ export class ColorUtils {
 
     const lum1 = getLuminance(color1);
     const lum2 = getLuminance(color2);
+    const lighter = Math.max(lum1, lum2);
+    const darker = Math.min(lum1, lum2);
 
-    return (Math.max(lum1, lum2) + 0.05) / (Math.min(lum1, lum2) + 0.05);
+    return (lighter + 0.05) / (darker + 0.05);
   }
 }
 
-// Export main utilities
-export const scssUtils = {
-  variables: SCSSVariableAccess,
-  styled: StyledComponentUtils,
-  animation: AnimationUtils,
-  responsive: ResponsiveUtils,
-  performance: PerformanceUtils,
-  color: ColorUtils
+// Export main utilities instance
+const scssUtils = {
+  variables: new SCSSVariableAccess(),
+  styled: new StyledComponentUtils(),
+  animation: new AnimationUtils(),
+  responsive: new ResponsiveUtils(),
+  performance: new PerformanceUtils(),
+  color: new ColorUtils()
 };
 
-// Classes are already exported above
+export default scssUtils;

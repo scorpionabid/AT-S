@@ -85,9 +85,18 @@ start_local() {
     
     # Setup backend environment
     print_status "Backend mühitini hazırla..."
-    cp backend/.env.example backend/.env 2>/dev/null || true
     
-    cat > backend/.env << 'EOF'
+    # Ensure backend directory exists
+    mkdir -p backend
+    
+    # Check if .env exists, if not create from .env.example
+    if [ ! -f "backend/.env" ]; then
+        if [ -f "backend/.env.example" ]; then
+            cp backend/.env.example backend/.env
+            print_success "backend/.env faylı .env.example-dan yaradıldı"
+        else
+            print_warning "backend/.env.example faylı tapılmadı, yeni .env faylı yaradılır..."
+            cat > backend/.env << 'EOF'
 APP_NAME="ATİS - Azərbaycan Təhsil İdarəetmə Sistemi"
 APP_ENV=local
 APP_KEY=base64:8dQ8Gu3WqV8Vn9K7Mj2Nz5P6Q7R8S9T0U1V2W3X4Y5Z=
@@ -102,7 +111,7 @@ LOG_CHANNEL=stack
 LOG_LEVEL=debug
 
 DB_CONNECTION=sqlite
-DB_DATABASE=/Users/home/Desktop/ATİS/backend/database/database.sqlite
+DB_DATABASE=${PWD}/backend/database/database.sqlite
 
 SESSION_DRIVER=file
 SESSION_LIFETIME=120
@@ -126,6 +135,14 @@ CORS_ALLOWED_HEADERS="Origin,Content-Type,Accept,Authorization,X-Requested-With"
 CORS_ALLOWED_METHODS="GET,POST,PUT,DELETE,OPTIONS"
 CORS_ALLOW_CREDENTIALS=true
 EOF
+        fi
+    else
+        print_success "backend/.env faylı artıq mövcuddur"
+    fi
+    
+    # Ensure database directory exists
+    mkdir -p backend/database
+    touch backend/database/database.sqlite
     
     # Setup frontend environment
     print_status "Frontend mühitini hazırla..."

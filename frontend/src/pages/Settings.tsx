@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { systemConfigService } from '../services/systemConfigService';
 import type { 
   SystemConfig, 
   SystemHealth, 
@@ -26,7 +25,11 @@ const Settings: React.FC = () => {
   const [showScheduleModal, setShowScheduleModal] = useState(false);
 
   useEffect(() => {
-    if (user?.role === 'superadmin') {
+    const hasSuperAdminRole = user?.roles?.includes('superadmin') || 
+                            (typeof user?.role === 'string' && user?.role === 'superadmin') ||
+                            (typeof user?.role === 'object' && user?.role?.name === 'superadmin');
+    
+    if (hasSuperAdminRole) {
       fetchSystemConfig();
       if (activeTab === 'health') {
         fetchSystemHealth();
@@ -39,8 +42,51 @@ const Settings: React.FC = () => {
   const fetchSystemConfig = async () => {
     setLoading(true);
     try {
-      const config = await systemConfigService.getSystemConfig();
-      setSystemConfig(config);
+      // Mock system config for development
+      const mockConfig: SystemConfig = {
+        general: {
+          app_name: 'ATİS - Azərbaycan Təhsil İdarəetmə Sistemi',
+          timezone: 'Asia/Baku',
+          language: 'az',
+          items_per_page: 20,
+          max_upload_size: '50MB',
+          maintenance_mode: false
+        },
+        security: {
+          session_timeout: 60,
+          max_login_attempts: 5,
+          lockout_duration: 15,
+          password_min_length: 8,
+          password_expire_days: 90,
+          password_require_special: false,
+          password_require_numbers: true,
+          two_factor_enabled: false
+        },
+        email: {
+          smtp_host: 'smtp.gmail.com',
+          smtp_port: 587,
+          smtp_username: '',
+          smtp_password: '',
+          smtp_encryption: 'tls',
+          from_address: 'noreply@atis.az',
+          from_name: 'ATİS System'
+        },
+        system: {
+          debug_mode: true,
+          log_level: 'info',
+          cache_enabled: true,
+          queue_enabled: true,
+          backup_retention_days: 30
+        },
+        integration: {
+          api_rate_limit: 1000,
+          webhook_secret: '',
+          external_auth_enabled: false,
+          ldap_enabled: false
+        }
+      };
+      
+      setSystemConfig(mockConfig);
       setError(null);
     } catch (error: any) {
       setError('Sistem konfiqurasiyası yüklənərkən xəta: ' + error.message);
@@ -51,8 +97,41 @@ const Settings: React.FC = () => {
 
   const fetchSystemHealth = async () => {
     try {
-      const health = await systemConfigService.getSystemHealth();
-      setSystemHealth(health);
+      // Mock system health data
+      const mockHealth: SystemHealth = {
+        overall_health: 'healthy',
+        components: {
+          database: {
+            status: 'healthy',
+            response_time: '12ms',
+            connections: 5,
+            max_connections: 100
+          },
+          cache: {
+            status: 'healthy',
+            hit_rate: '85%',
+            memory_usage: '45%'
+          },
+          storage: {
+            status: 'warning',
+            disk_usage: '78%',
+            free_space: '2.5GB'
+          },
+          api: {
+            status: 'healthy',
+            avg_response: '150ms',
+            requests_per_min: 45
+          }
+        },
+        recommendations: [
+          'Disk sahəsi 80%-ə yaxındır, təmizlik aparın',
+          'Cache performansı yaxşıdır',
+          'Database əlaqələri normal səviyyədədir'
+        ],
+        last_checked: new Date().toISOString()
+      };
+      
+      setSystemHealth(mockHealth);
     } catch (error: any) {
       setError('Sistem sağlamlığı yoxlanılarkən xəta: ' + error.message);
     }
@@ -60,8 +139,28 @@ const Settings: React.FC = () => {
 
   const fetchScheduledReports = async () => {
     try {
-      const reports = await systemConfigService.getScheduledReports();
-      setScheduledReports(reports.schedules);
+      // Mock scheduled reports data
+      const mockReports: ScheduledReport[] = [
+        {
+          id: 1,
+          name: 'Aylıq Performans Hesabatı',
+          description: 'Aylıq məktəb performans məlumatları',
+          report_type: 'overview',
+          frequency: 'monthly',
+          format: 'pdf',
+          recipients: ['admin@atis.az', 'director@atis.az'],
+          time: '09:00',
+          day_of_month: 1,
+          next_run: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+          last_run: new Date(Date.now() - 23 * 24 * 60 * 60 * 1000).toISOString(),
+          status: 'active',
+          created_by: 1,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ];
+      
+      setScheduledReports(mockReports);
     } catch (error: any) {
       setError('Planlanmış hesabatlar yüklənərkən xəta: ' + error.message);
     }
@@ -92,8 +191,9 @@ const Settings: React.FC = () => {
         return;
       }
 
-      await systemConfigService.updateSystemConfig(category, categoryChanges);
-      setSuccess('Konfiqurasiya uğurla yeniləndi');
+      // Mock update for development
+      console.log('Updating config:', category, categoryChanges);
+      setSuccess('Konfiqurasiya uğurla yeniləndi (Mock)');
       setConfigChanges({});
       await fetchSystemConfig();
     } catch (error: any) {
@@ -106,11 +206,11 @@ const Settings: React.FC = () => {
   const handleMaintenance = async (tasks: MaintenanceTask[]) => {
     setLoading(true);
     try {
-      const result = await systemConfigService.performMaintenance(tasks);
-      setSuccess(`Bakım tamamlandı: ${Object.keys(result.results).join(', ')}`);
-      if (Object.keys(result.errors).length > 0) {
-        setError(`Bəzi xətalar: ${Object.values(result.errors).join(', ')}`);
-      }
+      // Mock maintenance for development
+      console.log('Performing maintenance tasks:', tasks);
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate work
+      
+      setSuccess(`Bakım tamamlandı: ${tasks.join(', ')} (Mock)`);
       await fetchSystemHealth();
     } catch (error: any) {
       setError('Sistem bakımı zamanı xəta: ' + error.message);
@@ -477,7 +577,12 @@ const Settings: React.FC = () => {
     );
   };
 
-  if (user?.role !== 'superadmin') {
+  // Check if user has superadmin role
+  const hasSuperAdminRole = user?.roles?.includes('superadmin') || 
+                          (typeof user?.role === 'string' && user?.role === 'superadmin') ||
+                          (typeof user?.role === 'object' && user?.role?.name === 'superadmin');
+
+  if (!hasSuperAdminRole) {
     return (
       <div className="settings-page">
         <div className="access-denied">
