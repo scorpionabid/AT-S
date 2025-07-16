@@ -1,8 +1,9 @@
 import React, { useState, useCallback, useEffect, useRef, ReactNode, KeyboardEvent } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { cn } from '../../utils/cn';
+import type { NavigationItem } from './SidebarContent';
 import SidebarContent from './SidebarContent';
 import { 
   FiChevronLeft, 
@@ -14,7 +15,6 @@ import {
   FiChevronDown,
   FiSettings
 } from 'react-icons/fi';
-import { NavigationItem } from './SidebarContent';
 
 type ScreenSize = 'mobile' | 'tablet' | 'desktop';
 
@@ -42,12 +42,7 @@ interface SidebarProps {
   children?: ReactNode;
 }
 
-interface SidebarContentProps {
-  isCollapsed: boolean;
-  expandedItems: string[];
-  onItemClick: (item: NavigationItem) => void;
-  className?: string;
-}
+// TypeScript types and interfaces
 
 const NewSidebar: React.FC<SidebarProps> = ({
   className = '',
@@ -94,13 +89,19 @@ const NewSidebar: React.FC<SidebarProps> = ({
     );
   }, []);
 
-  const handleMenuItemClick = useCallback((itemId: string) => {
-    toggleSubmenu(itemId);
-    // Close mobile menu when an item is clicked
-    if (screenSize === 'mobile') {
-      closeMobile();
+  const handleMenuItemClick = useCallback((item: NavigationItem) => {
+    if (item.children && item.children.length > 0) {
+      // If item has children, toggle the submenu
+      toggleSubmenu(item.id || item.path || '');
+    } else if (item.path) {
+      // If item has a path, navigate to it
+      navigate(item.path);
+      // Close mobile menu when an item is clicked
+      if (screenSize === 'mobile') {
+        closeMobile();
+      }
     }
-  }, [toggleSubmenu, screenSize, closeMobile]);
+  }, [toggleSubmenu, screenSize, closeMobile, navigate]);
 
   const handleKeyDown = useCallback((e: KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Escape' && isMobileOpen) {
@@ -151,6 +152,21 @@ const NewSidebar: React.FC<SidebarProps> = ({
     }
   }, [isCollapsed, showSettingsMenu]);
 
+  // Auto-expand parent items when a child is active
+  useEffect(() => {
+    const activeItem = document.querySelector('.sidebar-item-active');
+    if (activeItem) {
+      const parentItem = activeItem.closest('.sidebar-item-has-children');
+      if (parentItem) {
+        const itemId = parentItem.getAttribute('data-item-id');
+        if (itemId && !expandedItems.includes(itemId)) {
+          setExpandedItems(prev => [...prev, itemId]);
+        }
+      }
+    }
+  }, [location.pathname, expandedItems]);
+
+  // Close mobile menu when screen size changes to mobile
   useEffect(() => {
     if (screenSize === 'mobile') {
       closeMobile();
@@ -249,7 +265,13 @@ const NewSidebar: React.FC<SidebarProps> = ({
           <SidebarContent 
             isCollapsed={isCollapsed}
             expandedItems={expandedItems}
-            onToggleSubmenu={handleMenuItemClick}
+            onToggleSubmenu={(itemId: string) => {
+              setExpandedItems(prev => 
+                prev.includes(itemId) 
+                  ? prev.filter(id => id !== itemId)
+                  : [...prev, itemId]
+              );
+            }}
           />
         </div>
 

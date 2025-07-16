@@ -104,13 +104,18 @@ const InstitutionsList: React.FC = () => {
 
       console.log('   - Making API request to /institutions with params:', params.toString());
       const response = await api.get(`/institutions?${params}`);
+      console.log('   - Raw API response:', response.data);
       const data: InstitutionsResponse = response.data;
       
       console.log('   - API response received:', data);
+      console.log('   - Institutions array:', data.institutions);
       console.log('   - Institutions count:', data.institutions?.length || 0);
+      console.log('   - Is institutions array:', Array.isArray(data.institutions));
       
-      setInstitutions(data.institutions);
-      setTotalPages(data.meta.last_page);
+      // Ensure institutions is always an array
+      const institutionsArray = Array.isArray(data.institutions) ? data.institutions : [];
+      setInstitutions(institutionsArray);
+      setTotalPages(data.meta?.last_page || 1);
       
       console.log('   - State updated successfully');
     } catch (err: any) {
@@ -119,6 +124,10 @@ const InstitutionsList: React.FC = () => {
       const errorMessage = err.response?.data?.message || 'Institution məlumatları yüklənərkən xəta baş verdi';
       console.error('   - Setting error message:', errorMessage);
       setError(errorMessage);
+      
+      // Ensure institutions is empty array on error
+      setInstitutions([]);
+      setTotalPages(1);
     } finally {
       console.log('   - Setting loading to false...');
       setLoading(false);
@@ -312,7 +321,7 @@ const InstitutionsList: React.FC = () => {
       ) : (
         <>
           <div className="institutions-grid">
-            {institutions.map((institution) => (
+            {Array.isArray(institutions) && institutions.map((institution) => (
               <div key={institution.id} className={`institution-card type-${institution.type}`}>
                 <div className="institution-card-header">
                   <div className="institution-title-section">
@@ -405,7 +414,7 @@ const InstitutionsList: React.FC = () => {
             ))}
           </div>
 
-          {institutions.length === 0 && !loading && (
+          {(!institutions || institutions.length === 0) && !loading && (
             <NoResultsEmptyState
               searchQuery={searchTerm || typeFilter || levelFilter ? 'filtrlənmiş nəticə' : undefined}
               onClearSearch={() => {

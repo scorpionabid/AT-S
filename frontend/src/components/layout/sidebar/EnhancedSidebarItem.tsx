@@ -83,9 +83,7 @@ const EnhancedSidebarItem: React.FC<EnhancedSidebarItemProps> = memo(({
       'transform-gpu', // Enable hardware acceleration
       hoverEffects.classes,
       {
-        // Level-based indentation
-        'ml-4': level > 0,
-        'ml-8': level > 1,
+        // Level-based indentation is now handled by CSS
         
         // Variant styles
         'min-h-[44px]': variant === 'default',
@@ -184,27 +182,17 @@ const EnhancedSidebarItem: React.FC<EnhancedSidebarItemProps> = memo(({
     if (!hasChildren || isCollapsed) return null;
 
     return (
-      <button
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('Expand icon clicked for:', itemId);
-          onToggle(itemId);
-        }}
-        className="ml-auto p-1 -mr-1 rounded hover:bg-[var(--sidebar-hover-bg)] transition-colors"
+      <SidebarIcon
+        name={isExpanded ? 'chevron-down' : 'chevron-right'}
+        size="sm"
+        className={cn(
+          'ml-auto transition-transform duration-200 cursor-pointer',
+          {
+            'rotate-90': isExpanded && !isCollapsed
+          }
+        )}
         aria-label={isExpanded ? 'Collapse menu' : 'Expand menu'}
-      >
-        <SidebarIcon
-          name={isExpanded ? 'chevron-down' : 'chevron-right'}
-          size="sm"
-          className={cn(
-            'transition-transform duration-200',
-            {
-              'rotate-90': isExpanded && !isCollapsed
-            }
-          )}
-        />
-      </button>
+      />
     );
   };
 
@@ -263,17 +251,6 @@ const EnhancedSidebarItem: React.FC<EnhancedSidebarItemProps> = memo(({
     </>
   );
 
-  const handleClick = (e: React.MouseEvent) => {
-    // Call hover effects click handler first
-    hoverEffects.handlers.onClick(e);
-    
-    if (hasChildren) {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('Toggling item:', itemId, 'hasChildren:', hasChildren);
-      onToggle(itemId);
-    }
-  };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -314,56 +291,84 @@ const EnhancedSidebarItem: React.FC<EnhancedSidebarItemProps> = memo(({
     );
   };
 
-  // Main render logic
+  // Handle item navigation and dropdown functionality  
+  const handleItemClick = (e: React.MouseEvent) => {
+    hoverEffects.handlers.onClick(e);
+    
+    // If has children and clicking on expand icon, just toggle dropdown
+    if (hasChildren && e.target !== e.currentTarget) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
+    // If has children but no path, just toggle dropdown  
+    if (hasChildren && !item.path) {
+      e.preventDefault();
+      e.stopPropagation();
+      console.log('Toggling dropdown for:', itemId);
+      onToggle(itemId);
+      return;
+    }
+    
+    // If has both children and path, toggle dropdown but allow navigation
+    if (hasChildren && item.path) {
+      console.log('Toggling dropdown for item with path:', itemId);
+      onToggle(itemId);
+      // Don't prevent navigation - let Link handle it
+    }
+  };
+
+  // Main render logic - unified approach
+  const renderMainElement = () => {
+    const content = renderContent();
+    const baseProps = {
+      ref: itemRef,
+      ...hoverEffects.handlers,
+      className: getBaseClasses(),
+      style: hoverEffects.styles,
+      title: isCollapsed ? itemTitle : undefined,
+      'data-level': level
+    };
+
+    if (item.path) {
+      return (
+        <Link
+          {...(baseProps as any)}
+          to={item.path}
+          onClick={handleItemClick}
+          aria-current={isActive ? 'page' : undefined}
+          aria-expanded={hasChildren ? isExpanded : undefined}
+          aria-controls={hasChildren ? `submenu-${itemId}` : undefined}
+        >
+          {content}
+        </Link>
+      );
+    }
+
+    return (
+      <button
+        {...(baseProps as any)}
+        onClick={handleItemClick}
+        onKeyDown={handleKeyDown}
+        aria-expanded={hasChildren ? isExpanded : undefined}
+        aria-controls={hasChildren ? `submenu-${itemId}` : undefined}
+      >
+        {content}
+      </button>
+    );
+  };
+
   if (hasChildren) {
     return (
       <div className="relative">
-        <button
-          ref={itemRef as React.RefObject<HTMLButtonElement>}
-          onClick={handleClick}
-          onKeyDown={handleKeyDown}
-          {...hoverEffects.handlers}
-          className={getBaseClasses()}
-          style={hoverEffects.styles}
-          aria-expanded={isExpanded}
-          aria-controls={hasChildren ? `submenu-${itemId}` : undefined}
-          title={isCollapsed ? itemTitle : undefined}
-        >
-          {renderContent()}
-        </button>
+        {renderMainElement()}
         {renderChildren()}
       </div>
     );
   }
 
-  if (item.path) {
-    return (
-      <Link
-        ref={itemRef as React.RefObject<HTMLAnchorElement>}
-        to={item.path}
-        {...hoverEffects.handlers}
-        className={getBaseClasses()}
-        style={hoverEffects.styles}
-        title={isCollapsed ? itemTitle : undefined}
-        aria-current={isActive ? 'page' : undefined}
-      >
-        {renderContent()}
-      </Link>
-    );
-  }
-
-  // Fallback for items without path or children
-  return (
-    <div
-      ref={itemRef as React.RefObject<HTMLDivElement>}
-      {...hoverEffects.handlers}
-      className={cn(getBaseClasses(), 'cursor-default')}
-      style={hoverEffects.styles}
-      title={isCollapsed ? itemTitle : undefined}
-    >
-      {renderContent()}
-    </div>
-  );
+  return renderMainElement();
 });
 
 EnhancedSidebarItem.displayName = 'EnhancedSidebarItem';

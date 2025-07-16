@@ -81,7 +81,15 @@ class InstitutionController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $institutions,
+            'institutions' => $institutions->items(),
+            'meta' => [
+                'current_page' => $institutions->currentPage(),
+                'last_page' => $institutions->lastPage(),
+                'per_page' => $institutions->perPage(),
+                'total' => $institutions->total(),
+                'from' => $institutions->firstItem(),
+                'to' => $institutions->lastItem(),
+            ]
         ]);
     }
 

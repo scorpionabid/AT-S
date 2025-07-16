@@ -15,6 +15,7 @@ import { LoadingSpinner } from '../ui/Loading';
 import KSQResultForm from './KSQResultForm';
 import BSQResultForm from './BSQResultForm';
 import AssessmentAnalytics from './AssessmentAnalytics';
+import { api } from '../../services/api';
 import '../../styles/assessment/assessment-dashboard.css';
 
 interface AssessmentOverview {
@@ -74,21 +75,25 @@ const AssessmentDashboard: React.FC = () => {
   const fetchAssessmentOverview = async () => {
     try {
       setLoading(true);
-      const response = await fetch('/api/assessments', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Qiymətləndirmə məlumatları yüklənə bilmədi');
+      console.log('🔄 Fetching assessment overview...');
+      
+      const response = await api.get('/assessments');
+      console.log('📊 Assessment API response received:', response.data);
+      
+      // Check if data has expected structure
+      if (response.data.success && response.data.data && response.data.data.analytics) {
+        setOverview(response.data.data.analytics);
+        console.log('✅ Overview set successfully');
+      } else {
+        console.warn('⚠️ Unexpected data structure:', response.data);
+        throw new Error('Məlumat strukturu gözlənilən formatda deyil');
       }
-
-      const data = await response.json();
-      setOverview(data.data.analytics);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Xəta baş verdi');
+    } catch (err: any) {
+      console.error('❌ fetchAssessmentOverview error:', err);
+      console.error('❌ Error response:', err.response);
+      
+      const errorMessage = err.response?.data?.message || err.response?.data?.error || err.message || 'Qiymətləndirmə məlumatları yüklənə bilmədi';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
