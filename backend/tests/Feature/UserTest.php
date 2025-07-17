@@ -55,12 +55,15 @@ class UserTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonStructure([
-                'user' => [
-                    'id',
-                    'username',
-                    'email',
-                ],
-                'token'
+                'message',
+                'data' => [
+                    'user' => [
+                        'id',
+                        'username',
+                        'email',
+                    ],
+                    'token'
+                ]
             ]);
     }
 
