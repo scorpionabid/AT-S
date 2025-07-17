@@ -1,8 +1,7 @@
-import React, { memo, useMemo } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
-import { getVisibleMenuItems } from '../../utils/navigation/menuConfig';
+import React, { memo } from 'react';
+import { useNavigation } from '../../contexts/NavigationContext';
 import EnhancedSidebarItem from './sidebar/EnhancedSidebarItem';
-import { FiHome, FiSettings, FiUsers, FiFolder, FiFileText, FiBell, FiMessageSquare, FiHelpCircle } from 'react-icons/fi';
+import SidebarIcon, { IconName } from './sidebar/SidebarIcon';
 
 export interface NavigationItem {
   id: string;
@@ -22,19 +21,36 @@ interface SidebarContentProps {
   variant?: 'default' | 'compact' | 'minimal';
 }
 
-// Helper function to get icon component by name
+// Helper function to get icon component by name using centralized SidebarIcon
 const getIconComponent = (iconName?: string): React.ReactNode => {
-  switch (iconName) {
-    case 'home': return <FiHome className="w-5 h-5" />;
-    case 'settings': return <FiSettings className="w-5 h-5" />;
-    case 'users': return <FiUsers className="w-5 h-5" />;
-    case 'folder': return <FiFolder className="w-5 h-5" />;
-    case 'file-text': return <FiFileText className="w-5 h-5" />;
-    case 'bell': return <FiBell className="w-5 h-5" />;
-    case 'message-square': return <FiMessageSquare className="w-5 h-5" />;
-    case 'help-circle': return <FiHelpCircle className="w-5 h-5" />;
-    default: return <FiHome className="w-5 h-5" />;
-  }
+  if (!iconName) return <SidebarIcon name="home" />;
+  
+  // Map string names to IconName type
+  const iconMap: Record<string, IconName> = {
+    'home': 'home',
+    'settings': 'settings', 
+    'users': 'users',
+    'folder': 'folder',
+    'file-text': 'file-text',
+    'bell': 'bell',
+    'message-square': 'message-square',
+    'help-circle': 'help-circle',
+    'grid': 'grid',
+    'bar-chart': 'bar-chart',
+    'calendar': 'calendar',
+    'clipboard': 'clipboard',
+    'shield': 'shield',
+    'trending-up': 'trending-up',
+    'lock': 'lock',
+    'book': 'book',
+    'check-circle': 'check-circle',
+    'user': 'user',
+    'archive': 'archive',
+    'activity': 'activity'
+  };
+  
+  const mappedIcon = iconMap[iconName] || 'home';
+  return <SidebarIcon name={mappedIcon} />;
 };
 
 // Convert MenuItem to NavigationItem
@@ -57,20 +73,15 @@ const SidebarContent: React.FC<SidebarContentProps> = memo(({
   onToggleSubmenu,
   variant = 'default'
 }) => {
-  const { user } = useAuth();
+  const { 
+    menuItems: rawMenuItems, 
+    isMenuLoading 
+  } = useNavigation();
   
-  // Memoize menu items to prevent unnecessary recalculations
-  const menuItems = useMemo(() => {
-    try {
-      const items = getVisibleMenuItems(user || null);
-      return Array.isArray(items) ? items.map(convertToNavigationItem) : [];
-    } catch (error) {
-      console.error('Error loading menu items:', error);
-      return [];
-    }
-  }, [user]);
+  // Convert menu items to NavigationItem format
+  const menuItems = rawMenuItems.map(convertToNavigationItem);
 
-  if (!Array.isArray(menuItems) || menuItems.length === 0) {
+  if (isMenuLoading || !Array.isArray(menuItems) || menuItems.length === 0) {
     return (
       <div className="flex-1 p-4 text-sm text-[var(--text-tertiary)] text-center">
         {isCollapsed ? (

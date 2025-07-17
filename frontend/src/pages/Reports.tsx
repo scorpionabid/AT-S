@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { reportsService } from '../services/reportsService';
-import RegionAdminReports from './RegionAdminReports';
 import type { 
   OverviewStats, 
   InstitutionalPerformance, 
@@ -13,11 +12,6 @@ import '../styles/reports.css';
 
 const Reports: React.FC = () => {
   const { user } = useAuth();
-
-  // Show RegionAdmin-specific reports page for regionadmin users
-  if (user?.role === 'regionadmin') {
-    return <RegionAdminReports />;
-  }
   const [activeTab, setActiveTab] = useState('overview');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);

@@ -1,13 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { ComponentType } from 'react';
 import { InstitutionProvider } from '../contexts/InstitutionContext';
 import { useAuth } from '../contexts/AuthContext';
+import { FiGrid, FiPlus, FiRefreshCw, FiMap } from 'react-icons/fi';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import ErrorBoundary from '../components/common/ErrorBoundary';
+import ErrorBoundary from '../components/debug/ErrorBoundary';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
 import Dashboard from '../components/layout/Dashboard';
 import RegionAdminInstitutionsList from '../components/regionadmin/institutions/RegionAdminInstitutionsList';
+import InstitutionsList from '../components/institutions/InstitutionsList';
+import { Button } from '../components/ui/Button';
+import { regionAdminService } from '../services/regionAdminService';
+import type { RegionInstitutionStats } from '../services/regionAdminService';
 
 // Define ErrorFallback component type
 type ErrorFallbackProps = {
@@ -27,9 +33,6 @@ const ErrorFallback: React.FC<ErrorFallbackProps> = ({ error, resetErrorBoundary
     </button>
   </div>
 );
-
-// Use the stable InstitutionsList component
-import InstitutionsList from '../components/institutions/InstitutionsList';
 
 // Create a client for React Query
 const queryClient = new QueryClient({
@@ -54,7 +57,7 @@ const InstitutionsPage: React.FC = () => {
   const userRole = typeof user?.role === 'string' ? user.role : user?.role?.name;
   if (userRole === 'regionadmin') {
     return (
-      <ErrorBoundary FallbackComponent={ErrorFallback} onReset={handleReset}>
+      <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <InstitutionProvider>
             <Dashboard>
@@ -79,7 +82,7 @@ const InstitutionsPage: React.FC = () => {
 
   // Default SuperAdmin view
   return (
-    <ErrorBoundary FallbackComponent={ErrorFallback} onReset={handleReset}>
+    <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <InstitutionProvider>
           <Dashboard>

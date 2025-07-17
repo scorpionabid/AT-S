@@ -135,7 +135,8 @@ const TaskDashboard: React.FC = () => {
       params.append('sort_by', sortBy);
       params.append('sort_order', sortOrder);
 
-      const response = await fetch(`/api/tasks?${params}`, {
+      const API_BASE = 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${API_BASE}/tasks?${params}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -155,7 +156,8 @@ const TaskDashboard: React.FC = () => {
 
   const fetchTaskStats = async () => {
     try {
-      const response = await fetch('/api/task-stats', {
+      const API_BASE = 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${API_BASE}/task-stats`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -208,7 +210,8 @@ const TaskDashboard: React.FC = () => {
 
   const handleTaskAction = async (taskId: number, action: 'start' | 'complete' | 'cancel') => {
     try {
-      const response = await fetch(`/api/tasks/${taskId}/action`, {
+      const API_BASE = 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${API_BASE}/tasks/${taskId}/action`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

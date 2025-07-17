@@ -36,6 +36,7 @@ interface DepartmentStats {
     budgetManaged?: number;
     facilitiesManaged?: number;
     administrativeActions?: number;
+    educationPrograms?: number;
   };
   recentActivities: Array<{
     id: string;

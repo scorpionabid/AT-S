@@ -91,7 +91,8 @@ const ApprovalDashboard: React.FC = () => {
       if (filterStatus !== 'all') params.append('status', filterStatus);
       if (filterType !== 'all') params.append('type', filterType);
 
-      const response = await fetch(`/api/approval-requests?${params}`, {
+      const API_BASE = 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${API_BASE}/approval-requests?${params}`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -111,7 +112,8 @@ const ApprovalDashboard: React.FC = () => {
 
   const fetchApprovalStats = async () => {
     try {
-      const response = await fetch('/api/approval-stats', {
+      const API_BASE = 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${API_BASE}/approval-stats`, {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,
           'Content-Type': 'application/json'
@@ -131,7 +133,8 @@ const ApprovalDashboard: React.FC = () => {
     if (!selectedRequest) return;
 
     try {
-      const response = await fetch(`/api/approval-requests/${selectedRequest.id}/action`, {
+      const API_BASE = 'http://127.0.0.1:8000/api';
+      const response = await fetch(`${API_BASE}/approval-requests/${selectedRequest.id}/action`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`,

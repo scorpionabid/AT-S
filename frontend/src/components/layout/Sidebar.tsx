@@ -1,5 +1,6 @@
-import React, { useState, useCallback, ReactNode, memo } from 'react';
+import React, { useCallback, ReactNode, memo } from 'react';
 import { useLayout } from '../../contexts/LayoutContext';
+import { useNavigation } from '../../contexts/NavigationContext';
 import { cn } from '../../utils/cn';
 import SidebarContent from './SidebarContent';
 import SidebarHeader from './sidebar/SidebarHeader';
@@ -28,7 +29,10 @@ const Sidebar: React.FC<SidebarProps> = memo(({
     screenSize = 'desktop'
   } = useLayout();
   
-  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { 
+    expandedItems, 
+    toggleExpanded 
+  } = useNavigation();
   
   // Handle keyboard navigation
   const handleKeyDown = useKeyboardNavigation({
@@ -39,14 +43,10 @@ const Sidebar: React.FC<SidebarProps> = memo(({
     onCloseMobile: closeMobile,
   });
 
-  // Toggle submenu expansion with useCallback for performance
+  // Toggle submenu expansion using centralized navigation state
   const toggleSubmenu = useCallback((itemId: string) => {
-    setExpandedItems(prev => 
-      prev.includes(itemId) 
-        ? prev.filter(id => id !== itemId)
-        : [...prev, itemId]
-    );
-  }, []);
+    toggleExpanded(itemId);
+  }, [toggleExpanded]);
 
   // Sidebar classes
   const sidebarClasses = cn(

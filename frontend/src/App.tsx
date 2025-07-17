@@ -4,11 +4,14 @@ import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 import { LayoutProvider } from './contexts/LayoutContext';
+import { NavigationProvider } from './contexts/NavigationContext';
 import { SessionProvider } from './contexts/SessionProvider';
 import ProtectedRoute from './components/common/ProtectedRoute';
+import { ROLES, ROLE_GROUPS } from './constants/roles';
+import ErrorBoundary from './components/debug/ErrorBoundary';
+
+// Direct imports instead of lazy loading to fix blank page issue
 import LoginPage from './pages/auth/LoginPage';
-import SimpleLoginTest from './components/test/SimpleLoginTest';
-import MinimalTest from './components/test/MinimalTest';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import SurveysPage from './pages/SurveysPage';
@@ -26,8 +29,10 @@ import SchedulePage from './pages/SchedulePage';
 import TeachingLoadPage from './pages/TeachingLoadPage';
 import SchoolDashboardPage from './pages/SchoolDashboardPage';
 import RegionalDepartmentsPage from './pages/RegionalDepartmentsPage';
-import { ROLES, ROLE_GROUPS } from './constants/roles';
-import ErrorBoundary from './components/debug/ErrorBoundary';
+
+// Test components (not lazy loaded since they're for development)
+import SimpleLoginTest from './components/test/SimpleLoginTest';
+import MinimalTest from './components/test/MinimalTest';
 import TestTailwind from './components/TestTailwind';
 import TailwindTest from './components/test/TailwindTest';
 
@@ -39,9 +44,10 @@ const App: React.FC = () => {
           <AuthProvider>
           <SessionProvider>
             <LayoutProvider>
-            <Router>
+              <NavigationProvider>
+                <Router>
             <div className="App">
-              <Routes>
+                <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />
             <Route path="/login-test" element={<SimpleLoginTest />} />
@@ -211,9 +217,10 @@ const App: React.FC = () => {
             
             {/* Catch all route - redirect to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
-              </Routes>
+                </Routes>
             </div>
-            </Router>
+                </Router>
+              </NavigationProvider>
             </LayoutProvider>
           </SessionProvider>
         </AuthProvider>

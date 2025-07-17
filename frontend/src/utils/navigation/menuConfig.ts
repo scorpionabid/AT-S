@@ -6,6 +6,7 @@
 
 import type { User } from '../../types/auth';
 import { hasPermission, hasRole } from '../auth';
+import { hasNavigationPermission } from './navigationPermissions';
 import { 
   FiHome, 
   FiUsers, 
@@ -467,7 +468,7 @@ export const menuItems: MenuItem[] = [
 ];
 
 /**
- * Check if user can access a menu item
+ * Check if user can access a menu item (unified with navigationPermissions)
  */
 export const canAccessMenuItem = (user: User | null, item: MenuItem): boolean => {
   if (!user) return false;
@@ -481,15 +482,23 @@ export const canAccessMenuItem = (user: User | null, item: MenuItem): boolean =>
     return true;
   }
 
-  // Check role-based access first (more restrictive)
-  if (item.roles && item.roles.length > 0) {
-    const hasRequiredRole = item.roles.some(role => hasRole(user, role));
-    if (!hasRequiredRole) return false;
+  // Try to use centralized navigation permission system first
+  if (item.permission) {
+    // Create a navigation permission key from the permission
+    const navPermissionKey = `${item.permission}`;
+    
+    // Check if this permission exists in our centralized system
+    if (hasNavigationPermission(user, navPermissionKey)) {
+      return true;
+    }
+    
+    // Fallback to direct permission check
+    return hasPermission(user, item.permission);
   }
 
-  // Check permission-based access
-  if (item.permission) {
-    return hasPermission(user, item.permission);
+  // Check role-based access
+  if (item.roles && item.roles.length > 0) {
+    return item.roles.some(role => hasRole(user, role));
   }
 
   // If no specific permission or role required, allow access
