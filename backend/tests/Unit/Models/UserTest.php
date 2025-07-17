@@ -40,6 +40,7 @@ class UserTest extends ModelTestCase
         'password',
         'role_id',
         'institution_id',
+        'department_id',
         'departments',
         'is_active',
         'last_login_at',

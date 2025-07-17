@@ -6,7 +6,7 @@ import { AuthProvider } from '../../contexts/AuthContext';
 import ClassAttendanceTracker from '../../components/academic/ClassAttendanceTracker';
 // import AttendanceForm from '../../components/attendance/AttendanceForm';
 // import AttendanceStats from '../../components/attendance/AttendanceStats';
-import * as attendanceService from '../../services/attendanceService';
+import { attendanceService } from '../../services/attendanceService';
 
 // Mock API responses
 const mockApiResponses = {

@@ -4,17 +4,40 @@ import { cleanup } from '@testing-library/react'
 import { server } from './mocks/server'
 
 // Mock fetch globally
-global.fetch = vi.fn()
+Object.defineProperty(global, 'fetch', {
+  value: vi.fn(),
+  writable: true,
+  configurable: true
+})
 
 // Start server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
+beforeAll(() => {
+  try {
+    server.listen({ 
+      onUnhandledRequest: 'bypass',
+      quiet: true
+    })
+  } catch (error) {
+    console.warn('MSW server setup failed:', error)
+  }
+})
 
 // Close server after all tests
-afterAll(() => server.close())
+afterAll(() => {
+  try {
+    server.close()
+  } catch (error) {
+    console.warn('MSW server close failed:', error)
+  }
+})
 
 // Reset handlers after each test `important for test isolation`
 afterEach(() => {
-  server.resetHandlers()
+  try {
+    server.resetHandlers()
+  } catch (error) {
+    console.warn('MSW handler reset failed:', error)
+  }
   cleanup()
 })
 

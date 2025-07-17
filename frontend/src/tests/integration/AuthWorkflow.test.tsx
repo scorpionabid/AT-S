@@ -6,7 +6,7 @@ import { AuthProvider } from '../../contexts/AuthContext';
 import LoginForm from '../../components/auth/LoginForm';
 import Dashboard from '../../components/dashboard/Dashboard';
 import ProtectedRoute from '../../components/common/ProtectedRoute';
-import * as authService from '../../services/authService';
+import { authService } from '../../services/authService';
 
 // Mock API responses
 const mockApiResponses = {
