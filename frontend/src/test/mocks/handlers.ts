@@ -1,6 +1,6 @@
 import { http, HttpResponse } from 'msw'
 
-const API_BASE_URL = 'http://127.0.0.1:8001/api'
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
 
 export const handlers = [
   // Auth endpoints
@@ -35,34 +35,59 @@ export const handlers = [
     })
   }),
 
-  // Users endpoints
-  http.get(`${API_BASE_URL}/users`, () => {
+  // Users endpoints - handle query parameters
+  http.get(`${API_BASE_URL}/users`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = url.searchParams.get('page') || '1';
+    const perPage = url.searchParams.get('per_page') || '10';
     return HttpResponse.json({
       users: [
         {
           id: 1,
           username: 'admin',
           email: 'admin@example.com',
-          role_id: 1,
-          institution_id: 1,
+          role: {
+            id: 1,
+            name: 'regionadmin',
+            display_name: 'Regional Administrator',
+            level: 2
+          },
+          role_display_name: 'Regional Administrator',
           is_active: true,
-          roles: [{ name: 'regionadmin' }]
+          last_login_at: '2025-01-15T10:30:00Z',
+          institution: {
+            id: 1,
+            name: 'Test School'
+          },
+          created_at: '2024-12-01T00:00:00Z'
         },
         {
           id: 2,
           username: 'teacher',
           email: 'teacher@example.com',
-          role_id: 2,
-          institution_id: 1,
+          role: {
+            id: 2,
+            name: 'müəllim',
+            display_name: 'Müəllim',
+            level: 6
+          },
+          role_display_name: 'Müəllim',
           is_active: true,
-          roles: [{ name: 'müəllim' }]
+          last_login_at: '2025-01-14T14:20:00Z',
+          institution: {
+            id: 1,
+            name: 'Test School'
+          },
+          created_at: '2024-12-15T00:00:00Z'
         }
       ],
       meta: {
         current_page: 1,
         per_page: 10,
         total: 2,
-        last_page: 1
+        last_page: 1,
+        from: 1,
+        to: 2
       }
     })
   }),
@@ -165,6 +190,53 @@ export const handlers = [
         per_page: 10,
         total: 1,
         last_page: 1
+      }
+    })
+  }),
+
+  // Missing endpoints that tests are looking for
+  http.get(`${API_BASE_URL}/users/institutions/available`, () => {
+    return HttpResponse.json([
+      {
+        id: 1,
+        name: 'Test School',
+        institution_code: 'TST001',
+        type: 'school'
+      }
+    ])
+  }),
+
+  // OPTIONS requests (CORS preflight)
+  http.options(`${API_BASE_URL}/users`, () => {
+    return new HttpResponse(null, { 
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
+  }),
+
+  http.options(`${API_BASE_URL}/users/institutions/available`, () => {
+    return new HttpResponse(null, { 
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      }
+    })
+  }),
+
+  // Generic fallback for unhandled OPTIONS requests
+  http.options('*', () => {
+    return new HttpResponse(null, { 
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
       }
     })
   }),

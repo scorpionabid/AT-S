@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, fireEvent } from '../../../test/utils'
-import { Button } from '../Button'
+import { Button } from '../../ui/Button'
 
 describe('Button Component', () => {
   it('renders button with text', () => {
@@ -11,62 +11,47 @@ describe('Button Component', () => {
   it('handles click events', () => {
     const handleClick = vi.fn()
     render(<Button onClick={handleClick}>Click me</Button>)
-    
     fireEvent.click(screen.getByRole('button'))
-    expect(handleClick).toHaveBeenCalledTimes(1)
+    expect(handleClick).toHaveBeenCalledOnce()
   })
 
   it('applies variant classes correctly', () => {
-    render(<Button variant="danger">Danger Button</Button>)
+    render(<Button variant="error">Error Button</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('btn--danger')
+    expect(button).toHaveClass('bg-error-500')
+    expect(button).toHaveClass('text-white')
   })
 
   it('applies size classes correctly', () => {
     render(<Button size="lg">Large Button</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('btn--lg')
+    expect(button).toHaveClass('h-10')
+    expect(button).toHaveClass('px-6')
+    expect(button).toHaveClass('text-base')
   })
 
   it('shows loading state', () => {
-    render(<Button isLoading>Loading Button</Button>)
+    render(<Button loading>Loading Button</Button>)
     const button = screen.getByRole('button')
     expect(button).toBeDisabled()
-    expect(button).toHaveClass('btn--loading')
     expect(screen.getByText('Loading Button')).toBeInTheDocument()
-    // Check for loading spinner
-    expect(button.querySelector('.icon--loader.animate-spin')).toBeInTheDocument()
   })
 
   it('can be disabled', () => {
     render(<Button disabled>Disabled Button</Button>)
     const button = screen.getByRole('button')
     expect(button).toBeDisabled()
-    expect(button).toHaveClass('btn--disabled')
+    expect(button).toHaveClass('disabled:opacity-50')
   })
 
   it('supports full width', () => {
-    render(<Button fullWidth>Full Width Button</Button>)
+    render(<Button fullWidth>Full Width</Button>)
     const button = screen.getByRole('button')
-    expect(button).toHaveClass('btn--full-width')
-  })
-
-  it('renders with left icon', () => {
-    render(<Button leftIcon="edit">With Left Icon</Button>)
-    
-    expect(screen.getByText('With Left Icon')).toBeInTheDocument()
-    expect(document.querySelector('.icon--edit')).toBeInTheDocument()
-  })
-
-  it('renders with right icon', () => {
-    render(<Button rightIcon="trash">With Right Icon</Button>)
-    
-    expect(screen.getByText('With Right Icon')).toBeInTheDocument()
-    expect(document.querySelector('.icon--trash')).toBeInTheDocument()
+    expect(button).toHaveClass('w-full')
   })
 
   it('applies custom className', () => {
-    render(<Button className="custom-class">Custom Button</Button>)
+    render(<Button className="custom-class">Custom</Button>)
     const button = screen.getByRole('button')
     expect(button).toHaveClass('custom-class')
   })
@@ -75,5 +60,28 @@ describe('Button Component', () => {
     const ref = vi.fn()
     render(<Button ref={ref}>Ref Button</Button>)
     expect(ref).toHaveBeenCalled()
+  })
+
+  it('supports different variants', () => {
+    const { rerender } = render(<Button variant="primary">Primary</Button>)
+    expect(screen.getByRole('button')).toHaveClass('bg-primary-500')
+
+    rerender(<Button variant="secondary">Secondary</Button>)
+    expect(screen.getByRole('button')).toHaveClass('bg-secondary-500')
+
+    rerender(<Button variant="outline">Outline</Button>)
+    expect(screen.getByRole('button')).toHaveClass('border')
+
+    rerender(<Button variant="ghost">Ghost</Button>)
+    expect(screen.getByRole('button')).toHaveClass('bg-transparent')
+  })
+
+  it('handles focus states correctly', () => {
+    render(<Button>Focus me</Button>)
+    const button = screen.getByRole('button')
+    
+    button.focus()
+    expect(button).toHaveFocus()
+    expect(button).toHaveClass('focus-visible:ring-2')
   })
 })

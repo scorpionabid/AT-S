@@ -1,24 +1,28 @@
-import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '../../../test/utils'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { render, screen, fireEvent, waitFor, act } from '../../../test/utils'
 import LoginForm from '../LoginForm'
 
 describe('LoginForm Component', () => {
   it('renders login form with all elements', () => {
     render(<LoginForm />)
     
-    expect(screen.getByText('ATİS - Azərbaycan Təhsil İdarəetmə Sistemi')).toBeInTheDocument()
-    expect(screen.getByText('Sisteme Giriş')).toBeInTheDocument()
-    expect(screen.getByLabelText('İstifadəçi adı və ya Email:')).toBeInTheDocument()
-    expect(screen.getByLabelText('Şifrə:')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Giriş' })).toBeInTheDocument()
+    // Check separate title elements
+    expect(screen.getByText('ATİS')).toBeInTheDocument()
+    expect(screen.getByText('Azərbaycan Təhsil İdarəetmə Sistemi')).toBeInTheDocument()
+    // Use getAllByText for text that appears multiple times
+    const sistemGirisElements = screen.getAllByText('Sisteme Giriş')
+    expect(sistemGirisElements.length).toBeGreaterThan(0)
+    expect(screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Şifrənizi daxil edin')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Sisteme Giriş' })).toBeInTheDocument()
     expect(screen.getByText('© 2025 Azərbaycan Təhsil Nazirliyi')).toBeInTheDocument()
   })
 
   it('updates input values when typing', () => {
     render(<LoginForm />)
     
-    const usernameInput = screen.getByLabelText('İstifadəçi adı və ya Email:')
-    const passwordInput = screen.getByLabelText('Şifrə:')
+    const usernameInput = screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')
+    const passwordInput = screen.getByPlaceholderText('Şifrənizi daxil edin')
     
     fireEvent.change(usernameInput, { target: { value: 'testuser' } })
     fireEvent.change(passwordInput, { target: { value: 'testpassword' } })
@@ -28,25 +32,35 @@ describe('LoginForm Component', () => {
   })
 
   it('shows validation error for empty fields', async () => {
-    render(<LoginForm />)
+    await act(async () => {
+      render(<LoginForm />)
+    })
     
-    const submitButton = screen.getByRole('button', { name: 'Giriş' })
-    await fireEvent.click(submitButton)
+    const submitButton = screen.getByRole('button', { name: 'Sisteme Giriş' })
     
-    const errorMessage = await screen.findByTestId('error-message');
-    expect(errorMessage).toHaveTextContent('İstifadəçi adı/email və şifrə mütləqdir');
+    await act(async () => {
+      fireEvent.click(submitButton)
+    })
+    
+    await waitFor(() => {
+      expect(screen.getByText('İstifadəçi adı/email və şifrə mütləqdir')).toBeInTheDocument()
+    })
   })
 
   it('shows validation error for short password', async () => {
-    render(<LoginForm />)
+    await act(async () => {
+      render(<LoginForm />)
+    })
     
-    const usernameInput = screen.getByLabelText('İstifadəçi adı və ya Email:')
-    const passwordInput = screen.getByLabelText('Şifrə:')
-    const submitButton = screen.getByRole('button', { name: 'Giriş' })
+    const usernameInput = screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')
+    const passwordInput = screen.getByPlaceholderText('Şifrənizi daxil edin')
+    const submitButton = screen.getByRole('button', { name: 'Sisteme Giriş' })
     
-    fireEvent.change(usernameInput, { target: { value: 'testuser' } })
-    fireEvent.change(passwordInput, { target: { value: '123' } })
-    fireEvent.click(submitButton)
+    await act(async () => {
+      fireEvent.change(usernameInput, { target: { value: 'testuser' } })
+      fireEvent.change(passwordInput, { target: { value: '123' } })
+      fireEvent.click(submitButton)
+    })
     
     await waitFor(() => {
       expect(screen.getByText('Şifrə ən azı 8 simvol olmalıdır')).toBeInTheDocument()
@@ -63,9 +77,9 @@ describe('LoginForm Component', () => {
       }
     })
     
-    const usernameInput = screen.getByLabelText('İstifadəçi adı və ya Email:')
-    const passwordInput = screen.getByLabelText('Şifrə:')
-    const submitButton = screen.getByRole('button', { name: 'Giriş' })
+    const usernameInput = screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')
+    const passwordInput = screen.getByPlaceholderText('Şifrənizi daxil edin')
+    const submitButton = screen.getByRole('button', { name: 'Sisteme Giriş' })
     
     fireEvent.change(usernameInput, { target: { value: 'testuser' } })
     fireEvent.change(passwordInput, { target: { value: 'testpassword' } })
@@ -74,7 +88,8 @@ describe('LoginForm Component', () => {
     await waitFor(() => {
       expect(mockLogin).toHaveBeenCalledWith({
         login: 'testuser',
-        password: 'testpassword'
+        password: 'testpassword',
+        rememberMe: false
       })
     })
   })
@@ -87,8 +102,8 @@ describe('LoginForm Component', () => {
     })
     
     const submitButton = screen.getByRole('button', { name: 'Giriş edilir...' })
-    const usernameInput = screen.getByLabelText('İstifadəçi adı və ya Email:')
-    const passwordInput = screen.getByLabelText('Şifrə:')
+    const usernameInput = screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')
+    const passwordInput = screen.getByPlaceholderText('Şifrənizi daxil edin')
     
     expect(submitButton).toBeDisabled()
     expect(usernameInput).toBeDisabled()
@@ -112,9 +127,9 @@ describe('LoginForm Component', () => {
       }
     })
     
-    const usernameInput = screen.getByLabelText('İstifadəçi adı və ya Email:')
-    const passwordInput = screen.getByLabelText('Şifrə:')
-    const submitButton = screen.getByRole('button', { name: 'Giriş' })
+    const usernameInput = screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')
+    const passwordInput = screen.getByPlaceholderText('Şifrənizi daxil edin')
+    const submitButton = screen.getByRole('button', { name: 'Sisteme Giriş' })
     
     fireEvent.change(usernameInput, { target: { value: 'wronguser' } })
     fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } })
@@ -142,9 +157,9 @@ describe('LoginForm Component', () => {
       }
     })
     
-    const usernameInput = screen.getByLabelText('İstifadəçi adı və ya Email:')
-    const passwordInput = screen.getByLabelText('Şifrə:')
-    const submitButton = screen.getByRole('button', { name: 'Giriş' })
+    const usernameInput = screen.getByPlaceholderText('İstifadəçi adınızı və ya email ünvanınızı daxil edin')
+    const passwordInput = screen.getByPlaceholderText('Şifrənizi daxil edin')
+    const submitButton = screen.getByRole('button', { name: 'Sisteme Giriş' })
     
     fireEvent.change(usernameInput, { target: { value: 'testuser' } })
     fireEvent.change(passwordInput, { target: { value: 'testpassword' } })
