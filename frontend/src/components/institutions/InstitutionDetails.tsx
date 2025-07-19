@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
-import DepartmentsList from '../departments/DepartmentsList';
+import DepartmentManagement from '../departments/DepartmentManagement';
 import '../../styles/institutions.css';
 import '../../styles/departments.css';
 
@@ -292,11 +292,10 @@ const InstitutionDetails: React.FC<InstitutionDetailsProps> = ({ institutionId, 
 
           {activeTab === 'departments' && (
             <div className="departments-tab-content">
-              <DepartmentsList 
+              <DepartmentManagement 
                 institutionId={institution.id}
-                institutionName={institution.name}
-                showCreateButton={canManage()}
-                compactView={false}
+                institutionType={institution.type}
+                canManage={canManage()}
               />
             </div>
           )}

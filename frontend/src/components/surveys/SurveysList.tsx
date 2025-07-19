@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSurveyEnhanced } from '../../hooks/useSurveyEnhanced';
+import { surveyEnhancedService } from '../../services/surveyEnhancedService';
 import SurveyCreateForm from './SurveyCreateForm';
 import SurveyEditForm from './SurveyEditForm';
+import { Icon, ActionIcon, StatusIcon } from '../common/IconSystem';
 import '../../styles/surveys.css';
 
 interface Survey {
@@ -54,32 +57,73 @@ const SurveysList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState('');
+  const [creatorFilter, setCreatorFilter] = useState('');
   const [mySurveys, setMySurveys] = useState(false);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [editingSurveyId, setEditingSurveyId] = useState<number | null>(null);
+  const [previewingSurveyId, setPreviewingSurveyId] = useState<number | null>(null);
+  const [selectedSurveys, setSelectedSurveys] = useState<number[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  
+  // Enhanced functionality hooks
+  const {
+    dashboardStats,
+    bulkOperationLoading,
+    bulkPublishSurveys,
+    bulkCloseSurveys,
+    bulkArchiveSurveys,
+    bulkDeleteSurveys,
+    startAutoRefresh,
+    stopAutoRefresh
+  } = useSurveyEnhanced();
+
+  // Permission check function (must be defined before useEffect)
+  const canCreateSurvey = () => {
+    if (!user) return false;
+    
+    // Handle both string and object role formats
+    const roleName = typeof user.role === 'string' ? user.role : user.role?.name;
+    
+    // Check if user has roles array (from auth response)
+    const userRoles = user.roles || [];
+    
+    // Allow survey creation for specific roles
+    const allowedRoles = ['superadmin', 'regionadmin', 'schooladmin'];
+    return allowedRoles.includes(roleName || '') || userRoles.some(role => allowedRoles.includes(role));
+  };
 
   const fetchSurveys = async (page: number = 1) => {
     try {
       setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        per_page: '10',
+      setError('');
+      
+      const filterParams = {
+        page,
+        per_page: 12,
         ...(searchTerm && { search: searchTerm }),
         ...(statusFilter && { status: statusFilter }),
         ...(typeFilter && { survey_type: typeFilter }),
-        ...(mySurveys && { my_surveys: 'true' })
-      });
+        ...(dateFilter && { date_filter: dateFilter }),
+        ...(creatorFilter && { creator_filter: creatorFilter }),
+        ...(mySurveys && { my_surveys: true }),
+        sort_by: 'created_at',
+        sort_direction: 'desc' as const
+      };
 
-      const response = await api.get(`/surveys?${params}`);
-      const data: SurveysResponse = response.data;
+      const data = await surveyEnhancedService.getFilteredSurveys(filterParams);
       
       setSurveys(data.surveys);
       setCurrentPage(data.meta.current_page);
       setTotalPages(data.meta.last_page);
       setTotalSurveys(data.meta.total);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Sorğular yüklənərkən xəta baş verdi');
+      const errorMessage = err.response?.data?.message || 'Sorğular yüklənərkən xəta baş verdi';
+      setError(errorMessage);
+      console.error('Error fetching surveys:', err);
     } finally {
       setLoading(false);
     }
@@ -87,7 +131,58 @@ const SurveysList: React.FC = () => {
 
   useEffect(() => {
     fetchSurveys(currentPage);
-  }, [currentPage, searchTerm, statusFilter, typeFilter, mySurveys]);
+  }, [currentPage, searchTerm, statusFilter, typeFilter, dateFilter, creatorFilter, mySurveys]);
+
+  // Auto-refresh for real-time updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading && surveys.length > 0) {
+        fetchSurveys(currentPage);
+      }
+    }, 30000); // Refresh every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [currentPage, loading, surveys.length]);
+
+  // Start auto-refresh when component mounts
+  useEffect(() => {
+    startAutoRefresh(30000);
+    return () => stopAutoRefresh();
+  }, [startAutoRefresh, stopAutoRefresh]);
+
+  // Enhanced bulk selection logic
+  useEffect(() => {
+    setShowBulkActions(selectedSurveys.length > 0);
+  }, [selectedSurveys]);
+
+  // Enhanced keyboard shortcuts
+  useEffect(() => {
+    const handleKeydown = (e: KeyboardEvent) => {
+      // Ctrl/Cmd + A: Select all
+      if ((e.ctrlKey || e.metaKey) && e.key === 'a' && !e.target || (e.target as HTMLElement).tagName !== 'INPUT') {
+        e.preventDefault();
+        handleSelectAll();
+      }
+      // Escape: Clear selection
+      if (e.key === 'Escape') {
+        setSelectedSurveys([]);
+        setShowBulkActions(false);
+      }
+      // Ctrl/Cmd + R: Refresh
+      if ((e.ctrlKey || e.metaKey) && e.key === 'r') {
+        e.preventDefault();
+        fetchSurveys(currentPage);
+      }
+      // Ctrl/Cmd + N: New survey (if allowed)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n' && canCreateSurvey()) {
+        e.preventDefault();
+        setShowCreateForm(true);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
+    return () => document.removeEventListener('keydown', handleKeydown);
+  }, [selectedSurveys, currentPage, canCreateSurvey]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,23 +201,66 @@ const SurveysList: React.FC = () => {
 
   const getStatusBadge = (survey: Survey) => {
     if (survey.has_expired) {
-      return <span className="status-badge expired">Vaxtı keçib</span>;
+      return (
+        <span className="status-badge expired">
+          <StatusIcon status="expired" />
+          Vaxtı keçib
+        </span>
+      );
     }
     
     switch (survey.status) {
       case 'draft':
-        return <span className="status-badge draft">Layihə</span>;
+        return (
+          <span className="status-badge draft">
+            <StatusIcon status="draft" />
+            Layihə
+          </span>
+        );
       case 'published':
-        return survey.is_active 
-          ? <span className="status-badge active">Aktiv</span>
-          : <span className="status-badge published">Dərc edilib</span>;
+        return survey.is_active ? (
+          <span className="status-badge active">
+            <StatusIcon status="active" />
+            Aktiv
+          </span>
+        ) : (
+          <span className="status-badge published">
+            <StatusIcon status="published" />
+            Dərc edilib
+          </span>
+        );
       case 'closed':
-        return <span className="status-badge closed">Bağlı</span>;
+        return (
+          <span className="status-badge closed">
+            <StatusIcon status="closed" />
+            Bağlı
+          </span>
+        );
       case 'archived':
-        return <span className="status-badge archived">Arxivləşib</span>;
+        return (
+          <span className="status-badge archived">
+            <StatusIcon status="archived" />
+            Arxivləşib
+          </span>
+        );
       default:
         return <span className="status-badge">{survey.status}</span>;
     }
+  };
+
+  const getProgressBar = (survey: Survey) => {
+    const percentage = survey.completion_percentage || 0;
+    return (
+      <div className="progress-container">
+        <div className="progress-bar">
+          <div 
+            className="progress-fill" 
+            style={{ width: `${percentage}%` }}
+          ></div>
+        </div>
+        <span className="progress-text">{percentage}%</span>
+      </div>
+    );
   };
 
   const getTypeBadge = (type: string) => {
@@ -133,18 +271,6 @@ const SurveysList: React.FC = () => {
       'feedback': 'Rəy'
     };
     return typeNames[type] || type;
-  };
-
-  const canCreateSurvey = () => {
-    if (!user) return false;
-    
-    // Handle both string and object role formats
-    const roleName = typeof user.role === 'string' ? user.role : user.role?.name;
-    
-    return roleName === 'superadmin' || 
-           roleName === 'regionadmin' || 
-           roleName === 'schooladmin' || 
-           roleName === 'sektoradmin';
   };
 
   const handleCreateSuccess = () => {
@@ -163,6 +289,95 @@ const SurveysList: React.FC = () => {
     fetchSurveys(currentPage);
   };
 
+  const handlePreviewClick = (surveyId: number) => {
+    setPreviewingSurveyId(surveyId);
+    setShowPreview(true);
+  };
+
+  const handleSelectSurvey = (surveyId: number) => {
+    setSelectedSurveys(prev => 
+      prev.includes(surveyId) 
+        ? prev.filter(id => id !== surveyId)
+        : [...prev, surveyId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedSurveys.length === surveys.length) {
+      setSelectedSurveys([]);
+    } else {
+      setSelectedSurveys(surveys.map(survey => survey.id));
+    }
+  };
+
+  const handleBulkAction = async (action: string) => {
+    if (selectedSurveys.length === 0) return;
+
+    try {
+      let result;
+      switch (action) {
+        case 'publish':
+          result = await bulkPublishSurveys(selectedSurveys);
+          if (result && result.published_count > 0) {
+            setError('');
+            setSelectedSurveys([]);
+            setShowBulkActions(false);
+            fetchSurveys(currentPage);
+          }
+          break;
+        case 'close':
+          result = await bulkCloseSurveys(selectedSurveys);
+          if (result && result.closed_count > 0) {
+            setError('');
+            setSelectedSurveys([]);
+            setShowBulkActions(false);
+            fetchSurveys(currentPage);
+          }
+          break;
+        case 'archive':
+          result = await bulkArchiveSurveys(selectedSurveys);
+          if (result && result.archived_count > 0) {
+            setError('');
+            setSelectedSurveys([]);
+            setShowBulkActions(false);
+            fetchSurveys(currentPage);
+          }
+          break;
+        case 'delete':
+          // Show confirmation dialog for delete
+          const confirmDelete = window.confirm(
+            `${selectedSurveys.length} sorğunu silmək istədiyinizə əminsiniz? Bu əməliyyat geri qaytarıla bilməz.`
+          );
+          if (confirmDelete) {
+            result = await bulkDeleteSurveys(selectedSurveys, true);
+            if (result && result.deleted_count > 0) {
+              setError('');
+              setSelectedSurveys([]);
+              setShowBulkActions(false);
+              fetchSurveys(currentPage);
+            }
+          }
+          break;
+        default:
+          return;
+      }
+    } catch (err: any) {
+      const errorMessage = err.message || 'Kütləvi əməliyyat xətası baş verdi';
+      setError(errorMessage);
+      console.error(`Error performing bulk ${action}:`, err);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('');
+    setTypeFilter('');
+    setDateFilter('');
+    setCreatorFilter('');
+    setMySurveys(false);
+    setCurrentPage(1);
+  };
+
   if (loading && surveys.length === 0) {
     return (
       <div className="surveys-loading">
@@ -177,8 +392,57 @@ const SurveysList: React.FC = () => {
   return (
     <div className="surveys-list">
       <div className="page-header">
-        <h1 className="page-title">Sorğu İdarəetməsi</h1>
-        <p className="page-description">Sistem sorğularını idarə edin və cavablandırın</p>
+        <div className="header-content">
+          <h1 className="page-title">
+            <Icon type="SURVEY" />
+            Sorğu İdarəetməsi
+          </h1>
+          <p className="page-description">Sistem sorğularını idarə edin və cavablandırın</p>
+        </div>
+        <div className="header-stats">
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="TOTAL" />
+            </div>
+            <div className="stat-content">
+              <span className="stat-number">
+                {dashboardStats?.overview.total_surveys || totalSurveys}
+              </span>
+              <span className="stat-label">Cəmi sorğu</span>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="ACTIVE" />
+            </div>
+            <div className="stat-content">
+              <span className="stat-number">
+                {dashboardStats?.overview.active_surveys || surveys.filter(s => s.is_active).length}
+              </span>
+              <span className="stat-label">Aktiv</span>
+            </div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="SELECTED" />
+            </div>
+            <div className="stat-content">
+              <span className="stat-number">{selectedSurveys.length}</span>
+              <span className="stat-label">Seçilmiş</span>
+            </div>
+          </div>
+          {dashboardStats?.overview.my_surveys !== undefined && (
+            <div className="stat-card">
+              <div className="stat-icon">
+                <Icon type="USER" />
+              </div>
+              <div className="stat-content">
+                <span className="stat-number">{dashboardStats.overview.my_surveys}</span>
+                <span className="stat-label">Mənim</span>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (
@@ -189,96 +453,312 @@ const SurveysList: React.FC = () => {
         </div>
       )}
 
+      {/* Enhanced Bulk Actions Bar */}
+      {selectedSurveys.length > 0 && (
+        <div className="bulk-actions-bar">
+          <div className="bulk-selection-info">
+            <input
+              type="checkbox"
+              checked={selectedSurveys.length === surveys.length}
+              onChange={handleSelectAll}
+              className="bulk-select-all"
+            />
+            <span>{selectedSurveys.length} sorğu seçildi</span>
+            {bulkOperationLoading && (
+              <div className="bulk-operation-loading">
+                <div className="spinner"></div>
+                <span>Əməliyyat davam edir...</span>
+              </div>
+            )}
+          </div>
+          <div className="bulk-actions">
+            <button
+              onClick={() => handleBulkAction('publish')}
+              className="bulk-action-btn publish"
+              disabled={bulkOperationLoading}
+            >
+              <Icon type="PUBLISH" /> Dərc et
+            </button>
+            <button
+              onClick={() => handleBulkAction('close')}
+              className="bulk-action-btn close"
+              disabled={bulkOperationLoading}
+            >
+              <Icon type="CLOSE" /> Bağla
+            </button>
+            <button
+              onClick={() => handleBulkAction('archive')}
+              className="bulk-action-btn archive"
+              disabled={bulkOperationLoading}
+            >
+              <Icon type="ARCHIVE" /> Arxiv
+            </button>
+            <button
+              onClick={() => handleBulkAction('delete')}
+              className="bulk-action-btn delete"
+              disabled={bulkOperationLoading}
+            >
+              <Icon type="DELETE" /> Sil
+            </button>
+            <button
+              onClick={() => {
+                setSelectedSurveys([]);
+                setShowBulkActions(false);
+              }}
+              className="bulk-action-btn cancel"
+              disabled={bulkOperationLoading}
+            >
+              <Icon type="CLOSE" /> Ləğv et
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="surveys-controls">
         <div className="surveys-filters">
           <form onSubmit={handleSearch} className="search-form">
-            <input
-              type="text"
-              placeholder="Sorğu adı ilə axtarın..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            <button type="submit" className="search-button">
-              🔍 Axtar
-            </button>
+            <div className="search-input-group">
+              <input
+                type="text"
+                placeholder="Sorğu adı, təsvir və ya yaradıcı ilə axtarın..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              <button type="submit" className="search-button">
+                <Icon type="SEARCH" />
+              </button>
+            </div>
           </form>
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Bütün statuslar</option>
-            <option value="draft">Layihə</option>
-            <option value="published">Dərc edilib</option>
-            <option value="closed">Bağlı</option>
-            <option value="archived">Arxivləşib</option>
-          </select>
+          <div className="filters-row">
+            <div className="filter-group">
+              <label className="filter-label">
+                <Icon type="STATUS" />
+                Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Bütün statuslar</option>
+                <option value="draft">📝 Layihə</option>
+                <option value="published">📢 Dərc edilib</option>
+                <option value="active">✅ Aktiv</option>
+                <option value="closed">🔒 Bağlı</option>
+                <option value="archived">📦 Arxivləşib</option>
+                <option value="expired">⏰ Vaxtı keçib</option>
+              </select>
+            </div>
 
-          <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Bütün tiplər</option>
-            <option value="form">Form</option>
-            <option value="poll">Sorğu</option>
-            <option value="assessment">Qiymətləndirmə</option>
-            <option value="feedback">Rəy</option>
-          </select>
+            <div className="filter-group">
+              <label className="filter-label">
+                <Icon type="TYPE" />
+                Tip
+              </label>
+              <select
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Bütün tiplər</option>
+                <option value="form">📋 Form</option>
+                <option value="poll">🗳️ Sorğu</option>
+                <option value="assessment">📊 Qiymətləndirmə</option>
+                <option value="feedback">💬 Rəy</option>
+              </select>
+            </div>
 
-          <label className="filter-checkbox">
-            <input
-              type="checkbox"
-              checked={mySurveys}
-              onChange={(e) => setMySurveys(e.target.checked)}
-            />
-            <span>Yalnız mənim sorğularım</span>
-          </label>
+            <div className="filter-group">
+              <label className="filter-label">
+                <Icon type="CALENDAR" />
+                Tarix
+              </label>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Bütün tarixlər</option>
+                <option value="today">🔥 Bu gün</option>
+                <option value="week">📅 Bu həftə</option>
+                <option value="month">📆 Bu ay</option>
+                <option value="quarter">🗓️ Bu rüb</option>
+                <option value="year">📊 Bu il</option>
+              </select>
+            </div>
+
+            <div className="filter-group">
+              <label className="filter-label">
+                <Icon type="USER" />
+                Yaradıcı
+              </label>
+              <select
+                value={creatorFilter}
+                onChange={(e) => setCreatorFilter(e.target.value)}
+                className="filter-select"
+              >
+                <option value="">Bütün yaradıcılar</option>
+                <option value="me">👤 Mənim sorğularım</option>
+                <option value="team">👥 Komanda</option>
+                <option value="admin">👨‍💼 Administratorlar</option>
+              </select>
+            </div>
+
+            <div className="advanced-filters">
+              <label className="filter-checkbox">
+                <input
+                  type="checkbox"
+                  checked={mySurveys}
+                  onChange={(e) => setMySurveys(e.target.checked)}
+                />
+                <span className="checkbox-icon">
+                  <Icon type="CHECK" />
+                </span>
+                <span>Yalnız mənim sorğularım</span>
+              </label>
+
+              <label className="filter-checkbox">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setStatusFilter('active');
+                    } else {
+                      setStatusFilter('');
+                    }
+                  }}
+                />
+                <span className="checkbox-icon">
+                  <Icon type="CHECK" />
+                </span>
+                <span>Yalnız aktiv sorğular</span>
+              </label>
+
+              <label className="filter-checkbox">
+                <input
+                  type="checkbox"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setTypeFilter('form');
+                    } else {
+                      setTypeFilter('');
+                    }
+                  }}
+                />
+                <span className="checkbox-icon">
+                  <Icon type="CHECK" />
+                </span>
+                <span>Yalnız formlar</span>
+              </label>
+            </div>
+
+            {(searchTerm || statusFilter || typeFilter || dateFilter || creatorFilter || mySurveys) && (
+              <div className="filter-actions">
+                <button onClick={clearFilters} className="clear-filters-btn">
+                  <Icon type="CLOSE" /> Filtrlər təmizlə
+                </button>
+                <span className="active-filters-count">
+                  {[searchTerm, statusFilter, typeFilter, dateFilter, creatorFilter, mySurveys].filter(Boolean).length} aktiv filtr
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
-        {canCreateSurvey() && (
-          <button 
-            className="add-survey-button"
-            onClick={() => {
-              console.log('Survey create button clicked, setting showCreateForm to true');
-              setShowCreateForm(true);
-            }}
-          >
-            ➕ Yeni Sorğu
-          </button>
-        )}
+        <div className="view-controls">
+          <div className="view-toggle">
+            <button
+              className={`view-button ${viewMode === 'grid' ? 'active' : ''}`}
+              onClick={() => setViewMode('grid')}
+            >
+              <Icon type="GRID" /> Grid
+            </button>
+            <button
+              className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
+              onClick={() => setViewMode('list')}
+            >
+              <Icon type="LIST" /> Siyahı
+            </button>
+          </div>
+
+          <div className="control-buttons">
+            <button 
+              className="control-button btn-with-icon"
+              onClick={() => fetchSurveys(currentPage)}
+              title="Yenilə"
+            >
+              <Icon type="REFRESH" /> Yenilə
+            </button>
+            
+            {canCreateSurvey() && (
+              <button 
+                className="add-survey-button btn-with-icon"
+                onClick={() => {
+                  console.log('Survey create button clicked, setting showCreateForm to true');
+                  setShowCreateForm(true);
+                }}
+              >
+                <Icon type="ADD" /> Yeni Sorğu
+              </button>
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="surveys-grid">
+      <div className="surveys-summary">
+        <span className="summary-text">
+          {totalSurveys} sorğu tapıldı
+          {selectedSurveys.length > 0 && ` (${selectedSurveys.length} seçildi)`}
+        </span>
+      </div>
+
+      <div className={`surveys-grid ${viewMode}`}>
         {surveys.map((survey) => (
-          <div key={survey.id} className="survey-card">
+          <div 
+            key={survey.id} 
+            className={`survey-card ${selectedSurveys.includes(survey.id) ? 'selected' : ''}`}
+          >
             <div className="survey-card-header">
+              <div className="survey-selection">
+                <input
+                  type="checkbox"
+                  checked={selectedSurveys.includes(survey.id)}
+                  onChange={() => handleSelectSurvey(survey.id)}
+                  className="survey-checkbox"
+                />
+              </div>
               <div className="survey-title-section">
                 <h3 className="survey-title">{survey.title}</h3>
                 <div className="survey-badges">
                   {getStatusBadge(survey)}
                   <span className="type-badge">{getTypeBadge(survey.survey_type)}</span>
+                  {survey.is_anonymous && (
+                    <span className="anonymous-badge">
+                      <Icon type="SHIELD" /> Anonim
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="survey-actions">
-                <Link 
-                  to={`/surveys/${survey.id}`} 
-                  className="action-button view"
-                  title="Ətraflı bax"
-                >
-                  👁️
-                </Link>
+                <ActionIcon 
+                  action={() => window.open(`/surveys/${survey.id}`, '_blank')}
+                  type="VIEW"
+                  tooltip="Ətraflı bax"
+                />
                 {survey.creator.id === user?.id && (
-                  <button 
-                    onClick={() => handleEditClick(survey.id)}
-                    className="action-button edit"
-                    title="Redaktə et"
-                  >
-                    ✏️
-                  </button>
+                  <ActionIcon
+                    action={() => handleEditClick(survey.id)}
+                    type="EDIT"
+                    tooltip="Redaktə et"
+                  />
                 )}
+                <ActionIcon
+                  action={() => {/* Handle analytics */}}
+                  type="ANALYTICS"
+                  tooltip="Analitika"
+                />
               </div>
             </div>
 
@@ -287,53 +767,120 @@ const SurveysList: React.FC = () => {
                 {survey.description || 'Təsvir mövcud deyil'}
               </p>
 
+              {/* Enhanced Progress Section */}
+              <div className="survey-progress-section">
+                <div className="progress-header">
+                  <span className="progress-label">Tamamlanma:</span>
+                  <span className="progress-percentage">{survey.completion_percentage}%</span>
+                </div>
+                {getProgressBar(survey)}
+                <div className="progress-details">
+                  <span className="response-count">
+                    <Icon type="USERS" /> {survey.response_count} cavab
+                  </span>
+                  {survey.start_date && survey.end_date && (
+                    <span className="time-remaining">
+                      <Icon type="CLOCK" />
+                      {new Date(survey.end_date) > new Date() 
+                        ? `${Math.ceil((new Date(survey.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} gün qalıb`
+                        : 'Vaxtı keçib'
+                      }
+                    </span>
+                  )}
+                </div>
+              </div>
+
               <div className="survey-meta">
                 <div className="survey-dates">
                   <div className="date-item">
-                    <span className="date-label">Başlama:</span>
-                    <span className="date-value">{formatDate(survey.start_date)}</span>
+                    <Icon type="CALENDAR" />
+                    <div className="date-content">
+                      <span className="date-label">Başlama:</span>
+                      <span className="date-value">{formatDate(survey.start_date)}</span>
+                    </div>
                   </div>
                   <div className="date-item">
-                    <span className="date-label">Bitmə:</span>
-                    <span className="date-value">{formatDate(survey.end_date)}</span>
+                    <Icon type="CALENDAR" />
+                    <div className="date-content">
+                      <span className="date-label">Bitmə:</span>
+                      <span className="date-value">{formatDate(survey.end_date)}</span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="survey-stats">
                   <div className="stat-item">
-                    <span className="stat-value">{survey.response_count}</span>
-                    <span className="stat-label">Cavab</span>
+                    <div className="stat-icon">
+                      <Icon type="CHART" />
+                    </div>
+                    <div className="stat-content">
+                      <span className="stat-value">{survey.response_count}</span>
+                      <span className="stat-label">Cavab</span>
+                    </div>
                   </div>
                   <div className="stat-item">
-                    <span className="stat-value">{survey.completion_percentage}%</span>
-                    <span className="stat-label">Tamamlanma</span>
+                    <div className="stat-icon">
+                      <Icon type="TARGET" />
+                    </div>
+                    <div className="stat-content">
+                      <span className="stat-value">{survey.completion_percentage}%</span>
+                      <span className="stat-label">Tamamlanma</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
               <div className="survey-creator">
-                <span>Yaradıcı: <strong>{survey.creator.name}</strong></span>
-                <span className="created-date">{formatDate(survey.created_at)}</span>
+                <div className="creator-info">
+                  <Icon type="USER" />
+                  <span>Yaradıcı: <strong>{survey.creator.name}</strong></span>
+                </div>
+                <span className="created-date">
+                  <Icon type="CLOCK" />
+                  {formatDate(survey.created_at)}
+                </span>
               </div>
             </div>
 
             <div className="survey-card-footer">
-              {survey.is_open_for_responses && (
-                <Link 
-                  to={`/surveys/${survey.id}/respond`} 
-                  className="respond-button"
+              <div className="survey-footer-actions">
+                {survey.is_open_for_responses && (
+                  <Link 
+                    to={`/surveys/${survey.id}/respond`} 
+                    className="action-button primary respond-button"
+                  >
+                    <Icon type="EDIT" /> Cavablandır
+                  </Link>
+                )}
+                {survey.creator.id === user?.id && survey.status === 'draft' && (
+                  <button 
+                    className="action-button success publish-button"
+                    onClick={() => handleBulkAction('publish')}
+                  >
+                    <Icon type="PUBLISH" /> Dərc et
+                  </button>
+                )}
+                <button
+                  className="action-button secondary share-button"
+                  onClick={() => {/* Handle share */}}
+                  title="Paylaş"
                 >
-                  📝 Cavablandır
-                </Link>
-              )}
-              {survey.creator.id === user?.id && survey.status === 'draft' && (
-                <button 
-                  className="publish-button"
-                  onClick={() => {/* Handle publish */}}
-                >
-                  🚀 Dərc et
+                  <Icon type="SHARE" />
                 </button>
-              )}
+              </div>
+              
+              {/* Survey Status Indicator */}
+              <div className="survey-status-indicator">
+                {survey.is_active && (
+                  <div className="status-dot active" title="Aktiv sorğu"></div>
+                )}
+                {survey.has_expired && (
+                  <div className="status-dot expired" title="Vaxtı keçmiş"></div>
+                )}
+                {survey.status === 'draft' && (
+                  <div className="status-dot draft" title="Layihə vəziyyətində"></div>
+                )}
+              </div>
             </div>
           </div>
         ))}
@@ -355,41 +902,115 @@ const SurveysList: React.FC = () => {
 
       {totalPages > 1 && (
         <div className="pagination">
-          <div className="pagination-info">
-            {totalSurveys} sorğudan {((currentPage - 1) * 10) + 1}-{Math.min(currentPage * 10, totalSurveys)} arası göstərilir
-          </div>
-          <div className="pagination-buttons">
-            <button
-              onClick={() => setCurrentPage(1)}
-              disabled={currentPage === 1}
-              className="pagination-button"
-            >
-              ⏮️ İlk
-            </button>
-            <button
-              onClick={() => setCurrentPage(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="pagination-button"
-            >
-              ◀️ Əvvəlki
-            </button>
-            <span className="page-info">
-              {currentPage} / {totalPages}
-            </span>
-            <button
-              onClick={() => setCurrentPage(currentPage + 1)}
-              disabled={currentPage === totalPages}
-              className="pagination-button"
-            >
-              ▶️ Növbəti
-            </button>
-            <button
-              onClick={() => setCurrentPage(totalPages)}
-              disabled={currentPage === totalPages}
-              className="pagination-button"
-            >
-              ⏭️ Son
-            </button>
+          <div className="pagination-content">
+            <div className="pagination-info">
+              <span className="pagination-summary">
+                <Icon type="INFO" />
+                {totalSurveys} sorğudan {((currentPage - 1) * 12) + 1}-{Math.min(currentPage * 12, totalSurveys)} arası göstərilir
+              </span>
+              <div className="view-mode-mobile">
+                <select 
+                  value={currentPage} 
+                  onChange={(e) => setCurrentPage(parseInt(e.target.value))}
+                  className="page-select"
+                >
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                    <option key={page} value={page}>
+                      Səhifə {page} / {totalPages}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="pagination-controls">
+              <div className="pagination-buttons">
+                <button
+                  onClick={() => setCurrentPage(1)}
+                  disabled={currentPage === 1}
+                  className="pagination-button first"
+                  title="İlk səhifə"
+                >
+                  <Icon type="FIRST_PAGE" />
+                  <span className="button-text">İlk</span>
+                </button>
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="pagination-button prev"
+                  title="Əvvəlki səhifə"
+                >
+                  <Icon type="PREV_PAGE" />
+                  <span className="button-text">Əvvəlki</span>
+                </button>
+                
+                {/* Page Numbers for Desktop */}
+                <div className="page-numbers">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`page-number ${currentPage === pageNum ? 'active' : ''}`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button next"
+                  title="Növbəti səhifə"
+                >
+                  <span className="button-text">Növbəti</span>
+                  <Icon type="NEXT_PAGE" />
+                </button>
+                <button
+                  onClick={() => setCurrentPage(totalPages)}
+                  disabled={currentPage === totalPages}
+                  className="pagination-button last"
+                  title="Son səhifə"
+                >
+                  <span className="button-text">Son</span>
+                  <Icon type="LAST_PAGE" />
+                </button>
+              </div>
+              
+              <div className="per-page-selector">
+                <label htmlFor="per-page">Səhifədə:</label>
+                <select 
+                  id="per-page"
+                  className="per-page-select"
+                  defaultValue="12"
+                  onChange={(e) => {
+                    // Handle per page change
+                    const params = new URLSearchParams(window.location.search);
+                    params.set('per_page', e.target.value);
+                    setCurrentPage(1);
+                    fetchSurveys(1);
+                  }}
+                >
+                  <option value="6">6</option>
+                  <option value="12">12</option>
+                  <option value="24">24</option>
+                  <option value="48">48</option>
+                </select>
+              </div>
+            </div>
           </div>
         </div>
       )}

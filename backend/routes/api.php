@@ -36,7 +36,7 @@ use App\Http\Controllers\API\ClassAttendanceApiController;
 use App\Http\Controllers\API\ApprovalApiController;
 use App\Http\Controllers\API\TeachingLoadApiController;
 use App\Http\Controllers\API\ScheduleApiController;
-use App\Http\Controllers\UserPreferencesController;
+// use App\Http\Controllers\UserPreferencesController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -65,13 +65,13 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // User Preferences Management
     Route::prefix('user')->group(function () {
-        Route::get('preferences', [UserPreferencesController::class, 'getPreferences']);
-        Route::put('preferences', [UserPreferencesController::class, 'updatePreferences']);
-        Route::post('preferences/reset', [UserPreferencesController::class, 'resetPreferences']);
-        Route::put('theme', [UserPreferencesController::class, 'updateTheme']);
-        Route::put('language', [UserPreferencesController::class, 'updateLanguage']);
-        Route::put('layout', [UserPreferencesController::class, 'updateLayout']);
-        Route::get('ui-settings', [UserPreferencesController::class, 'getUISettings']);
+        // Route::get('preferences', [UserPreferencesController::class, 'getPreferences']);
+        // Route::put('preferences', [UserPreferencesController::class, 'updatePreferences']);
+        // Route::post('preferences/reset', [UserPreferencesController::class, 'resetPreferences']);
+        // Route::put('theme', [UserPreferencesController::class, 'updateTheme']);
+        // Route::put('language', [UserPreferencesController::class, 'updateLanguage']);
+        // Route::put('layout', [UserPreferencesController::class, 'updateLayout']);
+        // Route::get('ui-settings', [UserPreferencesController::class, 'getUISettings']);
     });
     
     // Password management
@@ -128,6 +128,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Institution bulk operations (must be before parameterized routes)
     Route::post('institutions/bulk/activate', [App\Http\Controllers\InstitutionController::class, 'bulkActivate'])->middleware('permission:institutions.update');
     Route::post('institutions/bulk/deactivate', [App\Http\Controllers\InstitutionController::class, 'bulkDeactivate'])->middleware('permission:institutions.update');
+    Route::post('institutions/bulk/delete', [App\Http\Controllers\InstitutionController::class, 'bulkDelete'])->middleware('permission:institutions.delete');
+    Route::post('institutions/bulk/restore', [App\Http\Controllers\InstitutionController::class, 'bulkRestore'])->middleware('permission:institutions.update');
+    Route::post('institutions/bulk/export', [App\Http\Controllers\InstitutionController::class, 'bulkExport'])->middleware('permission:institutions.read');
     Route::post('institutions/bulk/assign-parent', [App\Http\Controllers\InstitutionController::class, 'bulkAssignParent'])->middleware('permission:institutions.update');
     Route::post('institutions/bulk/update-type', [App\Http\Controllers\InstitutionController::class, 'bulkUpdateType'])->middleware('permission:institutions.update');
     Route::post('institutions/export', [App\Http\Controllers\InstitutionController::class, 'exportInstitutions'])->middleware('permission:institutions.read');
@@ -140,6 +143,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('institutions/{institution}', [InstitutionController::class, 'destroy'])->middleware(['permission:institutions.delete', 'audit.logging']);
     Route::get('institutions/types', [InstitutionController::class, 'getTypes'])->middleware('permission:institutions.read');
     Route::get('institutions/statistics', [InstitutionController::class, 'getStatistics'])->middleware('permission:institutions.read');
+    
+    // Institution soft delete management
+    Route::get('institutions/trashed', [InstitutionController::class, 'trashed'])->middleware('permission:institutions.read');
+    Route::put('institutions/{id}/restore', [InstitutionController::class, 'restore'])->middleware(['permission:institutions.update', 'audit.logging']);
+    Route::delete('institutions/{id}/force-delete', [InstitutionController::class, 'forceDelete'])->middleware(['permission:institutions.delete', 'audit.logging']);
+    
+    // Institution audit logs
+    Route::get('institutions/audit-logs', [App\Http\Controllers\InstitutionAuditLogController::class, 'index'])->middleware('permission:institutions.read');
+    Route::get('institutions/{institutionId}/audit-logs', [App\Http\Controllers\InstitutionAuditLogController::class, 'show'])->middleware('permission:institutions.read');
+    Route::get('institutions/audit-logs/statistics', [App\Http\Controllers\InstitutionAuditLogController::class, 'statistics'])->middleware('permission:institutions.read');
 
     // Institution hierarchy management
     Route::get('institutions-hierarchy', [InstitutionHierarchyController::class, 'getHierarchy'])->middleware('permission:institutions.read');
@@ -186,11 +199,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('surveys/{survey}', [SurveyController::class, 'update'])->middleware('permission:surveys.update');
     Route::delete('surveys/{survey}', [SurveyController::class, 'destroy'])->middleware('permission:surveys.delete');
     
+    // Enhanced Survey Analytics & Statistics (must be before {survey} routes)
+    Route::get('surveys/dashboard/statistics', [SurveyController::class, 'dashboardStatistics'])->middleware('permission:surveys.read');
+    Route::post('surveys/estimate-recipients', [SurveyController::class, 'estimateRecipients'])->middleware('permission:surveys.create');
+    
     // Survey actions
     Route::post('surveys/{survey}/publish', [SurveyController::class, 'publish'])->middleware('permission:surveys.publish');
     Route::post('surveys/{survey}/close', [SurveyController::class, 'close'])->middleware('permission:surveys.manage');
     Route::get('surveys/{survey}/statistics', [SurveyController::class, 'statistics'])->middleware('permission:surveys.read');
-    Route::post('surveys/estimate-recipients', [SurveyController::class, 'estimateRecipients'])->middleware('permission:surveys.create');
+    Route::get('surveys/{survey}/analytics', [SurveyController::class, 'analytics'])->middleware('permission:surveys.read');
+    
+    // Bulk Survey Operations
+    Route::post('surveys/bulk/publish', [SurveyController::class, 'bulkPublish'])->middleware('permission:surveys.publish');
+    Route::post('surveys/bulk/close', [SurveyController::class, 'bulkClose'])->middleware('permission:surveys.manage');
+    Route::post('surveys/bulk/archive', [SurveyController::class, 'bulkArchive'])->middleware('permission:surveys.manage');
+    Route::post('surveys/bulk/delete', [SurveyController::class, 'bulkDelete'])->middleware('permission:surveys.delete');
     
     // Survey response management
     Route::get('survey-responses', [SurveyResponseController::class, 'index'])->middleware('permission:surveys.read');

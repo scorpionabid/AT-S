@@ -13,6 +13,10 @@ export const ICONS = {
   FILTER: '🎯',
   CLOSE: '✕',
   REFRESH: '🔄',
+  DUPLICATE: '📋',
+  HISTORY: '📜',
+  TRASH: '🗑️',
+  DOWNLOAD: '⬇️',
   
   // Status & State
   ACTIVE: '▶️',
@@ -49,6 +53,7 @@ export const ICONS = {
   USERS: '👥',
   ROLE: '🎭',
   PERMISSION: '🔑',
+  DEPARTMENT: '🏢',
   
   // Communication & Surveys
   SURVEY: '📊',

@@ -1,11 +1,12 @@
 @import "tailwindcss";
 
 /* ATİS Design Tokens - Must be imported first */
-@import './styles/tokens/design-tokens.css';
+@import './styles/design-tokens.css';
 
 /* Import essential styles only */
 @import './styles/theme-toggle.css';
 @import './styles/mobile.css';
+@import './styles/sidebar.css';
 
 /* Reset and base styles */
 * {

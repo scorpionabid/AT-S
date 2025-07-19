@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Cache;
 
 class InstitutionController extends Controller
 {
@@ -35,6 +36,17 @@ class InstitutionController extends Controller
                 'validation_errors' => $e->errors()
             ]);
             throw $e;
+        }
+
+        // Generate cache key based on request parameters
+        $cacheKey = 'institutions_' . md5(serialize($request->all()));
+        
+        // Check cache for non-search requests (search results shouldn't be cached)
+        if (!$request->search && !$request->has('no_cache')) {
+            $cachedResult = Cache::get($cacheKey);
+            if ($cachedResult) {
+                return response()->json($cachedResult);
+            }
         }
 
         $query = Institution::with(['parent', 'children.parent']);
@@ -79,7 +91,7 @@ class InstitutionController extends Controller
 
         $institutions = $query->paginate($request->per_page ?? 15);
 
-        return response()->json([
+        $response = [
             'success' => true,
             'institutions' => $institutions->items(),
             'meta' => [
@@ -90,7 +102,14 @@ class InstitutionController extends Controller
                 'from' => $institutions->firstItem(),
                 'to' => $institutions->lastItem(),
             ]
-        ]);
+        ];
+
+        // Cache result for 5 minutes (300 seconds) for non-search requests
+        if (!$request->search && !$request->has('no_cache')) {
+            Cache::put($cacheKey, $response, 300);
+        }
+
+        return response()->json($response);
     }
 
     /**
@@ -113,6 +132,7 @@ class InstitutionController extends Controller
         return response()->json([
             'success' => true,
             'data' => $institution,
+            'institution' => $institution, // Add this for compatibility
         ]);
     }
 
@@ -155,7 +175,25 @@ class InstitutionController extends Controller
         }
 
         try {
-            $institution = Institution::create($validator->validated());
+            $data = $validator->validated();
+            
+            // Auto-generate region_code from parent if not provided
+            if (empty($data['region_code']) && !empty($data['parent_id'])) {
+                $parent = Institution::find($data['parent_id']);
+                if ($parent) {
+                    $data['region_code'] = $this->getRegionCodeFromParent($parent);
+                }
+            }
+            
+            // If still no region_code, default to 'AZ'
+            if (empty($data['region_code'])) {
+                $data['region_code'] = 'AZ';
+            }
+            
+            $institution = Institution::create($data);
+
+            // Clear institutions cache to ensure new institutions appear in parent dropdowns
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -211,7 +249,21 @@ class InstitutionController extends Controller
         }
 
         try {
-            $institution->update($validator->validated());
+            $data = $validator->validated();
+            
+            // Auto-generate region_code from parent if parent_id is being updated
+            if (isset($data['parent_id']) && $data['parent_id'] && 
+                (!isset($data['region_code']) || empty($data['region_code']))) {
+                $parent = Institution::find($data['parent_id']);
+                if ($parent) {
+                    $data['region_code'] = $this->getRegionCodeFromParent($parent);
+                }
+            }
+            
+            $institution->update($data);
+
+            // Clear institutions cache to ensure updated institutions appear correctly
+            Cache::flush();
 
             return response()->json([
                 'success' => true,
@@ -326,5 +378,444 @@ class InstitutionController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Server error',
             ], 500);
         }
+    }
+
+    /**
+     * Get trashed institutions
+     */
+    public function trashed(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $query = Institution::onlyTrashed()->with(['parent']);
+
+            // Apply filters
+            if ($request->search) {
+                $query->where('name', 'ILIKE', "%{$request->search}%")
+                      ->orWhere('short_name', 'ILIKE', "%{$request->search}%");
+            }
+
+            if ($request->type) {
+                $query->where('type', $request->type);
+            }
+
+            if ($request->level) {
+                $query->where('level', $request->level);
+            }
+
+            // Apply sorting
+            $sortBy = $request->sort_by ?? 'deleted_at';
+            $sortDirection = $request->sort_direction ?? 'desc';
+            $query->orderBy($sortBy, $sortDirection);
+
+            $institutions = $query->paginate($request->per_page ?? 15);
+
+            return response()->json([
+                'success' => true,
+                'institutions' => $institutions->items(),
+                'meta' => [
+                    'current_page' => $institutions->currentPage(),
+                    'last_page' => $institutions->lastPage(),
+                    'per_page' => $institutions->perPage(),
+                    'total' => $institutions->total(),
+                    'from' => $institutions->firstItem(),
+                    'to' => $institutions->lastItem(),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Silinmiş təşkilatlar yüklənərkən xəta baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Restore a trashed institution
+     */
+    public function restore($id): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $institution = Institution::withTrashed()->findOrFail($id);
+
+            // Check if parent exists and is not trashed
+            if ($institution->parent_id && !Institution::find($institution->parent_id)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Üst təşkilat silinib və ya mövcud deyil. Əvvəlcə üst təşkilatı bərpa edin.',
+                ], 400);
+            }
+
+            $institution->restore();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Təşkilat uğurla bərpa edildi.',
+                'data' => $institution->load(['parent', 'children']),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Təşkilat bərpa edilərkən xəta baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Permanently delete an institution
+     */
+    public function forceDelete($id): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole('superadmin')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat yalnız superadmin tərəfindən icra edilə bilər.',
+            ], 403);
+        }
+
+        try {
+            $institution = Institution::withTrashed()->findOrFail($id);
+
+            // Check if institution has children (even trashed ones)
+            if ($institution->children()->withTrashed()->count() > 0) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu təşkilatın alt təşkilatları var. Əvvəlcə onları tamamilə silin.',
+                ], 400);
+            }
+
+            $institutionName = $institution->name;
+            $institution->forceDelete();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Təşkilat '{$institutionName}' tamamilə silindi.",
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Təşkilat silinərkən xəta baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk activate institutions
+     */
+    public function bulkActivate(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $request->validate([
+                'institution_ids' => 'required|array|min:1|max:50',
+                'institution_ids.*' => 'integer|exists:institutions,id',
+            ]);
+
+            $updatedCount = Institution::whereIn('id', $request->institution_ids)
+                ->update(['is_active' => true]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$updatedCount} təşkilat aktivləşdirildi.",
+                'updated_count' => $updatedCount,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kütləvi aktivləşdirmə xətası baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk deactivate institutions
+     */
+    public function bulkDeactivate(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $request->validate([
+                'institution_ids' => 'required|array|min:1|max:50',
+                'institution_ids.*' => 'integer|exists:institutions,id',
+            ]);
+
+            $updatedCount = Institution::whereIn('id', $request->institution_ids)
+                ->update(['is_active' => false]);
+
+            return response()->json([
+                'success' => true,
+                'message' => "{$updatedCount} təşkilat deaktivləşdirildi.",
+                'updated_count' => $updatedCount,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kütləvi deaktivləşdirmə xətası baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk delete institutions
+     */
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $request->validate([
+                'institution_ids' => 'required|array|min:1|max:50',
+                'institution_ids.*' => 'integer|exists:institutions,id',
+            ]);
+
+            $deletedCount = 0;
+            $errors = [];
+
+            foreach ($request->institution_ids as $institutionId) {
+                try {
+                    $institution = Institution::findOrFail($institutionId);
+                    
+                    // Check if institution has children
+                    if ($institution->children()->count() > 0) {
+                        $errors[] = "'{$institution->name}' təşkilatının alt təşkilatları var.";
+                        continue;
+                    }
+
+                    $institution->delete();
+                    $deletedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Təşkilat ID {$institutionId}: {$e->getMessage()}";
+                }
+            }
+
+            $message = "{$deletedCount} təşkilat silindi.";
+            if (!empty($errors)) {
+                $message .= " Xətalar: " . implode(', ', $errors);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $deletedCount,
+                'errors' => $errors,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kütləvi silmə xətası baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk restore institutions
+     */
+    public function bulkRestore(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $request->validate([
+                'institution_ids' => 'required|array|min:1|max:50',
+                'institution_ids.*' => 'integer',
+            ]);
+
+            $restoredCount = 0;
+            $errors = [];
+
+            foreach ($request->institution_ids as $institutionId) {
+                try {
+                    $institution = Institution::withTrashed()->findOrFail($institutionId);
+                    
+                    // Check if parent exists and is not trashed
+                    if ($institution->parent_id && !Institution::find($institution->parent_id)) {
+                        $errors[] = "'{$institution->name}' təşkilatının üst təşkilatı mövcud deyil.";
+                        continue;
+                    }
+
+                    $institution->restore();
+                    $restoredCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Təşkilat ID {$institutionId}: {$e->getMessage()}";
+                }
+            }
+
+            $message = "{$restoredCount} təşkilat bərpa edildi.";
+            if (!empty($errors)) {
+                $message .= " Xətalar: " . implode(', ', $errors);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'restored_count' => $restoredCount,
+                'errors' => $errors,
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Kütləvi bərpa xətası baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Bulk export institutions
+     */
+    public function bulkExport(Request $request): JsonResponse
+    {
+        $user = Auth::user();
+        
+        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        try {
+            $request->validate([
+                'institution_ids' => 'nullable|array|max:1000',
+                'institution_ids.*' => 'integer|exists:institutions,id',
+                'format' => 'required|string|in:csv,json,xlsx',
+                'include_deleted' => 'boolean',
+            ]);
+
+            $query = Institution::with(['parent', 'children']);
+
+            if ($request->institution_ids) {
+                $query->whereIn('id', $request->institution_ids);
+            }
+
+            if ($request->include_deleted) {
+                $query->withTrashed();
+            }
+
+            $institutions = $query->get();
+
+            $data = $institutions->map(function ($institution) {
+                return [
+                    'id' => $institution->id,
+                    'name' => $institution->name,
+                    'short_name' => $institution->short_name,
+                    'type' => $institution->type,
+                    'level' => $institution->level,
+                    'parent_name' => $institution->parent?->name,
+                    'region_code' => $institution->region_code,
+                    'institution_code' => $institution->institution_code,
+                    'is_active' => $institution->is_active ? 'Aktiv' : 'Deaktiv',
+                    'children_count' => $institution->children->count(),
+                    'established_date' => $institution->established_date?->format('Y-m-d'),
+                    'created_at' => $institution->created_at->format('Y-m-d H:i:s'),
+                    'deleted_at' => $institution->deleted_at?->format('Y-m-d H:i:s'),
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'data' => $data,
+                'format' => $request->format,
+                'total' => $data->count(),
+                'message' => "{$data->count()} təşkilat eksport edildi.",
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Eksport xətası baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Get region code from parent institution
+     */
+    private function getRegionCodeFromParent(Institution $parent): string
+    {
+        // If parent has region_code, use it
+        if ($parent->region_code) {
+            return $parent->region_code;
+        }
+        
+        // If parent is regional type, determine from name
+        if ($parent->type === 'region') {
+            $name = strtolower($parent->name);
+            if (str_contains($name, 'bakı')) return 'BAK';
+            if (str_contains($name, 'gəncə')) return 'GAN';
+            if (str_contains($name, 'lənkəran')) return 'LAN';
+            if (str_contains($name, 'sumqayıt')) return 'SUM';
+            if (str_contains($name, 'şirvan')) return 'SIR';
+            if (str_contains($name, 'mingəçevir')) return 'MIN';
+            if (str_contains($name, 'naxçıvan')) return 'NAX';
+            if (str_contains($name, 'şəmkir')) return 'SMX';
+            if (str_contains($name, 'göygöl')) return 'GYG';
+        }
+        
+        // Default to Azerbaijan if can't determine
+        return 'AZ';
     }
 }

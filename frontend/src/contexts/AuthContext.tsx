@@ -60,11 +60,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               email: currentUser.email
             });
             
-            setUser(currentUser);
+            // Normalize user data
+            const normalizedUser = {
+              ...currentUser,
+              roles: Array.isArray(currentUser.roles) ? currentUser.roles : [],
+              permissions: Array.isArray(currentUser.permissions) ? currentUser.permissions : []
+            };
+            
+            setUser(normalizedUser);
             // Update stored user data
-            localStorage.setItem('user_data', JSON.stringify(currentUser));
+            localStorage.setItem('user_data', JSON.stringify(normalizedUser));
             // Preload user permissions in cache
-            preloadUserPermissions(currentUser);
+            preloadUserPermissions(normalizedUser);
           } catch (error) {
             logger.warn('AuthContext', 'Token validation failed, logging out', {
               error: error.message

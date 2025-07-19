@@ -16,7 +16,7 @@ const MobileOverlay: React.FC<MobileOverlayProps> = memo(({ isVisible, onClose }
 
   return (
     <div 
-      className="fixed inset-0 bg-black/50 z-30 md:hidden transition-opacity duration-300 ease-in-out"
+      className={`sidebar-mobile-overlay md:hidden ${isVisible ? '' : 'hidden'}`}
       onClick={handleOverlayClick}
       aria-hidden="true"
     />

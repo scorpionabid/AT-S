@@ -38,9 +38,10 @@ interface SurveyData {
 interface SurveyCreateFormProps {
   onClose: () => void;
   onSuccess: () => void;
+  isModal?: boolean;
 }
 
-const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess }) => {
+const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess, isModal = true }) => {
   const [formData, setFormData] = useState<SurveyData>({
     title: '',
     description: '',
@@ -283,12 +284,14 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess 
   };
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-content survey-create-modal">
-        <div className="modal-header">
-          <h2>Yeni Sorğu Yaradın</h2>
-          <button onClick={onClose} className="modal-close">×</button>
-        </div>
+    <div className={isModal ? "modal-overlay" : "survey-create-container"}>
+      <div className={isModal ? "modal-content survey-create-modal" : "survey-create-form"}>
+        {isModal && (
+          <div className="modal-header">
+            <h2>Yeni Sorğu Yaradın</h2>
+            <button onClick={onClose} className="modal-close">×</button>
+          </div>
+        )}
 
         {errors.general && (
           <div className="error-message">
@@ -569,7 +572,7 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess 
             ))}
           </div>
 
-          <div className="modal-footer">
+          <div className={isModal ? "modal-footer" : "form-footer"}>
             <button type="button" onClick={onClose} className="btn-secondary">
               Ləğv et
             </button>

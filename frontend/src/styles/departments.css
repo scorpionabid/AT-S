@@ -416,11 +416,253 @@
   gap: 4px;
 }
 
+/* Department Management Component */
+.department-management {
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.department-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.department-header h3 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-create-department {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color 0.2s;
+}
+
+.btn-create-department:hover {
+  background: #2563eb;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
+  background: #ffffff;
+  border-radius: 12px;
+  border: 2px dashed #e5e7eb;
+}
+
+.empty-icon {
+  font-size: 48px;
+  color: #9ca3af;
+  margin-bottom: 16px;
+}
+
+.empty-state h4 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: #1f2937;
+}
+
+.empty-state p {
+  margin: 0 0 24px 0;
+  color: #6b7280;
+}
+
+.btn-create-first-department {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.btn-create-first-department:hover {
+  background: #2563eb;
+}
+
+/* Department Management Grid */
+.departments-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  gap: 24px;
+}
+
+/* Department Card Enhancements */
+.department-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.department-card:hover {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.department-card.inactive {
+  opacity: 0.7;
+  border-color: #d1d5db;
+}
+
+.department-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.type-badge.type-maliyyə {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.type-badge.type-inzibati {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.type-badge.type-təsərrüfat {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.type-badge.type-müavin {
+  background: #fce7f3;
+  color: #be185d;
+}
+
+.type-badge.type-ubr {
+  background: #e0e7ff;
+  color: #4338ca;
+}
+
+.type-badge.type-psixoloq {
+  background: #f3e8ff;
+  color: #6b21a8;
+}
+
+.type-badge.type-müəllim {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+.type-badge.type-general {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.type-badge.type-other {
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+/* New department card content styles */
+.department-description,
+.department-capacity,
+.department-budget,
+.department-scope,
+.department-parent {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.description-label,
+.capacity-label,
+.budget-label,
+.scope-label,
+.parent-label {
+  font-weight: 500;
+  color: #4b5563;
+  min-width: 80px;
+  margin-right: 8px;
+}
+
+.description-text,
+.capacity-value,
+.budget-value,
+.scope-text,
+.parent-name {
+  color: #1f2937;
+  flex: 1;
+}
+
+.scope-text {
+  line-height: 1.4;
+}
+
+/* Loading spinner */
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f3f4f6;
+  border-top: 3px solid #3b82f6;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: #dc2626;
+  cursor: pointer;
+  font-size: 18px;
+  margin-left: auto;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Modal Styles */
 
 .department-create-modal,
 .department-edit-modal {
-  max-width: 800px;
+  width: 90vw;
+  max-width: 700px;
   max-height: 90vh;
   overflow-y: auto;
 }

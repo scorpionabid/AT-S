@@ -105,11 +105,15 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   }, [screenSize, isCollapsed, isMobileOpen]);
   
   // Desktop collapse functionality
-  const toggleCollapse = () => {
+  const toggleCollapse = useCallback(() => {
+    console.log('toggleCollapse called. Current isCollapsed:', isCollapsed, 'screenSize:', screenSize);
     if (screenSize === 'desktop') {
-      setIsCollapsed(!isCollapsed);
+      console.log('Toggling isCollapsed from', isCollapsed, 'to', !isCollapsed);
+      setIsCollapsed(prev => !prev);
+    } else {
+      console.log('Not on desktop, not toggling collapse');
     }
-  };
+  }, [isCollapsed, screenSize]);
   
   // Mobile sidebar functionality
   const toggleMobile = () => {

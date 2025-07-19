@@ -693,6 +693,582 @@ class SurveyController extends Controller
     }
 
     /**
+     * Bulk Operations for Surveys
+     */
+    public function bulkPublish(Request $request): JsonResponse
+    {
+        $request->validate([
+            'survey_ids' => 'required|array|min:1',
+            'survey_ids.*' => 'integer|exists:surveys,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $surveys = Survey::whereIn('id', $request->survey_ids)
+                ->where('creator_id', $request->user()->id)
+                ->where('status', 'draft')
+                ->get();
+
+            if ($surveys->isEmpty()) {
+                return response()->json([
+                    'message' => 'No valid surveys found for bulk publish operation'
+                ], 422);
+            }
+
+            $publishedCount = 0;
+            $errors = [];
+
+            foreach ($surveys as $survey) {
+                try {
+                    $survey->update([
+                        'status' => 'published',
+                        'published_at' => now()
+                    ]);
+
+                    // Log audit
+                    SurveyAuditLog::create([
+                        'survey_id' => $survey->id,
+                        'user_id' => $request->user()->id,
+                        'action' => 'bulk_published',
+                        'details' => [
+                            'bulk_operation_id' => uniqid(),
+                            'published_at' => $survey->published_at
+                        ],
+                        'ip_address' => $request->ip(),
+                        'created_at' => now()
+                    ]);
+
+                    $publishedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Survey '{$survey->title}': {$e->getMessage()}";
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "Successfully published {$publishedCount} surveys",
+                'published_count' => $publishedCount,
+                'total_count' => count($request->survey_ids),
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Bulk publish operation failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkClose(Request $request): JsonResponse
+    {
+        $request->validate([
+            'survey_ids' => 'required|array|min:1',
+            'survey_ids.*' => 'integer|exists:surveys,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $surveys = Survey::whereIn('id', $request->survey_ids)
+                ->where('creator_id', $request->user()->id)
+                ->where('status', 'published')
+                ->get();
+
+            if ($surveys->isEmpty()) {
+                return response()->json([
+                    'message' => 'No valid surveys found for bulk close operation'
+                ], 422);
+            }
+
+            $closedCount = 0;
+            $errors = [];
+
+            foreach ($surveys as $survey) {
+                try {
+                    $survey->update(['status' => 'closed']);
+
+                    SurveyAuditLog::create([
+                        'survey_id' => $survey->id,
+                        'user_id' => $request->user()->id,
+                        'action' => 'bulk_closed',
+                        'details' => [
+                            'bulk_operation_id' => uniqid(),
+                            'response_count' => $survey->responses()->count()
+                        ],
+                        'ip_address' => $request->ip(),
+                        'created_at' => now()
+                    ]);
+
+                    $closedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Survey '{$survey->title}': {$e->getMessage()}";
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "Successfully closed {$closedCount} surveys",
+                'closed_count' => $closedCount,
+                'total_count' => count($request->survey_ids),
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Bulk close operation failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkArchive(Request $request): JsonResponse
+    {
+        $request->validate([
+            'survey_ids' => 'required|array|min:1',
+            'survey_ids.*' => 'integer|exists:surveys,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $surveys = Survey::whereIn('id', $request->survey_ids)
+                ->where('creator_id', $request->user()->id)
+                ->whereIn('status', ['closed', 'published'])
+                ->get();
+
+            if ($surveys->isEmpty()) {
+                return response()->json([
+                    'message' => 'No valid surveys found for bulk archive operation'
+                ], 422);
+            }
+
+            $archivedCount = 0;
+            $errors = [];
+
+            foreach ($surveys as $survey) {
+                try {
+                    $survey->update([
+                        'status' => 'archived',
+                        'archived_at' => now()
+                    ]);
+
+                    SurveyAuditLog::create([
+                        'survey_id' => $survey->id,
+                        'user_id' => $request->user()->id,
+                        'action' => 'bulk_archived',
+                        'details' => [
+                            'bulk_operation_id' => uniqid(),
+                            'archived_at' => $survey->archived_at,
+                            'final_response_count' => $survey->responses()->count()
+                        ],
+                        'ip_address' => $request->ip(),
+                        'created_at' => now()
+                    ]);
+
+                    $archivedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Survey '{$survey->title}': {$e->getMessage()}";
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "Successfully archived {$archivedCount} surveys",
+                'archived_count' => $archivedCount,
+                'total_count' => count($request->survey_ids),
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Bulk archive operation failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function bulkDelete(Request $request): JsonResponse
+    {
+        $request->validate([
+            'survey_ids' => 'required|array|min:1',
+            'survey_ids.*' => 'integer|exists:surveys,id',
+            'confirm_delete' => 'required|boolean|accepted'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $surveys = Survey::whereIn('id', $request->survey_ids)
+                ->where('creator_id', $request->user()->id)
+                ->where(function ($query) {
+                    // Only allow deletion of drafts or surveys with no responses
+                    $query->where('status', 'draft')
+                          ->orWhereDoesntHave('responses');
+                })
+                ->get();
+
+            if ($surveys->isEmpty()) {
+                return response()->json([
+                    'message' => 'No valid surveys found for bulk delete operation'
+                ], 422);
+            }
+
+            $deletedCount = 0;
+            $errors = [];
+
+            foreach ($surveys as $survey) {
+                try {
+                    // Log audit before deletion
+                    SurveyAuditLog::create([
+                        'survey_id' => $survey->id,
+                        'user_id' => $request->user()->id,
+                        'action' => 'bulk_deleted',
+                        'details' => [
+                            'bulk_operation_id' => uniqid(),
+                            'survey_title' => $survey->title,
+                            'survey_status' => $survey->status
+                        ],
+                        'ip_address' => $request->ip(),
+                        'created_at' => now()
+                    ]);
+
+                    $survey->delete();
+                    $deletedCount++;
+                } catch (\Exception $e) {
+                    $errors[] = "Survey '{$survey->title}': {$e->getMessage()}";
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => "Successfully deleted {$deletedCount} surveys",
+                'deleted_count' => $deletedCount,
+                'total_count' => count($request->survey_ids),
+                'errors' => $errors
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Bulk delete operation failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Enhanced Survey Statistics Dashboard
+     */
+    public function dashboardStatistics(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userInstitutionId = $user->institution_id;
+
+        try {
+            // Base query for user's accessible surveys
+            $surveysQuery = Survey::query();
+            
+            // Filter based on user role and permissions
+            if ($user->hasRole(['superadmin', 'regionadmin'])) {
+                // Admins can see all surveys in their region/system
+                if ($user->hasRole('regionadmin') && $userInstitutionId) {
+                    $surveysQuery->where(function ($query) use ($userInstitutionId, $user) {
+                        $query->where('creator_id', $user->id)
+                              ->orWhereJsonContains('target_institutions', $userInstitutionId);
+                    });
+                }
+                // superadmin sees all surveys (no additional filter)
+            } else {
+                // Regular users see surveys they created or can respond to
+                $surveysQuery->where(function ($query) use ($user, $userInstitutionId) {
+                    $query->where('creator_id', $user->id);
+                    if ($userInstitutionId) {
+                        $query->orWhereJsonContains('target_institutions', $userInstitutionId);
+                    }
+                });
+            }
+
+            // Overall statistics
+            $totalSurveys = (clone $surveysQuery)->count();
+            $activeSurveys = (clone $surveysQuery)->where('status', 'published')
+                ->where(function ($query) {
+                    $query->whereNull('end_date')
+                          ->orWhere('end_date', '>', now());
+                })->count();
+            $draftSurveys = (clone $surveysQuery)->where('status', 'draft')->count();
+            $closedSurveys = (clone $surveysQuery)->where('status', 'closed')->count();
+            $archivedSurveys = (clone $surveysQuery)->where('status', 'archived')->count();
+
+            // My surveys (surveys I created)
+            $mySurveys = (clone $surveysQuery)->where('creator_id', $user->id)->count();
+            $myActiveSurveys = (clone $surveysQuery)->where('creator_id', $user->id)
+                ->where('status', 'published')->count();
+
+            // Response statistics for surveys I created
+            $myTotalResponses = \App\Models\SurveyResponse::whereHas('survey', function ($query) use ($user) {
+                $query->where('creator_id', $user->id);
+            })->count();
+
+            $myCompletedResponses = \App\Models\SurveyResponse::whereHas('survey', function ($query) use ($user) {
+                $query->where('creator_id', $user->id);
+            })->where('is_complete', true)->count();
+
+            // Recent activity
+            $recentSurveys = (clone $surveysQuery)->orderBy('created_at', 'desc')
+                ->limit(5)
+                ->get()
+                ->map(function ($survey) {
+                    return $this->formatSurvey($survey);
+                });
+
+            // Status breakdown
+            $statusBreakdown = (clone $surveysQuery)
+                ->selectRaw('status, COUNT(*) as count')
+                ->groupBy('status')
+                ->pluck('count', 'status')
+                ->toArray();
+
+            // Type breakdown
+            $typeBreakdown = (clone $surveysQuery)
+                ->selectRaw('survey_type, COUNT(*) as count')
+                ->groupBy('survey_type')
+                ->pluck('count', 'survey_type')
+                ->toArray();
+
+            // Monthly creation trend (last 6 months) - SQLite compatible
+            $monthlyTrend = (clone $surveysQuery)
+                ->selectRaw('strftime("%Y-%m", created_at) as month, COUNT(*) as count')
+                ->where('created_at', '>=', now()->subMonths(6))
+                ->groupBy('month')
+                ->orderBy('month')
+                ->get()
+                ->toArray();
+
+            // Response rate statistics
+            $avgResponseRate = (clone $surveysQuery)
+                ->where('status', '!=', 'draft')
+                ->avg('completion_percentage') ?? 0;
+
+            // Surveys requiring attention (low response rates, expired, etc.)
+            $surveysNeedingAttention = (clone $surveysQuery)
+                ->where('creator_id', $user->id)
+                ->where('status', 'published')
+                ->where(function ($query) {
+                    $query->where('completion_percentage', '<', 50)
+                          ->orWhere('end_date', '<', now())
+                          ->orWhere('end_date', '<=', now()->addDays(3));
+                })
+                ->limit(10)
+                ->get()
+                ->map(function ($survey) {
+                    return $this->formatSurvey($survey);
+                });
+
+            return response()->json([
+                'overview' => [
+                    'total_surveys' => $totalSurveys,
+                    'active_surveys' => $activeSurveys,
+                    'draft_surveys' => $draftSurveys,
+                    'closed_surveys' => $closedSurveys,
+                    'archived_surveys' => $archivedSurveys,
+                    'my_surveys' => $mySurveys,
+                    'my_active_surveys' => $myActiveSurveys,
+                ],
+                'response_stats' => [
+                    'total_responses' => $myTotalResponses,
+                    'completed_responses' => $myCompletedResponses,
+                    'completion_rate' => $myTotalResponses > 0 ? round(($myCompletedResponses / $myTotalResponses) * 100, 1) : 0,
+                    'average_response_rate' => round($avgResponseRate, 1)
+                ],
+                'breakdowns' => [
+                    'by_status' => $statusBreakdown,
+                    'by_type' => $typeBreakdown,
+                    'monthly_trend' => $monthlyTrend
+                ],
+                'recent_surveys' => $recentSurveys,
+                'attention_needed' => $surveysNeedingAttention,
+                'user_context' => [
+                    'user_id' => $user->id,
+                    'user_role' => $user->getRoleNames()->first(),
+                    'institution_id' => $userInstitutionId,
+                    'can_create_surveys' => $user->can('create_surveys'),
+                    'can_manage_all_surveys' => $user->hasRole(['superadmin', 'regionadmin'])
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error fetching survey statistics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Advanced Survey Analytics
+     */
+    public function analytics(Request $request, Survey $survey): JsonResponse
+    {
+        // Check permissions
+        $userInstitutionId = $request->user()->institution_id;
+        $canView = $survey->creator_id === $request->user()->id ||
+                   $request->user()->hasRole(['superadmin', 'regionadmin']) ||
+                   ($userInstitutionId && in_array($userInstitutionId, $survey->target_institutions ?? []));
+
+        if (!$canView) {
+            return response()->json([
+                'message' => 'You do not have permission to view analytics for this survey'
+            ], 403);
+        }
+
+        try {
+            // Response metrics
+            $responses = $survey->responses();
+            $totalResponses = $responses->count();
+            $completedResponses = $responses->where('is_complete', true)->count();
+            $inProgressResponses = $responses->where('is_complete', false)->count();
+
+            // Completion metrics
+            $avgCompletionTime = $responses->where('is_complete', true)
+                ->selectRaw('AVG(TIMESTAMPDIFF(MINUTE, created_at, completed_at)) as avg_time')
+                ->value('avg_time') ?? 0;
+
+            // Response timeline
+            $responseTimeline = $responses
+                ->selectRaw('DATE(created_at) as date, COUNT(*) as responses, 
+                           SUM(CASE WHEN is_complete = 1 THEN 1 ELSE 0 END) as completed')
+                ->groupBy('date')
+                ->orderBy('date')
+                ->get()
+                ->toArray();
+
+            // Institution breakdown
+            $institutionBreakdown = $responses
+                ->join('institutions', 'survey_responses.institution_id', '=', 'institutions.id')
+                ->selectRaw('institutions.name as institution, 
+                           COUNT(*) as total_responses,
+                           SUM(CASE WHEN survey_responses.is_complete = 1 THEN 1 ELSE 0 END) as completed,
+                           AVG(survey_responses.progress_percentage) as avg_progress')
+                ->groupBy('institutions.id', 'institutions.name')
+                ->get()
+                ->toArray();
+
+            // Department breakdown (if departments are targeted)
+            $departmentBreakdown = [];
+            if (!empty($survey->target_departments)) {
+                $departmentBreakdown = $responses
+                    ->join('users', 'survey_responses.user_id', '=', 'users.id')
+                    ->join('user_departments', 'users.id', '=', 'user_departments.user_id')
+                    ->join('departments', 'user_departments.department_id', '=', 'departments.id')
+                    ->selectRaw('departments.name as department,
+                               COUNT(*) as total_responses,
+                               SUM(CASE WHEN survey_responses.is_complete = 1 THEN 1 ELSE 0 END) as completed,
+                               AVG(survey_responses.progress_percentage) as avg_progress')
+                    ->groupBy('departments.id', 'departments.name')
+                    ->get()
+                    ->toArray();
+            }
+
+            // Question-level analytics
+            $questionAnalytics = [];
+            if ($survey->structure && isset($survey->structure['sections'])) {
+                foreach ($survey->structure['sections'] as $sectionIndex => $section) {
+                    foreach ($section['questions'] as $questionIndex => $question) {
+                        $questionKey = "section_{$sectionIndex}_question_{$questionIndex}";
+                        
+                        // Count how many responses answered this question
+                        $answeredCount = $responses->whereJsonContains('response_data', [$questionKey => []])->count();
+                        
+                        $questionAnalytics[] = [
+                            'section' => $section['title'] ?? "Section " . ($sectionIndex + 1),
+                            'question' => $question['question'],
+                            'type' => $question['type'],
+                            'required' => $question['required'] ?? false,
+                            'answered_count' => $answeredCount,
+                            'answer_rate' => $totalResponses > 0 ? round(($answeredCount / $totalResponses) * 100, 1) : 0
+                        ];
+                    }
+                }
+            }
+
+            // Performance insights
+            $insights = [];
+            
+            // Low completion rate insight
+            if ($survey->completion_percentage < 50 && $totalResponses > 5) {
+                $insights[] = [
+                    'type' => 'warning',
+                    'title' => 'Low Completion Rate',
+                    'message' => "Only {$survey->completion_percentage}% of respondents complete this survey. Consider reviewing question complexity or survey length.",
+                    'action' => 'review_structure'
+                ];
+            }
+
+            // High drop-off insight
+            if ($inProgressResponses > $completedResponses && $totalResponses > 10) {
+                $dropOffRate = round(($inProgressResponses / $totalResponses) * 100, 1);
+                $insights[] = [
+                    'type' => 'info',
+                    'title' => 'High Drop-off Rate',
+                    'message' => "{$dropOffRate}% of respondents start but don't finish the survey.",
+                    'action' => 'analyze_questions'
+                ];
+            }
+
+            // Time-based insights
+            if ($survey->end_date && $survey->end_date < now()) {
+                $insights[] = [
+                    'type' => 'error',
+                    'title' => 'Survey Expired',
+                    'message' => 'This survey has passed its end date. No new responses will be accepted.',
+                    'action' => 'extend_or_close'
+                ];
+            }
+
+            return response()->json([
+                'survey_info' => [
+                    'id' => $survey->id,
+                    'title' => $survey->title,
+                    'status' => $survey->status,
+                    'type' => $survey->survey_type,
+                    'start_date' => $survey->start_date,
+                    'end_date' => $survey->end_date
+                ],
+                'response_metrics' => [
+                    'total_responses' => $totalResponses,
+                    'completed_responses' => $completedResponses,
+                    'in_progress_responses' => $inProgressResponses,
+                    'completion_rate' => $survey->completion_percentage,
+                    'avg_completion_time_minutes' => round($avgCompletionTime, 1)
+                ],
+                'timeline' => $responseTimeline,
+                'breakdowns' => [
+                    'by_institution' => $institutionBreakdown,
+                    'by_department' => $departmentBreakdown
+                ],
+                'question_analytics' => $questionAnalytics,
+                'insights' => $insights,
+                'generated_at' => now()->toISOString()
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Error generating survey analytics',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
      * Format survey for response
      */
     private function formatSurvey($survey): array

@@ -30,6 +30,7 @@
   --color-secondary-900: #14532d;
 
   /* Neutral Color Palette */
+  --color-neutral-25: #fcfcfd;
   --color-neutral-50: #f8fafc;
   --color-neutral-100: #f1f5f9;
   --color-neutral-200: #e2e8f0;
@@ -39,6 +40,7 @@
   --color-neutral-600: #475569;
   --color-neutral-700: #334155;
   --color-neutral-800: #1e293b;
+  --color-neutral-850: #172033;
   --color-neutral-900: #0f172a;
   --color-neutral-950: #020617;
 
@@ -274,6 +276,103 @@
   --bg-glass: rgba(255, 255, 255, 0.8);
   --bg-glass-dark: rgba(0, 0, 0, 0.8);
 
+  /* ===== SIDEBAR SPECIFIC TOKENS ===== */
+  
+  /* Sidebar Background & Surface */
+  --sidebar-bg: var(--bg-surface);
+  --sidebar-bg-collapsed: var(--bg-surface);
+  --sidebar-bg-gradient: linear-gradient(180deg, var(--bg-surface) 0%, var(--color-neutral-50) 100%);
+  --sidebar-border: var(--color-neutral-200);
+  --sidebar-border-hover: var(--color-neutral-300);
+  --sidebar-shadow: var(--shadow-lg);
+  --sidebar-shadow-mobile: var(--shadow-2xl);
+  
+  /* Sidebar Text Colors */
+  --sidebar-text: var(--color-neutral-700);
+  --sidebar-text-secondary: var(--color-neutral-500);
+  --sidebar-text-muted: var(--color-neutral-400);
+  --sidebar-text-active: var(--color-primary-600);
+  --sidebar-text-hover: var(--color-neutral-900);
+  
+  /* Sidebar Interactive States */
+  --sidebar-item-bg: transparent;
+  --sidebar-item-bg-hover: var(--color-neutral-100);
+  --sidebar-item-bg-active: var(--color-primary-50);
+  --sidebar-item-bg-focus: var(--color-primary-100);
+  --sidebar-item-border: transparent;
+  --sidebar-item-border-hover: var(--color-neutral-200);
+  --sidebar-item-border-active: var(--color-primary-200);
+  --sidebar-item-border-focus: var(--color-primary-300);
+  
+  /* Sidebar Icons */
+  --sidebar-icon: var(--color-neutral-500);
+  --sidebar-icon-hover: var(--color-primary-500);
+  --sidebar-icon-active: var(--color-primary-600);
+  --sidebar-icon-muted: var(--color-neutral-400);
+  
+  /* Sidebar Header */
+  --sidebar-header-bg: var(--bg-surface);
+  --sidebar-header-border: var(--color-neutral-200);
+  --sidebar-header-text: var(--color-neutral-800);
+  --sidebar-header-shadow: var(--shadow-sm);
+  
+  /* Sidebar User Profile */
+  --sidebar-profile-bg: var(--color-neutral-50);
+  --sidebar-profile-bg-hover: var(--color-neutral-100);
+  --sidebar-profile-border: var(--color-neutral-200);
+  --sidebar-profile-text: var(--color-neutral-700);
+  --sidebar-profile-text-secondary: var(--color-neutral-500);
+  
+  /* Sidebar Status Indicators */
+  --sidebar-online-indicator: var(--color-success-500);
+  --sidebar-offline-indicator: var(--color-neutral-400);
+  --sidebar-away-indicator: var(--color-warning-500);
+  --sidebar-busy-indicator: var(--color-error-500);
+  --sidebar-indicator-ring: rgba(255, 255, 255, 0.8);
+  
+  /* Sidebar Focus & Glow Effects */
+  --sidebar-focus-ring: var(--color-primary-500);
+  --sidebar-focus-ring-offset: 2px;
+  --sidebar-focus-glow: 0 0 0 3px rgba(8, 114, 232, 0.1);
+  --sidebar-focus-glow-strong: 0 0 0 3px rgba(8, 114, 232, 0.2);
+  
+  /* Sidebar Transitions */
+  --sidebar-transition: all var(--duration-300) var(--ease-smooth);
+  --sidebar-transition-fast: all var(--duration-150) var(--ease-out);
+  --sidebar-transition-slow: all var(--duration-500) var(--ease-in-out);
+  
+  /* Sidebar Dimensions */
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 80px;
+  --sidebar-width-mobile: 100vw;
+  --sidebar-header-height: 64px;
+  --sidebar-item-height: 48px;
+  --sidebar-item-padding: var(--space-3);
+  --sidebar-item-gap: var(--space-2);
+  
+  /* Sidebar Nested Items */
+  --sidebar-nested-indent: var(--space-6);
+  --sidebar-nested-bg: var(--color-neutral-25);
+  --sidebar-nested-border: var(--color-neutral-100);
+  --sidebar-nested-text: var(--color-neutral-600);
+  
+  /* Sidebar Badges */
+  --sidebar-badge-bg: var(--color-primary-500);
+  --sidebar-badge-text: var(--color-neutral-50);
+  --sidebar-badge-size: 20px;
+  --sidebar-badge-font-size: var(--font-size-xs);
+  --sidebar-badge-shadow: var(--shadow-sm);
+  
+  /* Sidebar Mobile Overlay */
+  --sidebar-mobile-overlay: rgba(0, 0, 0, 0.5);
+  --sidebar-mobile-backdrop: rgba(0, 0, 0, 0.3);
+  
+  /* Sidebar Animations */
+  --sidebar-slide-in: transform var(--duration-300) var(--ease-out);
+  --sidebar-slide-out: transform var(--duration-200) var(--ease-in);
+  --sidebar-fade-in: opacity var(--duration-200) var(--ease-out);
+  --sidebar-fade-out: opacity var(--duration-150) var(--ease-in);
+
   /* Text Colors */
   --text-primary: var(--color-neutral-900);
   --text-secondary: var(--color-neutral-600);
@@ -358,6 +457,79 @@
   --interactive-secondary: var(--color-neutral-700);
   --interactive-secondary-hover: var(--color-neutral-600);
   --interactive-secondary-active: var(--color-neutral-500);
+
+  /* ===== SIDEBAR DARK MODE OVERRIDES ===== */
+  
+  /* Sidebar Background & Surface */
+  --sidebar-bg: var(--color-neutral-900);
+  --sidebar-bg-collapsed: var(--color-neutral-900);
+  --sidebar-bg-gradient: linear-gradient(180deg, var(--color-neutral-900) 0%, var(--color-neutral-800) 100%);
+  --sidebar-border: var(--color-neutral-700);
+  --sidebar-border-hover: var(--color-neutral-600);
+  --sidebar-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  --sidebar-shadow-mobile: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  
+  /* Sidebar Text Colors */
+  --sidebar-text: var(--color-neutral-200);
+  --sidebar-text-secondary: var(--color-neutral-400);
+  --sidebar-text-muted: var(--color-neutral-500);
+  --sidebar-text-active: var(--color-primary-400);
+  --sidebar-text-hover: var(--color-neutral-50);
+  
+  /* Sidebar Interactive States */
+  --sidebar-item-bg: transparent;
+  --sidebar-item-bg-hover: var(--color-neutral-800);
+  --sidebar-item-bg-active: rgba(8, 114, 232, 0.1);
+  --sidebar-item-bg-focus: rgba(8, 114, 232, 0.15);
+  --sidebar-item-border: transparent;
+  --sidebar-item-border-hover: var(--color-neutral-700);
+  --sidebar-item-border-active: var(--color-primary-600);
+  --sidebar-item-border-focus: var(--color-primary-500);
+  
+  /* Sidebar Icons */
+  --sidebar-icon: var(--color-neutral-400);
+  --sidebar-icon-hover: var(--color-primary-400);
+  --sidebar-icon-active: var(--color-primary-500);
+  --sidebar-icon-muted: var(--color-neutral-600);
+  
+  /* Sidebar Header */
+  --sidebar-header-bg: var(--color-neutral-900);
+  --sidebar-header-border: var(--color-neutral-700);
+  --sidebar-header-text: var(--color-neutral-100);
+  --sidebar-header-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  
+  /* Sidebar User Profile */
+  --sidebar-profile-bg: var(--color-neutral-800);
+  --sidebar-profile-bg-hover: var(--color-neutral-700);
+  --sidebar-profile-border: var(--color-neutral-700);
+  --sidebar-profile-text: var(--color-neutral-200);
+  --sidebar-profile-text-secondary: var(--color-neutral-400);
+  
+  /* Sidebar Status Indicators (same as light mode) */
+  --sidebar-online-indicator: var(--color-success-500);
+  --sidebar-offline-indicator: var(--color-neutral-500);
+  --sidebar-away-indicator: var(--color-warning-500);
+  --sidebar-busy-indicator: var(--color-error-500);
+  --sidebar-indicator-ring: rgba(0, 0, 0, 0.8);
+  
+  /* Sidebar Focus & Glow Effects */
+  --sidebar-focus-ring: var(--color-primary-400);
+  --sidebar-focus-glow: 0 0 0 3px rgba(8, 114, 232, 0.2);
+  --sidebar-focus-glow-strong: 0 0 0 3px rgba(8, 114, 232, 0.3);
+  
+  /* Sidebar Nested Items */
+  --sidebar-nested-bg: var(--color-neutral-850);
+  --sidebar-nested-border: var(--color-neutral-700);
+  --sidebar-nested-text: var(--color-neutral-300);
+  
+  /* Sidebar Badges */
+  --sidebar-badge-bg: var(--color-primary-600);
+  --sidebar-badge-text: var(--color-neutral-50);
+  --sidebar-badge-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.3);
+  
+  /* Sidebar Mobile Overlay */
+  --sidebar-mobile-overlay: rgba(0, 0, 0, 0.7);
+  --sidebar-mobile-backdrop: rgba(0, 0, 0, 0.5);
 }
 
 /* ===== REDUCED MOTION SUPPORT ===== */

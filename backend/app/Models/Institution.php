@@ -7,10 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Institution extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -169,6 +170,14 @@ class Institution extends Model
     public function indicatorValues(): HasMany
     {
         return $this->hasMany(IndicatorValue::class);
+    }
+
+    /**
+     * Get the audit logs for this institution.
+     */
+    public function auditLogs(): HasMany
+    {
+        return $this->hasMany(InstitutionAuditLog::class);
     }
 
     /**

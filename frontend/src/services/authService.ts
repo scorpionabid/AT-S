@@ -101,10 +101,22 @@ export const authService = {
     
     try {
       const response = await api.get<{ user: User }>('/me');
+      const user = response.data.user;
+      
+      // Normalize roles and permissions
+      const normalizedUser = {
+        ...user,
+        roles: Array.isArray(user.roles) ? user.roles : [],
+        permissions: Array.isArray(user.permissions) ? user.permissions : []
+      };
+      
       logger.debug('AuthService', 'Received current user info', { 
-        userId: response.data.user?.id 
+        userId: normalizedUser.id,
+        roles: normalizedUser.roles,
+        permissions: normalizedUser.permissions.length
       });
-      return response.data.user;
+      
+      return normalizedUser;
       
     } catch (error) {
       logger.error('AuthService', 'Failed to fetch current user', { 

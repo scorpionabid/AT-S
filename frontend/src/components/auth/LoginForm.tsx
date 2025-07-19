@@ -112,11 +112,7 @@ const LoginForm: React.FC = () => {
       {/* Main Login Container */}
       <div className="relative z-10 w-full max-w-2xl">
         {/* Enhanced Header Section - Much Larger */}
-        <div className="text-center mb-16 px-4">
-          <div className="inline-flex items-center justify-center w-32 h-32 bg-white/15 backdrop-blur-xl rounded-full mb-8 border border-white/20 shadow-2xl">
-            <FiShield className="w-16 h-16 text-white drop-shadow-lg" />
-          </div>
-          
+        <div className="text-center mb-12 px-4">
           <div className="space-y-6">
             <div>
               <h1 className="text-7xl font-black text-white mb-4 tracking-tight leading-tight">
@@ -129,9 +125,7 @@ const LoginForm: React.FC = () => {
               <h2 className="text-3xl font-bold text-blue-100 leading-relaxed">
                 Azərbaycan Təhsil İdarəetmə Sistemi
               </h2>
-              <p className="text-xl text-blue-200/90 font-medium leading-relaxed max-w-2xl mx-auto">
-                Təhsil sahəsində rəqəmsal transformasiyanın mərkəzi platforması
-              </p>
+              {/* Removed text as requested */}
               <div className="flex items-center justify-center space-x-4 text-blue-300/80 text-lg">
                 <span className="flex items-center">
                   <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>

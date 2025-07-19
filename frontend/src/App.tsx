@@ -15,6 +15,7 @@ import LoginPage from './pages/auth/LoginPage';
 import DashboardPage from './pages/dashboard/DashboardPage';
 import UsersPage from './pages/UsersPage';
 import SurveysPage from './pages/SurveysPage';
+import SurveyCreatePage from './pages/SurveyCreatePage';
 import SurveyResponsePage from './pages/SurveyResponsePage';
 import RolesPage from './pages/RolesPage';
 import InstitutionsPage from './pages/InstitutionsPage';
@@ -79,6 +80,15 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute requiredRoles={[...ROLE_GROUPS.CAN_RESPOND_SURVEYS]}>
                   <SurveysPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/surveys/create" 
+              element={
+                <ProtectedRoute requiredRoles={[...ROLE_GROUPS.CAN_CREATE_SURVEYS]}>
+                  <SurveyCreatePage />
                 </ProtectedRoute>
               } 
             />

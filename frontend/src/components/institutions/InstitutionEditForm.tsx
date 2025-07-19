@@ -124,8 +124,14 @@ const InstitutionEditForm: React.FC<InstitutionEditFormProps> = ({ institutionId
   const fetchInstitution = async () => {
     try {
       setFetchLoading(true);
+      console.log('🔍 Fetching institution with ID:', institutionId);
       const response = await api.get(`/institutions/${institutionId}`);
-      const institutionData = response.data.institution;
+      console.log('📥 Institution API response:', response.data);
+      
+      // Handle different response structures
+      const institutionData = response.data.data || response.data.institution || response.data;
+      console.log('📋 Institution data:', institutionData);
+      
       setInstitution(institutionData);
       
       setFormData({
@@ -155,7 +161,7 @@ const InstitutionEditForm: React.FC<InstitutionEditFormProps> = ({ institutionId
     try {
       // Fetch institutions that can be parents (level < current level, excluding self and descendants)
       if (formData.level > 1) {
-        const response = await api.get(`/institutions?level=${formData.level - 1}&is_active=true`);
+        const response = await api.get(`/institutions?level=${formData.level - 1}&is_active=true&no_cache=1`);
         const parents = (response.data.institutions || []).filter((parent: AvailableParent) => 
           parent.id !== institutionId // Exclude self
         );
@@ -173,10 +179,29 @@ const InstitutionEditForm: React.FC<InstitutionEditFormProps> = ({ institutionId
     
     if (name === 'level' || name === 'parent_id') {
       const numValue = value === '' ? null : parseInt(value);
-      setFormData(prev => ({
-        ...prev,
-        [name]: numValue
-      }));
+      
+      // Auto-generate region code when parent changes
+      if (name === 'parent_id' && numValue) {
+        const parent = availableParents.find(p => p.id === numValue);
+        if (parent) {
+          const parentRegionCode = getRegionCodeFromParent(parent);
+          setFormData(prev => ({
+            ...prev,
+            [name]: numValue,
+            region_code: parentRegionCode
+          }));
+        } else {
+          setFormData(prev => ({
+            ...prev,
+            [name]: numValue
+          }));
+        }
+      } else {
+        setFormData(prev => ({
+          ...prev,
+          [name]: numValue
+        }));
+      }
     } else if (name === 'is_active') {
       setFormData(prev => ({
         ...prev,
@@ -205,6 +230,31 @@ const InstitutionEditForm: React.FC<InstitutionEditFormProps> = ({ institutionId
         [name]: ''
       }));
     }
+  };
+
+  // Helper function to determine region code from parent
+  const getRegionCodeFromParent = (parent: any): string => {
+    // If parent has region_code, use it
+    if (parent.region_code) {
+      return parent.region_code;
+    }
+    
+    // If parent is regional type, determine from name
+    if (parent.type === 'region') {
+      const name = parent.name.toLowerCase();
+      if (name.includes('bakı')) return 'BAK';
+      if (name.includes('gəncə')) return 'GAN';
+      if (name.includes('lənkəran')) return 'LAN';
+      if (name.includes('sumqayıt')) return 'SUM';
+      if (name.includes('şirvan')) return 'SIR';
+      if (name.includes('mingəçevir')) return 'MIN';
+      if (name.includes('naxçıvan')) return 'NAX';
+      if (name.includes('şəmkir')) return 'SMX';
+      if (name.includes('göygöl')) return 'GYG';
+    }
+    
+    // Default to Azerbaijan if can't determine
+    return 'AZ';
   };
 
   const handleTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -438,10 +488,13 @@ const InstitutionEditForm: React.FC<InstitutionEditFormProps> = ({ institutionId
                   id="region_code"
                   name="region_code"
                   value={formData.region_code}
-                  onChange={handleInputChange}
-                  className={errors.region_code ? 'error' : ''}
-                  placeholder="BAK, GNC, NAX"
+                  readOnly
+                  className={`readonly-field ${errors.region_code ? 'error' : ''}`}
+                  placeholder="Parent təşkilatdan avtomatik gələcək..."
                 />
+                <small className="field-hint">
+                  Bu field avtomatik olaraq yuxarı səviyyə təşkilatdan götürülür
+                </small>
                 {errors.region_code && <span className="field-error">{errors.region_code}</span>}
               </div>
 
