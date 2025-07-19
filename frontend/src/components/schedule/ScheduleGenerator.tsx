@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Calendar, Settings, Save, Download, Upload, RefreshCw } from 'lucide-react';
+import { Calendar, Settings, Save, Download, Upload, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/Loading';

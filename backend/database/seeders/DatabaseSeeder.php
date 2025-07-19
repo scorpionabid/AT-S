@@ -28,7 +28,13 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             SuperAdminSeeder::class, // Create superadmin after roles
             SystemConfigSeeder::class,
-            SubjectSeeder::class,
+            
+            // Test Data Seeders (Modular)
+            BasicDataSeeder::class,        // Users, institutions, academic years
+            SurveyDataSeeder::class,       // Surveys and responses
+            SchoolDataSeeder::class,       // Grades, classes, schedules, attendance
+            TaskDocumentSeeder::class,     // Tasks and documents
+            AssessmentDataSeeder::class,   // KSQ/BSQ results
         ]);
     }
 }
