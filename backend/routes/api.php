@@ -329,6 +329,20 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{id}', [TeachingLoadApiController::class, 'update'])->middleware('permission:schedules.update');
         Route::delete('/{id}', [TeachingLoadApiController::class, 'destroy'])->middleware('permission:schedules.delete');
     });
+
+    // Schedule API Management
+    Route::prefix('api/schedules')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [ScheduleApiController::class, 'index'])->middleware('permission:schedules.read');
+        Route::post('/', [ScheduleApiController::class, 'store'])->middleware('permission:schedules.create');
+        Route::get('/{id}', [ScheduleApiController::class, 'show'])->middleware('permission:schedules.read');
+        Route::put('/{id}', [ScheduleApiController::class, 'update'])->middleware('permission:schedules.update');
+        Route::delete('/{id}', [ScheduleApiController::class, 'destroy'])->middleware('permission:schedules.delete');
+        
+        // Advanced schedule operations
+        Route::post('/generate', [ScheduleApiController::class, 'generate'])->middleware('permission:schedules.create');
+        Route::post('/{id}/validate', [ScheduleApiController::class, 'validate'])->middleware('permission:schedules.read');
+        Route::post('/{id}/approve', [ScheduleApiController::class, 'approve'])->middleware('permission:schedules.approve');
+    });
     
     // User storage quota
     Route::get('documents/quota/info', [DocumentController::class, 'getQuotaInfo']);
