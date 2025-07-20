@@ -1,4 +1,5 @@
 import { api } from './api';
+import { RoleAssignableService, PaginatedResponse } from './base/GenericCrudService';
 
 export interface User {
   id: number;
@@ -33,17 +34,6 @@ export interface User {
   };
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    current_page: number;
-    from: number;
-    last_page: number;
-    per_page: number;
-    to: number;
-    total: number;
-  };
-}
 
 export interface GetUsersParams {
   page?: number;
@@ -122,46 +112,70 @@ export interface BulkStatistics {
   };
 }
 
-export const userService = {
-  /**
-   * Fetch paginated list of users
-   */
-  getUsers: async (params: GetUsersParams = {}) => {
-    const response = await api.get<{ users: PaginatedResponse<User> }>('/users', { params });
-    return response.data;
-  },
+class UserService extends RoleAssignableService<User, CreateUserData, UpdateUserData> {
+  constructor() {
+    super('/users');
+  }
 
   /**
-   * Fetch a single user by ID
+   * Fetch paginated list of users (using inherited getAll method)
    */
-  getUser: async (id: number) => {
-    const response = await api.get<{ user: User; permissions: string[] }>(`/users/${id}`);
-    return response.data;
-  },
+  async getUsers(params: GetUsersParams = {}): Promise<{ users: PaginatedResponse<User> }> {
+    const response = await this.getAll(params);
+    return { users: response };
+  }
+
+  /**
+   * Fetch a single user by ID with permissions
+   */
+  async getUser(id: number): Promise<{ user: User; permissions: string[] }> {
+    try {
+      const response = await api.get<{ user: User; permissions: string[] }>(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching user ${id}:`, error);
+      throw error;
+    }
+  }
 
   /**
    * Create a new user
    */
-  createUser: async (data: CreateUserData) => {
-    const response = await api.post<{ message: string; user: User }>('/users', data);
-    return response.data;
-  },
+  async createUser(data: CreateUserData): Promise<{ message: string; user: User }> {
+    try {
+      const response = await api.post<{ message: string; user: User }>('/users', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error creating user:', error);
+      throw error;
+    }
+  }
 
   /**
    * Update an existing user
    */
-  updateUser: async (id: number, data: UpdateUserData) => {
-    const response = await api.put<{ message: string; user: User }>(`/users/${id}`, data);
-    return response.data;
-  },
+  async updateUser(id: number, data: UpdateUserData): Promise<{ message: string; user: User }> {
+    try {
+      const response = await api.put<{ message: string; user: User }>(`/users/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error(`Error updating user ${id}:`, error);
+      throw error;
+    }
+  }
 
   /**
    * Delete a user (soft delete)
    */
-  deleteUser: async (id: number) => {
-    const response = await api.delete<{ message: string }>(`/users/${id}`);
-    return response.data;
-  },
+  async deleteUser(id: number): Promise<{ message: string }> {
+    try {
+      const response = await api.delete<{ message: string }>(`/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error(`Error deleting user ${id}:`, error);
+      throw error;
+    }
+  }
 
   /**
    * Reset user password
@@ -249,10 +263,17 @@ export const userService = {
   /**
    * Get bulk operation statistics
    */
-  getBulkStatistics: async () => {
-    const response = await api.get<{ status: string; data: BulkStatistics }>('/users/bulk/statistics');
-    return response.data;
+  async getBulkStatistics(): Promise<{ status: string; data: BulkStatistics }> {
+    try {
+      const response = await api.get<{ status: string; data: BulkStatistics }>('/users/bulk/statistics');
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching bulk statistics:', error);
+      throw error;
+    }
   }
-};
+}
 
+// Export singleton instance
+export const userService = new UserService();
 export default userService;

@@ -226,7 +226,7 @@ const QuickActionsPanel: React.FC<QuickActionsProps> = ({
       {/* Panel */}
       <div className="flex min-h-full items-start justify-center p-4 pt-[10vh]">
         <div className={cn(
-          "w-full max-w-4xl bg-white rounded-xl shadow-2xl overflow-hidden",
+          "w-full max-w-screen-lg bg-white rounded-xl shadow-2xl overflow-hidden",
           "border border-gray-200",
           className
         )}>

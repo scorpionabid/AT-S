@@ -1,160 +1,102 @@
-import type { User } from '../../types/auth';
-
 /**
- * Get stored auth token
+ * Session utility functions for ATİS system
  */
-export const getStoredToken = (): string | null => {
-  return localStorage.getItem('auth_token');
-};
-
-/**
- * Set auth token in storage
- */
-export const setStoredToken = (token: string): void => {
-  localStorage.setItem('auth_token', token);
-};
-
-/**
- * Remove auth token from storage
- */
-export const removeStoredToken = (): void => {
-  localStorage.removeItem('auth_token');
-};
-
-/**
- * Get stored user data
- */
-export const getStoredUser = (): User | null => {
-  const userData = localStorage.getItem('user_data');
-  return userData ? JSON.parse(userData) : null;
-};
-
-/**
- * Set user data in storage
- */
-export const setStoredUser = (user: User): void => {
-  localStorage.setItem('user_data', JSON.stringify(user));
-};
-
-/**
- * Remove user data from storage
- */
-export const removeStoredUser = (): void => {
-  localStorage.removeItem('user_data');
-};
-
-/**
- * Clear all auth data from storage
- */
-export const clearAuthStorage = (): void => {
-  removeStoredToken();
-  removeStoredUser();
-};
-
-/**
- * Check if user session is expired
- */
-export const isSessionExpired = (user: User | null): boolean => {
-  if (!user || !user.last_login_at) return true;
-  
-  const lastLogin = new Date(user.last_login_at);
-  const now = new Date();
-  const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-  
-  return (now.getTime() - lastLogin.getTime()) > sessionDuration;
-};
-
-/**
- * Get session remaining time in minutes
- */
-export const getSessionRemainingTime = (user: User | null): number => {
-  if (!user || !user.last_login_at) return 0;
-  
-  const lastLogin = new Date(user.last_login_at);
-  const now = new Date();
-  const sessionDuration = 8 * 60 * 60 * 1000; // 8 hours in milliseconds
-  
-  const elapsed = now.getTime() - lastLogin.getTime();
-  const remaining = sessionDuration - elapsed;
-  
-  return Math.max(0, Math.floor(remaining / (60 * 1000))); // Convert to minutes
-};
-
-/**
- * Check if session warning should be shown (30 minutes before expiry)
- */
-export const shouldShowSessionWarning = (user: User | null): boolean => {
-  const remainingTime = getSessionRemainingTime(user);
-  return remainingTime > 0 && remainingTime <= 30;
-};
 
 /**
  * Format session time for display
  */
-export const formatSessionTime = (minutes: number): string => {
-  if (minutes <= 0) return '0 minutes';
+export const formatSessionTime = (seconds: number): string => {
+  if (seconds < 60) {
+    return `${seconds} saniyə`;
+  }
+  
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+  
+  if (minutes < 60) {
+    return remainingSeconds > 0 
+      ? `${minutes} dəq ${remainingSeconds} san`
+      : `${minutes} dəqiqə`;
+  }
   
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   
-  if (hours > 0) {
-    return `${hours} hour${hours > 1 ? 's' : ''} ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+  return remainingMinutes > 0
+    ? `${hours} saat ${remainingMinutes} dəq`
+    : `${hours} saat`;
+};
+
+/**
+ * Get session expiry warning message
+ */
+export const getSessionExpiryMessage = (remainingSeconds: number): string => {
+  if (remainingSeconds <= 60) {
+    return 'Seansınız 1 dəqiqədən az müddətdə bitəcək!';
   }
   
-  return `${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''}`;
+  if (remainingSeconds <= 300) { // 5 minutes
+    const minutes = Math.ceil(remainingSeconds / 60);
+    return `Seansınız ${minutes} dəqiqədə bitəcək!`;
+  }
+  
+  if (remainingSeconds <= 900) { // 15 minutes
+    const minutes = Math.ceil(remainingSeconds / 60);
+    return `Seansınız ${minutes} dəqiqədə bitəcək.`;
+  }
+  
+  return '';
 };
 
 /**
- * Check if user is currently active (based on last activity)
+ * Check if session is about to expire
  */
-export const isUserActive = (user: User | null): boolean => {
-  if (!user) return false;
-  
-  const lastActivity = localStorage.getItem('last_activity');
-  if (!lastActivity) return false;
-  
-  const lastActivityTime = new Date(lastActivity);
-  const now = new Date();
-  const inactiveThreshold = 30 * 60 * 1000; // 30 minutes
-  
-  return (now.getTime() - lastActivityTime.getTime()) < inactiveThreshold;
+export const isSessionExpiring = (remainingSeconds: number): boolean => {
+  return remainingSeconds <= 900; // 15 minutes
 };
 
 /**
- * Update last activity timestamp
+ * Check if session is critically expiring
  */
-export const updateLastActivity = (): void => {
-  localStorage.setItem('last_activity', new Date().toISOString());
+export const isSessionCritical = (remainingSeconds: number): boolean => {
+  return remainingSeconds <= 300; // 5 minutes
 };
 
 /**
- * Get user's current device info
+ * Get session status color
  */
-export const getDeviceInfo = (): {
-  device_name: string;
-  device_type: string;
-  os_version: string;
-  browser: string;
-} => {
-  const userAgent = navigator.userAgent;
+export const getSessionStatusColor = (remainingSeconds: number): string => {
+  if (remainingSeconds <= 300) {
+    return 'red';
+  }
   
-  return {
-    device_name: `${navigator.platform} Device`,
-    device_type: /Mobile|Android|iPhone|iPad/.test(userAgent) ? 'mobile' : 'desktop',
-    os_version: navigator.platform,
-    browser: getBrowserName(userAgent)
-  };
+  if (remainingSeconds <= 900) {
+    return 'orange';
+  }
+  
+  return 'green';
 };
 
 /**
- * Get browser name from user agent
+ * Calculate session remaining time from expiry timestamp
  */
-const getBrowserName = (userAgent: string): string => {
-  if (userAgent.includes('Chrome')) return 'Chrome';
-  if (userAgent.includes('Firefox')) return 'Firefox';
-  if (userAgent.includes('Safari')) return 'Safari';
-  if (userAgent.includes('Edge')) return 'Edge';
-  if (userAgent.includes('Opera')) return 'Opera';
-  
-  return 'Unknown';
+export const calculateRemainingTime = (expiryTimestamp: number): number => {
+  const now = Date.now();
+  const remaining = Math.max(0, Math.floor((expiryTimestamp - now) / 1000));
+  return remaining;
+};
+
+/**
+ * Format session expiry date
+ */
+export const formatExpiryDate = (expiryTimestamp: number): string => {
+  const date = new Date(expiryTimestamp);
+  return date.toLocaleString('az-AZ', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit'
+  });
 };

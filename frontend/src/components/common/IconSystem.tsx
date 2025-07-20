@@ -76,7 +76,7 @@ export const ICONS = {
   
   // File & Documents
   DOCUMENT: '📄',
-  DOWNLOAD: '⬇️',
+  FILE_DOWNLOAD: '⬇️',
   UPLOAD: '⬆️',
   EXPORT: '📤',
   IMPORT: '📥'

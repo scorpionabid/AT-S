@@ -145,7 +145,7 @@ const BulkSelectionModal: React.FC<BulkSelectionModalProps> = ({
         />
 
         {/* Modal content */}
-        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-screen-lg sm:w-full">
           <Card className="border-0 shadow-none">
             <CardHeader>
               <div className="flex items-center justify-between">

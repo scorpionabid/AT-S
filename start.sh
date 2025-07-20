@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# ATİS - Universal Start Script
-# Supports both Docker and Local modes
+# ATİS - Docker Start Script
+# Starts the ATİS system using Docker containers
 
 set -e
 
@@ -39,176 +39,74 @@ check_docker() {
     return 1
 }
 
-# Docker mode
+# Start Docker containers
 start_docker() {
     print_status "Docker rejimində başladır..."
     
     # Stop existing containers
     print_status "Mövcud konteynerləri dayandır..."
-    docker-compose -f docker-compose.local.yml down 2>/dev/null || true
+    docker-compose -f docker-compose.simple.yml down 2>/dev/null || true
     
     # Remove orphaned containers
     docker container prune -f 2>/dev/null || true
     
-    # Build and start
+    # Fix database path in backend .env for container
+    print_status "Container mühitini hazırla..."
+    if [ -f backend/.env ]; then
+        # Ensure database path is correct for container
+        if grep -q "DB_DATABASE=/Users/" backend/.env || grep -q "DB_DATABASE=$(pwd)" backend/.env; then
+            print_status "Database yolunu container üçün düzəlt..."
+            sed -i.bak 's|DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|' backend/.env
+        fi
+    fi
+    
+    # Build and start with optimized settings
     print_status "Konteynerləri qur və başlat..."
-    docker-compose -f docker-compose.local.yml up --build -d
+    DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose -f docker-compose.simple.yml up --build -d
     
-    # Wait for services
+    # Wait for services to be healthy
     print_status "Servislər hazır olmasını gözlə..."
-    sleep 15
-    
-    # Check status
-    docker-compose -f docker-compose.local.yml ps
-    
-    print_success "Docker rejimi hazır!"
-    echo ""
-    echo "🌐 URLs:"
-    echo "   Frontend: http://localhost:3000"
-    echo "   Backend API: http://localhost:8000/api"
-    echo "   Nginx Proxy: http://localhost"
-    echo ""
-    echo "🔑 Login məlumatları:"
-    echo "   superadmin / admin123"
-    echo "   admin / admin123"
-}
-
-# Local mode
-start_local() {
-    print_status "Lokal rejimində başladır..."
-    
-    # Kill existing processes
-    print_status "Mövcud prosesləri dayandır..."
-    lsof -ti:3000,5173,8000,8001 2>/dev/null | xargs -r kill -9 2>/dev/null || true
-    pkill -f "php artisan serve" 2>/dev/null || true
-    pkill -f "npm run dev" 2>/dev/null || true
-    
-    # Setup backend environment
-    print_status "Backend mühitini hazırla..."
-    
-    # Ensure backend directory exists
-    mkdir -p backend
-    
-    # Check if .env exists, if not create from .env.example
-    if [ ! -f "backend/.env" ]; then
-        if [ -f "backend/.env.example" ]; then
-            cp backend/.env.example backend/.env
-            print_success "backend/.env faylı .env.example-dan yaradıldı"
-        else
-            print_warning "backend/.env.example faylı tapılmadı, yeni .env faylı yaradılır..."
-            cat > backend/.env << 'EOF'
-APP_NAME="ATİS - Azərbaycan Təhsil İdarəetmə Sistemi"
-APP_ENV=local
-APP_KEY=base64:8dQ8Gu3WqV8Vn9K7Mj2Nz5P6Q7R8S9T0U1V2W3X4Y5Z=
-APP_DEBUG=true
-APP_TIMEZONE=Asia/Baku
-APP_URL=http://localhost:8000
-
-APP_LOCALE=az
-APP_FALLBACK_LOCALE=en
-
-LOG_CHANNEL=stack
-LOG_LEVEL=debug
-
-DB_CONNECTION=sqlite
-DB_DATABASE=${PWD}/backend/database/database.sqlite
-
-SESSION_DRIVER=file
-SESSION_LIFETIME=120
-SESSION_ENCRYPT=false
-SESSION_PATH=/
-SESSION_DOMAIN=localhost
-
-BROADCAST_CONNECTION=log
-FILESYSTEM_DISK=local
-QUEUE_CONNECTION=sync
-
-CACHE_STORE=file
-
-MAIL_MAILER=log
-
-SANCTUM_STATEFUL_DOMAINS=localhost:3000,127.0.0.1:3000,localhost:5173,127.0.0.1:5173
-SESSION_DOMAIN=localhost
-
-CORS_ALLOWED_ORIGINS="http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
-CORS_ALLOWED_HEADERS="Origin,Content-Type,Accept,Authorization,X-Requested-With"
-CORS_ALLOWED_METHODS="GET,POST,PUT,DELETE,OPTIONS"
-CORS_ALLOW_CREDENTIALS=true
-EOF
-        fi
-    else
-        print_success "backend/.env faylı artıq mövcuddur"
-    fi
-    
-    # Ensure database directory exists
-    mkdir -p backend/database
-    touch backend/database/database.sqlite
-    
-    # Setup frontend environment
-    print_status "Frontend mühitini hazırla..."
-    cat > frontend/.env << 'EOF'
-VITE_API_URL=http://localhost:8000
-VITE_APP_URL=http://localhost:3000
-VITE_APP_NAME=ATİS
-VITE_API_BASE_URL=http://localhost:8000/api
-EOF
-    
-    # Check dependencies
-    print_status "Dependency-ləri yoxla..."
-    cd backend
-    if [ ! -d vendor ]; then
-        print_status "Composer paketlərini qur..."
-        composer install --no-dev --optimize-autoloader
-    fi
-    
-    # Clear cache
-    php artisan config:clear 2>/dev/null || true
-    php artisan cache:clear 2>/dev/null || true
-    
-    # Start backend
-    print_status "Backend serveri başlat (port 8000)..."
-    php artisan serve --host=127.0.0.1 --port=8000 > ../backend.log 2>&1 &
-    BACKEND_PID=$!
-    cd ..
-    
-    # Save backend PID
-    echo "$BACKEND_PID" > .backend.pid
-    
-    # Wait for backend
-    sleep 3
-    
-    # Check frontend dependencies
-    cd frontend
-    if [ ! -d node_modules ]; then
-        print_status "NPM paketlərini qur..."
-        npm install
-    else
-        print_status "Frontend dependency-lərini yoxla..."
-        # Check if critical packages exist
-        if [ ! -f node_modules/vite/package.json ] || [ ! -f node_modules/sass/package.json ]; then
-            print_status "Kritik paketlər eksik - yenidən qur..."
-            npm install
-        fi
-    fi
-    
-    # Start frontend
-    print_status "Frontend serveri başlat (port 3000)..."
-    npm run dev > ../frontend.log 2>&1 &
-    FRONTEND_PID=$!
-    cd ..
-    
-    # Save frontend PID
-    echo "$FRONTEND_PID" > .frontend.pid
-    
-    # Wait for services
-    print_status "Servislər başlamasını gözlə..."
     sleep 10
     
-    # Check services with multiple attempts
-    print_status "Backend API-ni yoxla..."
+    # Wait for database to be ready and fix paths if needed
+    print_status "Database connection-u yoxla və düzəlt..."
+    
+    # Always fix database path in container - this is critical
+    docker exec atis_backend sed -i 's|DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|' /var/www/html/.env 2>/dev/null || true
+    
+    max_attempts=5
+    attempt=1
+    while [ $attempt -le $max_attempts ]; do
+        if docker exec atis_backend php -r "echo 'Testing DB connection...'; try { \$pdo = new PDO('sqlite:/var/www/html/database/database.sqlite'); echo 'OK'; } catch(\Exception \$e) { echo 'ERROR: ' . \$e->getMessage(); exit(1); }" 2>/dev/null; then
+            print_success "Database hazırdır"
+            break
+        else
+            print_status "Database yolunu yenidən düzəldir... (cəhd $attempt/$max_attempts)"
+            docker exec atis_backend sed -i 's|DB_DATABASE=.*|DB_DATABASE=/var/www/html/database/database.sqlite|' /var/www/html/.env 2>/dev/null || true
+            sleep 3
+        fi
+        attempt=$((attempt + 1))
+    done
+    
+    # Run migrations and seeders if needed
+    print_status "Database migration və seeding yoxla..."
+    docker exec atis_backend php artisan migrate --force >/dev/null 2>&1 || true
+    
+    # Check if superadmin user exists, if not run seeder
+    if ! docker exec atis_backend php artisan tinker --execute="exit(App\\Models\\User::where('username', 'superadmin')->exists() ? 0 : 1);" >/dev/null 2>&1; then
+        print_status "Superadmin seeder çalışdır..."
+        docker exec atis_backend php artisan db:seed --class=SuperAdminSeeder >/dev/null 2>&1 || true
+    fi
+    
+    # Check container status
+    print_status "Container statusunu yoxla..."
+    docker-compose -f docker-compose.simple.yml ps
+    
+    # Test API endpoints
+    print_status "API endpoints-i test et..."
     backend_ready=false
-    for i in {1..5}; do
-        if curl -s http://127.0.0.1:8000/api/test >/dev/null 2>&1; then
+    for i in {1..10}; do
+        if curl -s http://127.0.0.1:8000 >/dev/null 2>&1; then
             print_success "Backend hazır: http://localhost:8000"
             backend_ready=true
             break
@@ -217,29 +115,24 @@ EOF
     done
     
     if [ "$backend_ready" = false ]; then
-        print_warning "Backend problemi var - log yoxla: tail -f backend.log"
+        print_warning "Backend problemi var - container logs yoxla: docker-compose -f docker-compose.simple.yml logs backend"
     fi
     
-    print_status "Frontend-i yoxla..."
     frontend_ready=false
-    for i in {1..5}; do
-        if curl -s -m 5 http://127.0.0.1:3000 >/dev/null 2>&1; then
+    for i in {1..10}; do
+        if curl -s http://127.0.0.1:3000 >/dev/null 2>&1; then
             print_success "Frontend hazır: http://localhost:3000"
             frontend_ready=true
             break
         fi
-        sleep 3
+        sleep 2
     done
     
     if [ "$frontend_ready" = false ]; then
-        print_warning "Frontend problemi var - log yoxla: tail -f frontend.log"
-        print_status "Vite dependency-lərini yenidən qur..."
-        cd frontend
-        npm install --force 2>/dev/null || true
-        cd ..
+        print_warning "Frontend problemi var - container logs yoxla: docker-compose -f docker-compose.simple.yml logs frontend"
     fi
     
-    print_success "Lokal rejim hazır!"
+    print_success "Docker rejimi hazırdır!"
     echo ""
     echo "🌐 URLs:"
     echo "   Frontend: http://localhost:3000"
@@ -249,9 +142,11 @@ EOF
     echo "   superadmin / admin123"
     echo "   admin / admin123"
     echo ""
-    echo "📋 Process IDs:"
-    echo "   Backend PID: $BACKEND_PID"
-    echo "   Frontend PID: $FRONTEND_PID"
+    echo "🐳 Docker komandaları:"
+    echo "   Logları izlə: docker-compose -f docker-compose.simple.yml logs -f"
+    echo "   Container status: docker-compose -f docker-compose.simple.yml ps"
+    echo "   Backend terminal: docker exec -it atis_backend bash"
+    echo "   Frontend terminal: docker exec -it atis_frontend bash"
 }
 
 # Main logic
@@ -259,65 +154,42 @@ main() {
     echo "🚀 ATİS Sistemini başladır..."
     echo ""
     
-    # Check mode preference
-    MODE=""
-    if [ "$1" = "docker" ] || [ "$1" = "-d" ]; then
-        MODE="docker"
-    elif [ "$1" = "local" ] || [ "$1" = "-l" ]; then
-        MODE="local"
+    # Check if Docker is available
+    if ! check_docker; then
+        print_error "Docker mövcud deyil və ya işləmir!"
+        print_error "Docker-i qur və işə sal:"
+        echo "  - macOS: https://docs.docker.com/desktop/mac/install/"
+        echo "  - Linux: https://docs.docker.com/engine/install/"
+        echo "  - Windows: https://docs.docker.com/desktop/windows/install/"
+        exit 1
     fi
     
-    # Auto-detect if no mode specified
-    if [ -z "$MODE" ]; then
-        if check_docker; then
-            print_status "Docker mövcuddur, Docker rejimində başladır..."
-            MODE="docker"
-        else
-            print_status "Docker mövcud deyil, lokal rejimində başladır..."
-            MODE="local"
-        fi
-    fi
-    
-    # Start based on mode
-    case $MODE in
-        "docker")
-            if check_docker; then
-                start_docker
-            else
-                print_error "Docker mövcud deyil və ya işləmir!"
-                print_status "Lokal rejimə keçid..."
-                start_local
-            fi
-            ;;
-        "local")
-            start_local
-            ;;
-        *)
-            print_error "Naməlum rejim: $MODE"
-            exit 1
-            ;;
-    esac
+    start_docker
     
     echo ""
     echo "🛠️ Faydalı komandalar:"
-    echo "   Logları izlə: tail -f backend.log frontend.log"
+    echo "   Logları izlə: docker-compose -f docker-compose.simple.yml logs -f"
     echo "   Dayandır: ./stop.sh"
-    echo "   Docker logları: docker-compose -f docker-compose.local.yml logs -f"
+    echo "   Database konsol: docker exec -it atis_backend php artisan tinker"
     echo ""
     echo "💡 Sistem hazırdır! Brauzerinizi açın və test edin."
 }
 
 # Show help
 show_help() {
-    echo "ATİS Start Script"
+    echo "ATİS Docker Start Script"
     echo ""
     echo "Usage:"
-    echo "  ./start.sh                 # Auto-detect mode"
-    echo "  ./start.sh docker          # Force Docker mode"
-    echo "  ./start.sh local           # Force local mode"
-    echo "  ./start.sh -d              # Docker mode (short)"
-    echo "  ./start.sh -l              # Local mode (short)"
+    echo "  ./start.sh                 # Start with Docker containers"
     echo "  ./start.sh -h              # Show this help"
+    echo ""
+    echo "Bu script ATİS sistemini Docker containers-də başladır."
+    echo "Frontend: http://localhost:3000"
+    echo "Backend: http://localhost:8000"
+    echo ""
+    echo "Tələblər:"
+    echo "  - Docker"
+    echo "  - Docker Compose"
     echo ""
 }
 

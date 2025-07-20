@@ -38,6 +38,9 @@ import TestTailwind from './components/TestTailwind';
 import TailwindTest from './components/test/TailwindTest';
 
 const App: React.FC = () => {
+  // HMR Test: Dashboard debug check
+  console.log('🚀 ATİS App.tsx loaded - HMR working!', new Date().toLocaleTimeString());
+  
   return (
     <ErrorBoundary>
       <ThemeProvider>
@@ -48,6 +51,10 @@ const App: React.FC = () => {
               <NavigationProvider>
                 <Router>
             <div className="App">
+              {/* HMR Test Banner */}
+              <div style={{position: 'fixed', top: 0, right: 0, background: 'green', color: 'white', padding: '5px', zIndex: 9999, fontSize: '12px'}}>
+                HMR ✅ {new Date().toLocaleTimeString()}
+              </div>
                 <Routes>
             {/* Public routes */}
             <Route path="/login" element={<LoginPage />} />

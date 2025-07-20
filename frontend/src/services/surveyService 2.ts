@@ -53,7 +53,7 @@ class SurveyService extends GenericCrudService<Survey, Partial<Survey>, Partial<
       console.error(`Error fetching survey ${id}:`, error);
       throw error;
     }
-  }
+  },
 
   /**
    * Create a new survey
@@ -66,7 +66,7 @@ class SurveyService extends GenericCrudService<Survey, Partial<Survey>, Partial<
       console.error('Error creating survey:', error);
       throw error;
     }
-  }
+  },
 
   /**
    * Update an existing survey
@@ -79,7 +79,7 @@ class SurveyService extends GenericCrudService<Survey, Partial<Survey>, Partial<
       console.error(`Error updating survey ${id}:`, error);
       throw error;
     }
-  }
+  },
 
   /**
    * Delete a survey
@@ -91,7 +91,7 @@ class SurveyService extends GenericCrudService<Survey, Partial<Survey>, Partial<
       console.error(`Error deleting survey ${id}:`, error);
       throw error;
     }
-  }
+  },
 
   /**
    * Change survey status
@@ -104,7 +104,7 @@ class SurveyService extends GenericCrudService<Survey, Partial<Survey>, Partial<
       console.error(`Error updating status for survey ${id}:`, error);
       throw error;
     }
-  }
+  },
 
   /**
    * Get survey responses

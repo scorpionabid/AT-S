@@ -35,6 +35,13 @@ class LoginService
                 ->orWhere('email', $login)
                 ->first();
 
+            logger()->info('User lookup result', [
+                'login' => $login,
+                'user_found' => $user ? true : false,
+                'user_id' => $user ? $user->id : null,
+                'user_active' => $user ? $user->is_active : null
+            ]);
+
             // Check if user exists and password is correct
             if (!$user || !Hash::check($password, $user->password)) {
                 logger()->warning('Authentication failed - invalid credentials', [
@@ -48,6 +55,8 @@ class LoginService
                     'login' => 'İstifadəçi adı, email və ya şifrə yanlışdır.',
                 ]);
             }
+
+            logger()->info('Password check passed', ['user_id' => $user->id]);
 
             // Check if user is active
         if (!$user->is_active) {

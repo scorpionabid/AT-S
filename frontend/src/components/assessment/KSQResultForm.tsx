@@ -277,7 +277,7 @@ const KSQResultForm: React.FC<KSQResultFormProps> = ({ onClose, onSuccess, resul
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <Card className="w-full max-w-screen-lg max-h-[90vh] overflow-y-auto">
         <div className="sticky top-0 bg-white border-b border-gray-200 p-6 flex justify-between items-center">
           <h2 className="text-xl font-semibold">
             {resultId ? 'KSQ Nəticəsini Redaktə Et' : 'Yeni KSQ Nəticəsi'}

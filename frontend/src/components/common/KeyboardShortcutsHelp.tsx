@@ -47,7 +47,7 @@ const KeyboardShortcutsHelp: React.FC<KeyboardShortcutsHelpProps> = memo(({ clas
       aria-labelledby="shortcuts-title"
     >
       <div className={cn(
-        'relative w-full max-w-4xl max-h-[90vh] mx-4',
+        'relative w-full max-w-screen-lg max-h-[90vh] mx-4',
         'bg-white dark:bg-gray-900',
         'rounded-xl shadow-2xl',
         'border border-gray-200 dark:border-gray-700',

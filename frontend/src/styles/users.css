@@ -11,7 +11,7 @@
   gap: 1rem;
   margin: 1rem 0;
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border-radius: 8px;
   border: 1px solid #e2e8f0;
 }
@@ -135,7 +135,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   border-radius: 12px 12px 0 0;
 }
@@ -207,7 +207,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem;
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border-radius: 6px;
   border: 1px solid #e2e8f0;
 }
@@ -341,7 +341,7 @@
 
 .search-button {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -397,7 +397,7 @@
 }
 
 .users-table th {
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   padding: 1rem;
   text-align: left;
   font-weight: 600;
@@ -413,7 +413,7 @@
 }
 
 .users-table tbody tr:hover {
-  background: #f8fafc;
+  background: var(--color-neutral-50);
 }
 
 .users-table tbody tr:last-child td {
@@ -431,7 +431,7 @@
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   display: flex;
   align-items: center;
@@ -533,7 +533,7 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  background: #f8fafc;
+  background: var(--color-neutral-50);
 }
 
 .action-button:hover {
@@ -596,7 +596,7 @@
 }
 
 .pagination-button:hover:not(:disabled) {
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border-color: #667eea;
 }
 
@@ -722,7 +722,7 @@
   gap: 1rem;
   padding: 1.5rem;
   border-top: 1px solid #e2e8f0;
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border-radius: 0 0 0.75rem 0.75rem;
 }
 
@@ -814,7 +814,7 @@
 }
 
 .checkbox-item:hover {
-  background: #f8fafc;
+  background: var(--color-neutral-50);
 }
 
 .checkbox-item input[type="checkbox"] {
@@ -832,7 +832,7 @@
 /* Button Styles */
 .btn-primary {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   border: none;
   border-radius: 0.5rem;
@@ -867,7 +867,7 @@
 }
 
 .btn-secondary:hover {
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border-color: #cbd5e0;
   color: #1a202c;
 }
@@ -928,7 +928,7 @@
 }
 
 .user-info-box {
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border: 1px solid #e2e8f0;
   border-radius: 0.5rem;
   padding: 1rem;
@@ -1005,7 +1005,7 @@
 .status-change-info {
   margin: 1.5rem 0;
   padding: 1rem;
-  background: #f8fafc;
+  background: var(--color-neutral-50);
   border-radius: 0.5rem;
   border: 1px solid #e2e8f0;
 }
