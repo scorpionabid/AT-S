@@ -1,7 +1,5 @@
 /* CSS Variables for Layout System */
 :root {
-  --sidebar-width-expanded: 260px;
-  --sidebar-width-collapsed: 70px;
   --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --header-height: 70px;
   --z-sidebar: 1000;
@@ -11,22 +9,34 @@
   --spacing-base: 1rem;
 }
 
-/* Dashboard Layout */
-:root {
-  --sidebar-width-expanded: 260px;
-  --sidebar-width-collapsed: 70px;
+/* Header Styles for Fixed Layout */
+.app-header {
+  margin-left: var(--sidebar-width);
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 30; /* Below sidebar but above content */
 }
+
+/* Collapsed state header */
+.dashboard.sidebar-collapsed .app-header {
+  margin-left: var(--sidebar-width-collapsed);
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    margin-left: 0;
+  }
+}
+
+/* Dashboard Layout */
 
 .dashboard {
   display: flex;
   min-height: 100vh;
-  background-color: #f8fafc;
+  background-color: var(--color-neutral-50);
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
   position: relative;
-  padding-left: var(--sidebar-width-expanded);
-  padding-right: 0;
 }
 
 .dashboard-main {
@@ -36,22 +46,23 @@
   min-width: 0; /* Prevents flex item from overflowing container */
   width: 100%;
   max-width: 100%;
-  margin-left: 0; /* Remove margin-left as we're using padding on parent */
-  transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-left: var(--sidebar-width); /* Margin for sidebar space */
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dashboard-main.collapsed {
-  padding-left: var(--sidebar-width-collapsed);
+  margin-left: var(--sidebar-width-collapsed);
 }
 
 .dashboard-content {
   flex: 1;
   padding: 2rem;
+  padding-top: calc(var(--header-height) + 2rem); /* Add header height to top padding */
   overflow-y: auto;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  background-color: #f8fafc;
+  background-color: var(--color-neutral-50);
 }
 
 /* ====================
@@ -155,7 +166,7 @@
 .user-profile .user-avatar {
   width: 40px;
   height: 40px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   font-size: 1rem;
 }
@@ -208,7 +219,7 @@
   margin-bottom: 3rem;
   text-align: center;
   padding: 2rem 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+  background: linear-gradient(135deg, var(--color-neutral-50) 0%, #ffffff 100%);
   border-radius: 1.5rem;
   border: 1px solid #e2e8f0;
 }
@@ -217,7 +228,7 @@
   margin: 0 0 1rem;
   font-size: 2.5rem;
   font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -253,7 +264,7 @@
   padding: 2rem 2rem 1rem;
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   margin-bottom: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
 }
 
 .card-title {
@@ -278,7 +289,7 @@
 .card-footer {
   padding: 1.25rem 1.5rem;
   border-top: 1px solid rgba(226, 232, 240, 0.6);
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  background: linear-gradient(135deg, var(--color-neutral-50) 0%, #f1f5f9 100%);
 }
 
 /* Dashboard Home Specific Styles */
@@ -296,7 +307,7 @@
 }
 
 .stat-card {
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
   border-radius: 1rem;
   padding: 2rem;
   display: flex;
@@ -316,7 +327,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary-horizontal);
 }
 
 .stat-card:hover {
@@ -346,7 +357,7 @@
 }
 
 .stat-blue .stat-icon { 
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
 }
 .stat-green .stat-icon { 
@@ -428,7 +439,7 @@
   justify-content: center;
   gap: 1rem;
   padding: 2rem 1.5rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
   text-decoration: none;
   color: #374151;
   border: 1px solid #e5e7eb;
@@ -448,7 +459,7 @@
   left: 0;
   right: 0;
   height: 3px;
-  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary-horizontal);
   transform: scaleX(0);
   transition: transform 0.3s ease;
 }
@@ -458,7 +469,7 @@
 }
 
 .quick-action-btn:hover {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--gradient-primary);
   color: white;
   transform: translateY(-4px);
   box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
@@ -487,7 +498,7 @@
   align-items: flex-start;
   gap: 1.25rem;
   padding: 1.25rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
   border-radius: 0.75rem;
   border: 1px solid rgba(226, 232, 240, 0.6);
   transition: all 0.2s ease;
@@ -554,7 +565,7 @@
   align-items: center;
   gap: 1.25rem;
   padding: 1rem 1.25rem;
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ffffff 0%, var(--color-neutral-50) 100%);
   border-radius: 0.75rem;
   border: 1px solid rgba(226, 232, 240, 0.6);
   transition: all 0.2s ease;

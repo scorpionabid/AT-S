@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 shadow-sm transition-colors duration-200">
+      <header className="app-header fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-colors duration-200">
         <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center h-16 md:h-20">
             {/* Sol hissə: menyu və başlıq */}

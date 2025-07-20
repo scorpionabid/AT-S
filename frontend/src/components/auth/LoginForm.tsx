@@ -149,7 +149,7 @@ const LoginForm: React.FC = () => {
           {/* Card inner glow */}
           <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent rounded-3xl"></div>
           
-          <div className="relative space-y-8">
+          <form onSubmit={handleSubmit} className="relative space-y-8">
             {/* Form Title */}
             <div className="text-center mb-8">
               <h3 className="text-2xl font-bold text-white mb-2">Sisteme Giriş</h3>
@@ -330,7 +330,6 @@ const LoginForm: React.FC = () => {
             {/* Enhanced Login Button */}
             <button
               type="submit"
-              onClick={handleSubmit}
               className={`w-full py-6 px-8 rounded-2xl font-bold text-white text-lg transition-all duration-300 relative overflow-hidden ${
                 isLoading
                   ? 'bg-gray-500 cursor-not-allowed'
@@ -350,7 +349,7 @@ const LoginForm: React.FC = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
               )}
             </button>
-          </div>
+          </form>
 
           {/* Enhanced Footer */}
           <div className="mt-10 text-center space-y-3">

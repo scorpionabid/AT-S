@@ -10,29 +10,27 @@ interface DashboardProps {
 const Dashboard: React.FC<DashboardProps> = ({ children }) => {
   const { isCollapsed, isMobileOpen, screenSize } = useLayout();
   
-  // Generate CSS classes based on layout state
-  const sidebarClasses = [
-    'app-sidebar',
-    isCollapsed ? 'collapsed' : '',
-    screenSize === 'mobile' && isMobileOpen ? 'mobile-open' : ''
-  ].filter(Boolean).join(' ');
-
-  const mainClasses = [
-    'app-main',
+  const dashboardClasses = [
+    'dashboard',
     isCollapsed ? 'sidebar-collapsed' : ''
   ].filter(Boolean).join(' ');
 
+  const mainClasses = [
+    'dashboard-main',
+    isCollapsed ? 'collapsed' : ''
+  ].filter(Boolean).join(' ');
+
   return (
-    <div className="app-layout">
+    <div className={dashboardClasses}>
       {/* Header */}
       <Header />
       
-      {/* Sidebar */}
-      <Sidebar variant="modern" theme="auto" />
+      {/* Sidebar - no wrapper needed, it handles its own positioning */}
+      <Sidebar variant="modern" />
       
       {/* Main Content */}
       <main className={mainClasses}>
-        <div className="app-content">
+        <div className="dashboard-content">
           {children}
         </div>
       </main>

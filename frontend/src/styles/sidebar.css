@@ -3,6 +3,12 @@
 
 /* ===== SIDEBAR BASE STYLES ===== */
 .app-sidebar {
+  /* Positioning */
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  
   /* Background with gradient support */
   background: var(--sidebar-bg);
   border-right: 1px solid var(--sidebar-border);
@@ -19,6 +25,10 @@
   
   /* Width management */
   width: var(--sidebar-width);
+  
+  /* Overflow management */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .app-sidebar.collapsed {
@@ -30,6 +40,12 @@
   .app-sidebar {
     width: var(--sidebar-width-mobile);
     box-shadow: var(--sidebar-shadow-mobile);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+  }
+  
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
   }
 }
 

@@ -209,11 +209,8 @@ const Sidebar: React.FC<SidebarProps> = memo(({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{ 
-          display: 'block', 
-          position: 'relative',
-          minHeight: '100vh',
           width: isCollapsed ? '4rem' : '16rem'
-        }} // Ensure visibility
+        }}
       >
         {/* Always render header first */}
         <SidebarHeader 
