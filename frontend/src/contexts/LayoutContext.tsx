@@ -13,7 +13,7 @@ interface LayoutContextType {
   closeMobile: () => void;
   
   // Responsive detection
-  screenSize: 'mobile' | 'desktop';
+  screenSize: 'mobile' | 'tablet' | 'desktop';
   sidebarWidth: number; // computed value
   
   // Theme management
@@ -33,7 +33,7 @@ const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [screenSize, setScreenSize] = useState<'mobile' | 'desktop'>('desktop');
+  const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [theme, setTheme] = useState<Theme>('system');
   const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -77,12 +77,17 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   // Screen size detection
   useEffect(() => {
     const checkScreenSize = () => {
-      const isMobile = window.innerWidth < 768;
-      setScreenSize(isMobile ? 'mobile' : 'desktop');
+      const width = window.innerWidth;
       
-      // On mobile, always close the sidebar when screen size changes
-      if (isMobile) {
-        setIsMobileOpen(false);
+      if (width < 768) {
+        setScreenSize('mobile');
+        setIsMobileOpen(false); // Auto-close on mobile
+      } else if (width < 1024) {
+        setScreenSize('tablet');
+        setIsMobileOpen(false); // Auto-close on tablet
+      } else {
+        setScreenSize('desktop');
+        setIsMobileOpen(false); // Reset mobile state on desktop
       }
     };
     
@@ -98,7 +103,7 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   
   // Computed sidebar width
   const sidebarWidth = React.useMemo(() => {
-    if (screenSize === 'mobile') {
+    if (screenSize === 'mobile' || screenSize === 'tablet') {
       return isMobileOpen ? 280 : 0;
     }
     return isCollapsed ? 80 : 280;
@@ -115,10 +120,10 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [isCollapsed, screenSize]);
   
-  // Mobile sidebar functionality
+  // Mobile/tablet sidebar functionality
   const toggleMobile = () => {
     console.log('toggleMobile called. Current isMobileOpen:', isMobileOpen, 'screenSize:', screenSize);
-    if (screenSize === 'mobile') {
+    if (screenSize === 'mobile' || screenSize === 'tablet') {
       console.log('Setting isMobileOpen to:', !isMobileOpen);
       setIsMobileOpen(prev => {
         console.log('isMobileOpen state updated to:', !prev);
@@ -128,14 +133,14 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
   
   const closeMobile = () => {
-    if (screenSize === 'mobile') {
+    if (screenSize === 'mobile' || screenSize === 'tablet') {
       setIsMobileOpen(false);
     }
   };
   
   // Legacy support functions (for backward compatibility)
   const toggleSidebar = () => {
-    if (screenSize === 'mobile') {
+    if (screenSize === 'mobile' || screenSize === 'tablet') {
       toggleMobile();
     } else {
       toggleCollapse();
@@ -143,7 +148,7 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
   
   const closeSidebar = () => {
-    if (screenSize === 'mobile') {
+    if (screenSize === 'mobile' || screenSize === 'tablet') {
       closeMobile();
     }
   };

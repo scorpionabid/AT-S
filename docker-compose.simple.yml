@@ -1,7 +1,9 @@
 services:
   # Laravel Backend
   backend:
-    image: atis-backend
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
     container_name: atis_backend
     environment:
       - APP_ENV=local

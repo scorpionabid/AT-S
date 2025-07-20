@@ -28,6 +28,7 @@ const MenuToggle: React.FC<MenuToggleProps> = ({
       onClick={handleMenuToggle}
       className={`p-2 rounded-md text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-neutral-800 transition-smooth ${className}`}
       aria-label={ariaLabel}
+      data-menu-toggle
     >
       <FiMenu size={size} />
     </button>
