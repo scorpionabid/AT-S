@@ -68,7 +68,7 @@ const InstitutionsList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
-  const [viewMode, setViewMode] = useState<'list' | 'hierarchy'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'table' | 'hierarchy'>('list');
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showDetailsForm, setShowDetailsForm] = useState(false);
@@ -537,7 +537,13 @@ const InstitutionsList: React.FC = () => {
               className={`view-button ${viewMode === 'list' ? 'active' : ''}`}
               onClick={() => setViewMode('list')}
             >
-              <Icon type="LIST" className="nav-icon" /> Siyahı
+              <Icon type="LIST" className="nav-icon" /> Kart
+            </button>
+            <button
+              className={`view-button ${viewMode === 'table' ? 'active' : ''}`}
+              onClick={() => setViewMode('table')}
+            >
+              <Icon type="TABLE" className="nav-icon" /> Cədvəl
             </button>
             <button
               className={`view-button ${viewMode === 'hierarchy' ? 'active' : ''}`}
@@ -593,6 +599,136 @@ const InstitutionsList: React.FC = () => {
           onEditClick={handleEditClick}
           canManage={canManageInstitutions()}
         />
+      ) : viewMode === 'table' ? (
+        <div className="institutions-table">
+          <table>
+            <thead>
+              <tr>
+                {canManageInstitutions() && (
+                  <th>
+                    <input
+                      type="checkbox"
+                      checked={selectedInstitutions.length === institutions.length}
+                      onChange={handleSelectAll}
+                      className="bulk-select-all"
+                    />
+                  </th>
+                )}
+                <th>Təşkilat</th>
+                <th>Tip</th>
+                <th>Səviyyə</th>
+                <th>Status</th>
+                <th>Alt təşkilat</th>
+                <th>Region</th>
+                <th>Kod</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Array.isArray(institutions) && institutions.map((institution) => (
+                <tr 
+                  key={institution.id} 
+                  className={selectedInstitutions.includes(institution.id) ? 'selected' : ''}
+                >
+                  {canManageInstitutions() && (
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedInstitutions.includes(institution.id)}
+                        onChange={() => handleSelectInstitution(institution.id)}
+                        className="institution-select-checkbox"
+                      />
+                    </td>
+                  )}
+                  <td>
+                    <div className="institution-name-cell">
+                      {institution.name}
+                      {institution.short_name && (
+                        <span className="institution-short-cell">({institution.short_name})</span>
+                      )}
+                    </div>
+                  </td>
+                  <td>
+                    <span className={`table-badge type-${institution.type}`}>
+                      {getTypeDisplayName(institution.type)}
+                    </span>
+                  </td>
+                  <td>{getLevelDisplayName(institution.level)}</td>
+                  <td>
+                    <span className={`table-badge status-${institution.is_active ? 'active' : 'inactive'}`}>
+                      {institution.is_active ? 'Aktiv' : 'Deaktiv'}
+                    </span>
+                  </td>
+                  <td>{institution.children_count}</td>
+                  <td>{institution.region_code || '-'}</td>
+                  <td>
+                    {institution.institution_code && (
+                      <span style={{fontFamily: 'Monaco, monospace', fontSize: '0.8rem'}}>
+                        {institution.institution_code}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <div className="table-actions">
+                      <button
+                        className="table-action-btn details"
+                        onClick={() => handleDetailsClick(institution.id)}
+                        title="Detallar"
+                      >
+                        <Icon type="VIEW" />
+                      </button>
+                      {canManageInstitutions() && (
+                        <>
+                          <button
+                            className="table-action-btn edit"
+                            onClick={() => handleEditClick(institution.id)}
+                            title="Redaktə et"
+                          >
+                            <Icon type="EDIT" />
+                          </button>
+                          <button
+                            className="table-action-btn delete"
+                            onClick={() => handleDeleteClick(institution.id)}
+                            title="Sil"
+                          >
+                            <Icon type="DELETE" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          
+          {(!institutions || institutions.length === 0) && !loading && (
+            <div style={{padding: '3rem', textAlign: 'center', color: '#6b7280'}}>
+              <Icon type="INSTITUTION" style={{fontSize: '3rem', marginBottom: '1rem', opacity: 0.5}} />
+              <p style={{margin: 0, fontSize: '1.1rem'}}>Heç bir təşkilat tapılmadı</p>
+              {(searchTerm || typeFilter || levelFilter) && (
+                <button 
+                  onClick={() => {
+                    setSearchTerm('');
+                    setTypeFilter('');
+                    setLevelFilter('');
+                    setCurrentPage(1);
+                  }}
+                  style={{
+                    marginTop: '1rem',
+                    padding: '0.5rem 1rem',
+                    background: '#f3f4f6',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '6px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Filtrləri təmizlə
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       ) : (
         <>
           <div className="institutions-grid">
