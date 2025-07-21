@@ -42,60 +42,138 @@ const LoadDistributionEngine: React.FC<LoadDistributionEngineProps> = ({
     loadDistributionData();
   }, [academicYear]);
 
-  const loadDistributionData = async () => {
-    try {
-      const [classesData, subjectsData, rulesData] = await Promise.all([
-        fetchAvailableClasses(),
-        fetchAvailableSubjects(),
-        fetchDistributionRules()
-      ]);
-
-      setAvailableClasses(classesData);
-      setAvailableSubjects(subjectsData);
-      setSettings(prev => ({ ...prev, rules: rulesData }));
-    } catch (error) {
-      console.error('Distribution data loading error:', error);
-    }
+  const loadDistributionData = () => {
+    console.log('LoadDistributionEngine: Loading demo distribution data - NO API CALLS');
+    
+    // Load mock data directly
+    setAvailableClasses(getMockAvailableClasses());
+    setAvailableSubjects(getMockAvailableSubjects());
+    setSettings(prev => ({ ...prev, rules: getMockDistributionRules() }));
   };
 
-  const fetchAvailableClasses = async () => {
-    const response = await fetch(`/api/classes?academic_year=${academicYear}&unassigned=true`);
-    return response.json().then(data => data.data || []);
+  const getMockAvailableClasses = () => {
+    console.log('getMockAvailableClasses: Returning static classes data');
+    return [
+      { id: 1, name: '9A', grade_level: 9, section: 'A', current_enrollment: 28, max_capacity: 30 },
+      { id: 2, name: '9B', grade_level: 9, section: 'B', current_enrollment: 26, max_capacity: 30 },
+      { id: 3, name: '10A', grade_level: 10, section: 'A', current_enrollment: 25, max_capacity: 30 },
+      { id: 4, name: '10B', grade_level: 10, section: 'B', current_enrollment: 24, max_capacity: 30 },
+      { id: 5, name: '11A', grade_level: 11, section: 'A', current_enrollment: 23, max_capacity: 25 },
+      { id: 6, name: '11B', grade_level: 11, section: 'B', current_enrollment: 22, max_capacity: 25 }
+    ];
   };
 
-  const fetchAvailableSubjects = async () => {
-    const response = await fetch('/api/subjects');
-    return response.json().then(data => data.data || []);
+  const getMockAvailableSubjects = () => {
+    console.log('getMockAvailableSubjects: Returning static subjects data');
+    return [
+      { id: 1, name: 'Riyaziyyat', short_name: 'Riy', code: 'MAT', default_weekly_hours: 4 },
+      { id: 2, name: 'Fizika', short_name: 'Fiz', code: 'PHY', default_weekly_hours: 3 },
+      { id: 3, name: 'Kimya', short_name: 'Kim', code: 'CHE', default_weekly_hours: 3 },
+      { id: 4, name: 'Tarix', short_name: 'Tar', code: 'HIS', default_weekly_hours: 2 },
+      { id: 5, name: 'Ədəbiyyat', short_name: 'Ədb', code: 'LIT', default_weekly_hours: 3 },
+      { id: 6, name: 'İngilis dili', short_name: 'İng', code: 'ENG', default_weekly_hours: 3 },
+      { id: 7, name: 'Coğrafiya', short_name: 'Coğ', code: 'GEO', default_weekly_hours: 2 },
+      { id: 8, name: 'Biologiya', short_name: 'Bio', code: 'BIO', default_weekly_hours: 2 }
+    ];
   };
 
-  const fetchDistributionRules = async () => {
-    const response = await fetch('/api/distribution-rules');
-    return response.json().then(data => data.data || []);
-  };
-
-  const generatePreview = async () => {
-    setIsPreviewLoading(true);
-    try {
-      const response = await fetch('/api/teaching-loads/distribution-preview', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          academic_year: academicYear,
-          settings,
-          selected_classes: selectedClasses,
-          strategy: distributionStrategy,
-        }),
-      });
-
-      const result = await response.json();
-      if (result.success) {
-        setDistributionPreview(result.data);
+  const getMockDistributionRules = (): LoadDistributionRule[] => {
+    console.log('getMockDistributionRules: Returning static distribution rules');
+    return [
+      {
+        id: 1,
+        name: 'Fənn ixtisaslaşması prioriteti',
+        description: 'Müəllimə ixtisaslaşdığı fənnləri təyin et',
+        rule_type: 'subject_specialization',
+        weight: 0.4,
+        enabled: true,
+        parameters: { min_qualification_score: 80 }
+      },
+      {
+        id: 2,
+        name: 'İş yükü balansı',
+        description: 'Bütün müəllimlər arasında iş yükünü bərabər böl',
+        rule_type: 'workload_balance',
+        weight: 0.3,
+        enabled: true,
+        parameters: { target_utilization: 85, tolerance: 10 }
+      },
+      {
+        id: 3,
+        name: 'Müəllim tercihləri',
+        description: 'Müəllimlərin tercih etdiyi fənn və sinifləri nəzərə al',
+        rule_type: 'preference_priority',
+        weight: 0.2,
+        enabled: true,
+        parameters: { preference_weight: 0.7 }
+      },
+      {
+        id: 4,
+        name: 'Konflikt qabağı alma',
+        description: 'Cədvəl konfliktlərini qabağını al',
+        rule_type: 'conflict_avoidance',
+        weight: 0.1,
+        enabled: true,
+        parameters: { strict_mode: true }
       }
-    } catch (error) {
-      console.error('Preview generation error:', error);
-    } finally {
+    ];
+  };
+
+  const generatePreview = () => {
+    setIsPreviewLoading(true);
+    console.log('generatePreview: Generating demo distribution preview - NO API CALLS');
+    
+    // Simulate preview generation with timeout
+    setTimeout(() => {
+      const mockPreview = {
+        total_loads: selectedClasses.length * 3, // Average 3 subjects per class
+        affected_teachers: teachers.length,
+        balance_score: 85.5,
+        conflicts: 0,
+        optimization_score: 92.3,
+        assignments: selectedClasses.map(classId => {
+          const classInfo = availableClasses.find(c => c.id === classId);
+          return {
+            class_id: classId,
+            class_name: classInfo?.name || `Sinif ${classId}`,
+            subject_assignments: [
+              {
+                subject_id: 1,
+                subject_name: 'Riyaziyyat',
+                teacher_id: 1,
+                teacher_name: 'Aygün Məmmədova',
+                weekly_hours: 4,
+                confidence_score: 95
+              },
+              {
+                subject_id: 2,
+                subject_name: 'Fizika',
+                teacher_id: 2,
+                teacher_name: 'Elnur Əliyev',
+                weekly_hours: 3,
+                confidence_score: 88
+              },
+              {
+                subject_id: 3,
+                subject_name: 'Kimya',
+                teacher_id: 3,
+                teacher_name: 'Səbinə Həsənova',
+                weekly_hours: 3,
+                confidence_score: 91
+              }
+            ]
+          };
+        }),
+        recommendations: [
+          'Müəllim ixtisaslaşması qayədalarına üstünlük verilib',
+          'İş yükü balansı optimallaşdırıldı',
+          'Heç bir cədvəl konflikti aşkar edilmədi'
+        ]
+      };
+      
+      setDistributionPreview(mockPreview);
       setIsPreviewLoading(false);
-    }
+    }, 1500); // Simulate 1.5 second processing time
   };
 
   const handleDistribute = () => {

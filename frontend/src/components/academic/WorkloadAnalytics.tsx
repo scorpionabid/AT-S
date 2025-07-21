@@ -4,6 +4,15 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { TeacherInfo, TeachingLoad, WorkloadSummary, AnalyticsData } from './types/teachingLoadTypes';
 
+// Import new chart components
+import UtilizationDonutChart from './charts/UtilizationDonutChart';
+import WorkloadTrendChart from './charts/WorkloadTrendChart';
+import SubjectDistributionChart from './charts/SubjectDistributionChart';
+import TeacherPerformanceRadar from './charts/TeacherPerformanceRadar';
+
+// Import chart styles
+import '../../styles/academic/charts.css';
+
 interface WorkloadAnalyticsProps {
   teachers: TeacherInfo[];
   teachingLoads: TeachingLoad[];
@@ -21,27 +30,22 @@ const WorkloadAnalytics: React.FC<WorkloadAnalyticsProps> = ({
   const [selectedMetric, setSelectedMetric] = useState<'utilization' | 'balance' | 'efficiency' | 'trends'>('utilization');
   const [timeRange, setTimeRange] = useState<'current' | 'semester' | 'year'>('current');
   const [departmentFilter, setDepartmentFilter] = useState<string>('all');
+  const [selectedTeacherId, setSelectedTeacherId] = useState<number>(1);
 
   useEffect(() => {
     generateAnalytics();
   }, [teachers, teachingLoads, workloadSummaries, timeRange, departmentFilter]);
 
-  const generateAnalytics = async () => {
-    try {
-      const response = await fetch(`/api/teaching-loads/analytics?academic_year=${academicYear}&time_range=${timeRange}&department=${departmentFilter}`);
-      const result = await response.json();
-      
-      if (result.success) {
-        setAnalyticsData(result.data);
-      }
-    } catch (error) {
-      console.error('Analytics generation error:', error);
-      // Generate local analytics as fallback
-      generateLocalAnalytics();
-    }
+  const generateAnalytics = () => {
+    console.log('WorkloadAnalytics: Generating demo analytics - NO API CALLS');
+    
+    // Always use local analytics generation in demo mode
+    generateLocalAnalytics();
   };
 
   const generateLocalAnalytics = () => {
+    console.log('generateLocalAnalytics: Creating enhanced demo analytics data');
+    
     const analytics: AnalyticsData = {
       overall_statistics: {
         total_teachers: teachers.length,
@@ -59,9 +63,30 @@ const WorkloadAnalytics: React.FC<WorkloadAnalyticsProps> = ({
         { range: '90-100%', count: workloadSummaries.filter(s => s.utilization_percentage >= 90 && s.utilization_percentage <= 100).length, percentage: 0 },
         { range: '100%+', count: workloadSummaries.filter(s => s.utilization_percentage > 100).length, percentage: 0 },
       ],
-      subject_distribution: [],
-      workload_trends: [],
-      teacher_performance: [],
+      subject_distribution: [
+        { subject_name: 'Riyaziyyat', teacher_count: 2, total_hours: 8, average_hours_per_teacher: 4 },
+        { subject_name: 'Fizika', teacher_count: 1, total_hours: 3, average_hours_per_teacher: 3 },
+        { subject_name: 'Kimya', teacher_count: 1, total_hours: 3, average_hours_per_teacher: 3 },
+        { subject_name: 'Tarix', teacher_count: 1, total_hours: 2, average_hours_per_teacher: 2 },
+        { subject_name: 'Ədəbiyyat', teacher_count: 1, total_hours: 3, average_hours_per_teacher: 3 },
+        { subject_name: 'İngilis dili', teacher_count: 1, total_hours: 3, average_hours_per_teacher: 3 },
+        { subject_name: 'Coğrafiya', teacher_count: 1, total_hours: 2, average_hours_per_teacher: 2 },
+        { subject_name: 'Biologiya', teacher_count: 1, total_hours: 2, average_hours_per_teacher: 2 }
+      ],
+      workload_trends: [
+        { date: '2024-09-01', average_utilization: 25.2, optimal_count: 0, overloaded_count: 0 },
+        { date: '2024-10-01', average_utilization: 32.8, optimal_count: 1, overloaded_count: 0 },
+        { date: '2024-11-01', average_utilization: 35.1, optimal_count: 1, overloaded_count: 0 },
+        { date: '2024-12-01', average_utilization: 33.6, optimal_count: 1, overloaded_count: 0 },
+        { date: '2025-01-01', average_utilization: 36.4, optimal_count: 2, overloaded_count: 0 }
+      ],
+      teacher_performance: [
+        { teacher_id: 1, teacher_name: 'Aygün Məmmədova', efficiency_score: 92.5, student_satisfaction: 4.7, workload_stability: 89.2 },
+        { teacher_id: 2, teacher_name: 'Elnur Əliyev', efficiency_score: 88.3, student_satisfaction: 4.5, workload_stability: 85.1 },
+        { teacher_id: 3, teacher_name: 'Səbinə Həsənova', efficiency_score: 0, student_satisfaction: 0, workload_stability: 0 },
+        { teacher_id: 4, teacher_name: 'Rəşad Quliyev', efficiency_score: 0, student_satisfaction: 0, workload_stability: 0 },
+        { teacher_id: 5, teacher_name: 'Leyla İbrahimova', efficiency_score: 0, student_satisfaction: 0, workload_stability: 0 }
+      ],
     };
 
     // Calculate percentages
@@ -73,24 +98,32 @@ const WorkloadAnalytics: React.FC<WorkloadAnalyticsProps> = ({
     setAnalyticsData(analytics);
   };
 
-  const exportAnalytics = async () => {
-    try {
-      const response = await fetch(`/api/teaching-loads/analytics/export?academic_year=${academicYear}&format=excel`, {
-        method: 'GET',
-      });
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `workload-analytics-${academicYear}.xlsx`;
-        link.click();
-        window.URL.revokeObjectURL(url);
+  const exportAnalytics = () => {
+    console.log('exportAnalytics: Exporting demo analytics data');
+    
+    // Export as JSON in demo mode
+    const exportData = {
+      ...analyticsData,
+      export_date: new Date().toISOString(),
+      academic_year: academicYear,
+      filters: {
+        time_range: timeRange,
+        department: departmentFilter
+      },
+      metadata: {
+        export_type: 'demo',
+        source: 'ATİS Demo Analytics'
       }
-    } catch (error) {
-      console.error('Export error:', error);
-    }
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `demo-workload-analytics-${academicYear}-${new Date().toISOString().split('T')[0]}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   const departmentOptions = useMemo(() => {
@@ -165,36 +198,17 @@ const WorkloadAnalytics: React.FC<WorkloadAnalyticsProps> = ({
   const renderUtilizationChart = () => {
     if (!analyticsData) return null;
 
-    const maxCount = Math.max(...analyticsData.utilization_distribution.map(item => item.count));
-
     return (
-      <Card className="utilization-chart">
+      <Card className="utilization-chart enhanced">
         <div className="chart-header">
           <h3>
-            <BarChart3 size={20} />
+            <PieChart size={20} />
             İstifadə Faizi Bölgüsü
           </h3>
         </div>
 
         <div className="chart-content">
-          <div className="chart-bars">
-            {analyticsData.utilization_distribution.map((item, index) => (
-              <div key={index} className="chart-bar-group">
-                <div className="chart-bar-container">
-                  <div 
-                    className="chart-bar"
-                    style={{ 
-                      height: `${(item.count / maxCount) * 100}%`,
-                      backgroundColor: getUtilizationColor(item.range)
-                    }}
-                  />
-                  <span className="bar-value">{item.count}</span>
-                </div>
-                <div className="bar-label">{item.range}</div>
-                <div className="bar-percentage">{item.percentage.toFixed(1)}%</div>
-              </div>
-            ))}
-          </div>
+          <UtilizationDonutChart data={analyticsData.utilization_distribution} />
         </div>
       </Card>
     );
@@ -368,15 +382,57 @@ const WorkloadAnalytics: React.FC<WorkloadAnalyticsProps> = ({
   };
 
   const renderAnalyticsContent = () => {
+    if (!analyticsData) return null;
+
     switch (selectedMetric) {
       case 'utilization':
-        return renderUtilizationChart();
+        return (
+          <div className="analytics-grid">
+            {renderUtilizationChart()}
+            <Card className="subject-distribution-enhanced">
+              <div className="chart-header">
+                <h3>
+                  <BookOpen size={20} />
+                  Fənn Bölgüsü
+                </h3>
+              </div>
+              <SubjectDistributionChart data={analyticsData.subject_distribution} />
+            </Card>
+          </div>
+        );
       case 'balance':
         return renderWorkloadBalance();
       case 'efficiency':
-        return renderTeacherEfficiency();
+        return (
+          <div className="analytics-grid">
+            {renderTeacherEfficiency()}
+            <Card className="teacher-performance-enhanced">
+              <div className="chart-header">
+                <h3>
+                  <TrendingUp size={20} />
+                  Performans Radari
+                </h3>
+              </div>
+              <TeacherPerformanceRadar 
+                data={analyticsData.teacher_performance} 
+                selectedTeacherId={selectedTeacherId}
+                onTeacherSelect={setSelectedTeacherId}
+              />
+            </Card>
+          </div>
+        );
       case 'trends':
-        return <div>Trend analizi hazırlanır...</div>;
+        return (
+          <Card className="trend-analysis-enhanced">
+            <div className="chart-header">
+              <h3>
+                <BarChart3 size={20} />
+                İş Yükü Trend Analizi
+              </h3>
+            </div>
+            <WorkloadTrendChart data={analyticsData.workload_trends} />
+          </Card>
+        );
       default:
         return null;
     }

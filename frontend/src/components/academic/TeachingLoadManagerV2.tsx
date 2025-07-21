@@ -19,8 +19,8 @@ import { TeacherInfo, TeachingLoad, WorkloadSummary } from './types/teachingLoad
 
 import '../../styles/academic/teaching-load-manager.css';
 
-const TeachingLoadManager: React.FC = () => {
-  console.log('🔥 COMPLETELY REWRITTEN - NO API CALLS EVER - DEMO ONLY 🔥');
+const TeachingLoadManagerV2: React.FC = () => {
+  console.log('🚀 TeachingLoadManagerV2: PURE DEMO VERSION - ZERO API CALLS - NEW IMPLEMENTATION');
   
   const [currentView, setCurrentView] = useState<'workload' | 'distribution' | 'analytics' | 'dragdrop' | 'ai-optimize' | 'calendar' | 'conflicts'>('workload');
   const [teachers, setTeachers] = useState<TeacherInfo[]>([]);
@@ -32,16 +32,16 @@ const TeachingLoadManager: React.FC = () => {
   const [isDistributing, setIsDistributing] = useState(false);
 
   useEffect(() => {
-    console.log('🚨 LOADING PURE DEMO DATA - ZERO API CALLS 🚨');
-    loadDemoDataOnly();
+    console.log('🔄 LOADING DEMO DATA - ABSOLUTELY NO API CALLS');
+    loadDemoData();
   }, [academicYear]);
 
-  const loadDemoDataOnly = () => {
-    console.log('📊 Demo data loading started - NO NETWORK REQUESTS');
+  const loadDemoData = () => {
+    console.log('📊 Starting demo data load...');
     setIsLoading(true);
     
     try {
-      // PURE DEMO DATA - NO API CALLS WHATSOEVER
+      // Load all demo data synchronously
       const demoTeachers = getDemoTeachers();
       const demoLoads = getDemoTeachingLoads();
       const demoSummaries = getDemoWorkloadSummaries();
@@ -50,7 +50,7 @@ const TeachingLoadManager: React.FC = () => {
       setTeachingLoads(demoLoads);
       setWorkloadSummaries(demoSummaries);
       
-      console.log('✅ DEMO DATA LOADED:', { 
+      console.log('✅ Demo data loaded:', { 
         teachers: demoTeachers.length, 
         loads: demoLoads.length, 
         summaries: demoSummaries.length 
@@ -675,4 +675,4 @@ const TeachingLoadManager: React.FC = () => {
   );
 };
 
-export default TeachingLoadManager;
+export default TeachingLoadManagerV2;

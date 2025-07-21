@@ -57,8 +57,23 @@ const RolesList: React.FC = () => {
   });
 
   const canManageRoles = () => {
-    const roleName = typeof user?.role === 'string' ? user.role : user?.role?.name;
-    return roleName === 'superadmin';
+    // Check both new roles array and legacy role field for backward compatibility
+    const hasRoleInArray = user?.roles?.includes('superadmin');
+    const legacyRoleName = typeof user?.role === 'string' ? user.role : user?.role?.name;
+    const hasLegacyRole = legacyRoleName === 'superadmin';
+    
+    // Debug logging
+    console.log('canManageRoles debug:', {
+      user: user,
+      userRoles: user?.roles,
+      hasRoleInArray,
+      legacyRole: user?.role,
+      legacyRoleName,
+      hasLegacyRole,
+      canManage: hasRoleInArray || hasLegacyRole
+    });
+    
+    return hasRoleInArray || hasLegacyRole;
   };
 
   const handleCreateSuccess = () => {
@@ -118,6 +133,14 @@ const RolesList: React.FC = () => {
     };
     return mockStats[roleName] || 0;
   };
+
+  // Debug log for component render
+  console.log('RolesList component render:', {
+    loading,
+    user,
+    userRoles: user?.roles,
+    canManage: user ? canManageRoles() : 'no user'
+  });
 
   if (loading) {
     return (

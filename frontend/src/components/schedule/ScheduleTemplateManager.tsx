@@ -30,73 +30,83 @@ const ScheduleTemplateManager: React.FC<ScheduleTemplateManagerProps> = ({
 
   const loadTemplates = async () => {
     setLoading(true);
-    try {
-      const response = await fetch('/api/schedule/templates');
-      const result = await response.json();
-      
-      if (result.success) {
-        setTemplates(result.data);
-      } else {
-        toast.error('Şablonlar yüklənərkən xəta baş verdi.');
-      }
-    } catch (error) {
-      toast.error('Şablonlar yüklənərkən xəta baş verdi.');
-      console.error('Template loading error:', error);
-    } finally {
+    
+    // Always load demo templates
+    setTimeout(() => {
+      setTemplates([
+        {
+          id: 1,
+          name: 'Standart həftəlik cədvəl',
+          description: 'Adi iş günləri üçün standart dərs cədvəli',
+          slots: [],
+          settings: {
+            week_start_date: new Date().toISOString().split('T')[0],
+            schedule_type: 'weekly',
+            working_days: [1, 2, 3, 4, 5],
+            periods_per_day: 8,
+            break_periods: [3, 6],
+            lunch_period: 6,
+            respect_teacher_preferences: true,
+            avoid_conflicts: true,
+            allow_room_sharing: false,
+            max_consecutive_periods: 4,
+            min_break_between_subjects: 0,
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          name: 'İmtahan cədvəli',
+          description: 'İmtahan dövrü üçün xüsusi cədvəl',
+          slots: [],
+          settings: {
+            week_start_date: new Date().toISOString().split('T')[0],
+            schedule_type: 'exam',
+            working_days: [1, 2, 3, 4, 5, 6],
+            periods_per_day: 4,
+            break_periods: [2],
+            respect_teacher_preferences: true,
+            avoid_conflicts: true,
+            allow_room_sharing: false,
+            max_consecutive_periods: 2,
+            min_break_between_subjects: 1,
+          },
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }
+      ]);
       setLoading(false);
-    }
+    }, 500);
   };
 
   const saveCurrentAsTemplate = async (name: string, description?: string) => {
-    try {
-      const response = await fetch('/api/schedule/templates', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name,
-          description,
-          slots: currentSchedule.slots,
-          settings: currentSchedule.settings,
-        }),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        toast.success('Şablon saxlanıldı!');
-        loadTemplates();
-        setIsCreateModalOpen(false);
-      } else {
-        toast.error(result.message || 'Şablon saxlanılarkən xəta baş verdi.');
-      }
-    } catch (error) {
-      toast.error('Şablon saxlanılarkən xəta baş verdi.');
-      console.error('Template save error:', error);
-    }
+    // Always simulate save in demo mode
+    const newTemplate: ScheduleTemplate = {
+      id: templates.length + 1,
+      name,
+      description,
+      slots: currentSchedule.slots,
+      settings: currentSchedule.settings,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    
+    setTemplates(prev => [...prev, newTemplate]);
+    toast.success('Şablon demo olaraq saxlanıldı!');
+    setIsCreateModalOpen(false);
   };
 
   const updateTemplate = async (templateId: number, updates: Partial<ScheduleTemplate>) => {
-    try {
-      const response = await fetch(`/api/schedule/templates/${templateId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        toast.success('Şablon yeniləndi!');
-        loadTemplates();
-        setIsEditModalOpen(false);
-        setSelectedTemplate(null);
-      } else {
-        toast.error(result.message || 'Şablon yenilənərkən xəta baş verdi.');
-      }
-    } catch (error) {
-      toast.error('Şablon yenilənərkən xəta baş verdi.');
-      console.error('Template update error:', error);
-    }
+    // Always simulate update in demo mode
+    setTemplates(prev => prev.map(template => 
+      template.id === templateId 
+        ? { ...template, ...updates, updated_at: new Date().toISOString() }
+        : template
+    ));
+    toast.success('Şablon demo olaraq yeniləndi!');
+    setIsEditModalOpen(false);
+    setSelectedTemplate(null);
   };
 
   const deleteTemplate = async (templateId: number) => {
@@ -104,25 +114,11 @@ const ScheduleTemplateManager: React.FC<ScheduleTemplateManagerProps> = ({
       return;
     }
 
-    try {
-      const response = await fetch(`/api/schedule/templates/${templateId}`, {
-        method: 'DELETE',
-      });
-
-      const result = await response.json();
-      
-      if (result.success) {
-        toast.success('Şablon silindi!');
-        loadTemplates();
-        if (selectedTemplate?.id === templateId) {
-          setSelectedTemplate(null);
-        }
-      } else {
-        toast.error(result.message || 'Şablon silinərkən xəta baş verdi.');
-      }
-    } catch (error) {
-      toast.error('Şablon silinərkən xəta baş verdi.');
-      console.error('Template delete error:', error);
+    // Always simulate delete in demo mode
+    setTemplates(prev => prev.filter(template => template.id !== templateId));
+    toast.success('Şablon demo olaraq silindi!');
+    if (selectedTemplate?.id === templateId) {
+      setSelectedTemplate(null);
     }
   };
 

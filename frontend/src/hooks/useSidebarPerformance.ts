@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 
 // Performance metrics interface
 interface PerformanceMetrics {
@@ -285,7 +285,7 @@ export const withPerformanceMonitoring = <P extends object>(
       };
     });
 
-    return <WrappedComponent {...props} />;
+    return React.createElement(WrappedComponent, props);
   };
 
   PerformanceMonitoredComponent.displayName = 

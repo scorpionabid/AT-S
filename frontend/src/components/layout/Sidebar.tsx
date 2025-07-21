@@ -103,6 +103,16 @@ const Sidebar: React.FC<SidebarProps> = memo(({
 
   // Online status detection
   const isOnline = useOnlineStatus();
+
+  // Sync CSS variables with sidebar state
+  useEffect(() => {
+    const root = document.documentElement;
+    if (screenSize === 'mobile') {
+      root.style.setProperty('--sidebar-width', isMobileOpen ? '100vw' : '0px');
+    } else {
+      root.style.setProperty('--sidebar-width', isCollapsed ? '80px' : '280px');
+    }
+  }, [isCollapsed, isMobileOpen, screenSize]);
   
   // Refs for touch gestures
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -298,7 +308,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
           }}
           maxRetries={3}
           resetOnPropsChange={true}
-          resetKeys={[isCollapsed, isMobileOpen, screenSize]}
+          resetKeys={[String(isCollapsed), String(isMobileOpen), screenSize]}
         >
           {sidebarInner}
         </SidebarErrorBoundary>

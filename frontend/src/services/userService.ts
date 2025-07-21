@@ -180,85 +180,85 @@ class UserService extends RoleAssignableService<User, CreateUserData, UpdateUser
   /**
    * Reset user password
    */
-  resetPassword: async (id: number, newPassword: string) => {
+  async resetPassword(id: number, newPassword: string): Promise<{ message: string }> {
     const response = await api.post<{ message: string }>(`/users/${id}/reset-password`, {
       new_password: newPassword
     });
     return response.data;
-  },
+  }
 
   /**
    * Toggle user status
    */
-  toggleStatus: async (id: number) => {
+  async toggleStatus(id: number): Promise<{ message: string; user: User }> {
     const response = await api.post<{ message: string; user: User }>(`/users/${id}/toggle-status`);
     return response.data;
-  },
+  }
 
   /**
    * Bulk activate users
    */
-  bulkActivate: async (userIds: number[]) => {
+  async bulkActivate(userIds: number[]): Promise<BulkOperationResponse> {
     const response = await api.post<BulkOperationResponse>('/users/bulk/activate', {
       user_ids: userIds
     });
     return response.data;
-  },
+  }
 
   /**
    * Bulk deactivate users
    */
-  bulkDeactivate: async (userIds: number[]) => {
+  async bulkDeactivate(userIds: number[]): Promise<BulkOperationResponse> {
     const response = await api.post<BulkOperationResponse>('/users/bulk/deactivate', {
       user_ids: userIds
     });
     return response.data;
-  },
+  }
 
   /**
    * Bulk assign role to users
    */
-  bulkAssignRole: async (userIds: number[], roleId: number) => {
+  async bulkAssignRole(userIds: number[], roleId: number): Promise<BulkOperationResponse> {
     const response = await api.post<BulkOperationResponse>('/users/bulk/assign-role', {
       user_ids: userIds,
       role_id: roleId
     });
     return response.data;
-  },
+  }
 
   /**
    * Bulk assign institution to users
    */
-  bulkAssignInstitution: async (userIds: number[], institutionId: number) => {
+  async bulkAssignInstitution(userIds: number[], institutionId: number): Promise<BulkOperationResponse> {
     const response = await api.post<BulkOperationResponse>('/users/bulk/assign-institution', {
       user_ids: userIds,
       institution_id: institutionId
     });
     return response.data;
-  },
+  }
 
   /**
    * Bulk delete users
    */
-  bulkDelete: async (userIds: number[], confirm: boolean) => {
+  async bulkDelete(userIds: number[], confirm: boolean): Promise<BulkDeleteResponse> {
     const response = await api.post<BulkDeleteResponse>('/users/bulk/delete', {
       user_ids: userIds,
       confirm: confirm
     });
     return response.data;
-  },
+  }
 
   /**
    * Export users
    */
-  exportUsers: async (format: 'csv' | 'json', filters: any = {}, includeProfiles: boolean = false) => {
+  async exportUsers(format: 'csv' | 'json', filters: any = {}, includeProfiles: boolean = false): Promise<ExportResponse> {
     const response = await api.post<ExportResponse>('/users/export', {
       format,
       filters,
       include_profiles: includeProfiles
     });
     return response.data;
-  },
+  }
 
   /**
    * Get bulk operation statistics

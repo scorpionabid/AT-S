@@ -2,13 +2,17 @@ import React from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import { useLayout } from '../../contexts/LayoutContext';
+import { useAutoCollapse } from '../../hooks/useAutoCollapse';
 
 interface DashboardProps {
   children: React.ReactNode;
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ children }) => {
-  const { isCollapsed, isMobileOpen, screenSize } = useLayout();
+  const { isCollapsed, isMobileOpen, screenSize, closeMobile } = useLayout();
+  
+  // Auto-collapse sidebar on navigation for mobile
+  useAutoCollapse();
   
   const dashboardClasses = [
     'dashboard',
@@ -22,6 +26,15 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
 
   return (
     <div className={dashboardClasses}>
+      {/* Mobile/Tablet overlay */}
+      {(screenSize === 'mobile' || screenSize === 'tablet') && (
+        <div 
+          className={`mobile-sidebar-overlay ${isMobileOpen ? 'visible' : ''}`}
+          onClick={closeMobile}
+          aria-hidden="true"
+        />
+      )}
+      
       {/* Header */}
       <Header />
       
@@ -29,7 +42,12 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
       <Sidebar variant="modern" />
       
       {/* Main Content */}
-      <main className={mainClasses}>
+      <main className={mainClasses} style={{
+        marginLeft: 'var(--sidebar-width)',
+        width: 'calc(100% - var(--sidebar-width))',
+        marginTop: 'var(--header-height)',
+        minHeight: 'calc(100vh - var(--header-height))'
+      }}>
         <div className="dashboard-content">
           {children}
         </div>

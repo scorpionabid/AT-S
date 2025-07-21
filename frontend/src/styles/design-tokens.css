@@ -341,6 +341,9 @@
   --sidebar-transition-fast: all var(--duration-150) var(--ease-out);
   --sidebar-transition-slow: all var(--duration-500) var(--ease-in-out);
   
+  /* Layout Dimensions */
+  --header-height: 80px;
+  
   /* Sidebar Dimensions */
   --sidebar-width: 280px;
   --sidebar-width-collapsed: 80px;

@@ -9,6 +9,7 @@ import InstitutionCardSkeleton from '../common/InstitutionCardSkeleton';
 import ErrorDisplay from '../common/ErrorDisplay';
 import { NoResultsEmptyState, ErrorEmptyState } from '../common/EmptyState';
 import { Icon, ActionIcon, StatusIcon, InstitutionTypeIcon, ICONS } from '../common/IconSystem';
+import '../../styles/institutions.css';
 
 interface Institution {
   id: number;
@@ -331,8 +332,43 @@ const InstitutionsList: React.FC = () => {
     return (
       <div className="institutions-list">
         <div className="page-header">
-          <h1 className="page-title">Təşkilat İdarəetməsi</h1>
-          <p className="page-description">Təhsil təşkilatlarının idarə edilməsi və strukturu</p>
+          <div className="header-content">
+            <h1 className="page-title">
+              <Icon type="INSTITUTION" />
+              Təşkilat İdarəetməsi
+            </h1>
+            <p className="page-description">Təhsil təşkilatlarının idarə edilməsi və strukturu</p>
+          </div>
+          <div className="header-stats">
+            <div className="stat-card">
+              <div className="stat-icon">
+                <Icon type="INSTITUTION" />
+              </div>
+              <span className="stat-number">---</span>
+              <span className="stat-label">Ümumi</span>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">
+                <Icon type="ACTIVE" />
+              </div>
+              <span className="stat-number">---</span>
+              <span className="stat-label">Aktiv</span>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">
+                <Icon type="INACTIVE" />
+              </div>
+              <span className="stat-number">---</span>
+              <span className="stat-label">Deaktiv</span>
+            </div>
+            <div className="stat-card">
+              <div className="stat-icon">
+                <Icon type="HIERARCHY" />
+              </div>
+              <span className="stat-number">---</span>
+              <span className="stat-label">Tip</span>
+            </div>
+          </div>
         </div>
         
         <div className="institutions-grid">
@@ -347,8 +383,43 @@ const InstitutionsList: React.FC = () => {
   return (
     <div className="institutions-list">
       <div className="page-header">
-        <h1 className="page-title">Təşkilat İdarəetməsi</h1>
-        <p className="page-description">Təhsil təşkilatlarının idarə edilməsi və strukturu</p>
+        <div className="header-content">
+          <h1 className="page-title">
+            <Icon type="INSTITUTION" />
+            Təşkilat İdarəetməsi
+          </h1>
+          <p className="page-description">Təhsil təşkilatlarının idarə edilməsi və strukturu</p>
+        </div>
+        <div className="header-stats">
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="INSTITUTION" />
+            </div>
+            <span className="stat-number">{institutions.length}</span>
+            <span className="stat-label">Ümumi</span>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="ACTIVE" />
+            </div>
+            <span className="stat-number">{institutions.filter(inst => inst.is_active).length}</span>
+            <span className="stat-label">Aktiv</span>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="INACTIVE" />
+            </div>
+            <span className="stat-number">{institutions.filter(inst => !inst.is_active).length}</span>
+            <span className="stat-label">Deaktiv</span>
+          </div>
+          <div className="stat-card">
+            <div className="stat-icon">
+              <Icon type="HIERARCHY" />
+            </div>
+            <span className="stat-number">{institutionTypes.length}</span>
+            <span className="stat-label">Tip</span>
+          </div>
+        </div>
       </div>
 
       {error && (
