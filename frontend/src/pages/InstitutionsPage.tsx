@@ -86,23 +86,7 @@ const InstitutionsPage: React.FC = () => {
       <QueryClientProvider client={queryClient}>
         <InstitutionProvider>
           <Dashboard>
-            <ToastContainer 
-              position="top-right"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              style={{
-                position: 'fixed',
-                top: '20px',
-                right: '20px',
-                zIndex: 9999
-              }}
-            />
+
               <InstitutionsList />
           </Dashboard>
         </InstitutionProvider>

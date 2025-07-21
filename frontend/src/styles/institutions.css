@@ -63,14 +63,19 @@
 /* Container and Layout */
 .institutions-page {
   width: 100%;
+  min-height: 100vh;
   margin: 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .institutions-list {
   width: 100%;
+  max-width: 100vw;
   padding: 1rem 2rem;
   margin: 0;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 /* Enhanced Page Header - Surveys Style */
@@ -172,6 +177,50 @@
   margin-bottom: 1.5rem;
   animation: slideIn 0.3s ease;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Bulk Actions Mobile Responsive */
+@media (max-width: 768px) {
+  .bulk-actions-bar {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+  }
+  
+  .bulk-selection-info {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  .bulk-actions {
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .bulk-action-btn {
+    min-height: 44px;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .bulk-actions-bar {
+    padding: 0.75rem;
+  }
+  
+  .bulk-actions {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .bulk-action-btn {
+    min-height: 48px;
+    font-size: 0.8rem;
+    padding: 0.75rem 0.5rem;
+  }
 }
 
 @keyframes slideIn {
@@ -849,17 +898,68 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Enhanced Institution Grid - Surveys Style */
+/* Enhanced Institution Grid - Fully Responsive */
 .institutions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
+  width: 100%;
 }
 
-@media (max-width: 1200px) {
+/* Ultra-wide screens optimization */
+@media (min-width: 1440px) {
+  .institutions-page,
+  .institutions-list {
+    width: 100% !important;
+    max-width: 100vw !important;
+  }
+  
   .institutions-grid {
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)) !important;
+    gap: 2rem !important;
+    width: 100% !important;
+  }
+  
+  .page-header {
+    padding: 2.5rem !important;
+    width: 100% !important;
+  }
+  
+  .institutions-controls {
+    gap: 2rem !important;
+    width: 100% !important;
+  }
+  
+  .institutions-filters {
+    width: 100% !important;
+  }
+}
+
+/* Extra large screens */
+@media (min-width: 1920px) {
+  .institutions-grid {
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr)) !important;
+    gap: 2.5rem !important;
+    width: 100% !important;
+  }
+  
+  .institutions-list {
+    padding: 2rem 3rem !important;
+    width: 100% !important;
+  }
+  
+  .page-header,
+  .institutions-controls,
+  .institutions-filters {
+    width: 100% !important;
+  }
+}
+
+/* Large screens - up to 1200px */
+@media (max-width: 1199px) and (min-width: 1025px) {
+  .institutions-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(380px, 100%), 1fr));
   }
   
   .header-stats {
@@ -872,11 +972,13 @@
   }
 }
 
+/* Medium screens */
 @media (max-width: 1024px) {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1.5rem;
+    padding: 2rem 1.5rem;
   }
   
   .header-stats {
@@ -895,7 +997,8 @@
   }
   
   .institutions-grid {
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
+    gap: 1.25rem;
   }
   
   .pagination {
@@ -904,13 +1007,14 @@
   }
 }
 
+/* Small screens - Tablets */
 @media (max-width: 768px) {
   .institutions-list {
-    padding: 0.5rem;
+    padding: 1rem;
   }
   
   .page-header {
-    padding: 1.5rem;
+    padding: 1.5rem 1rem;
     margin-bottom: 1.5rem;
   }
   
@@ -937,9 +1041,26 @@
     gap: 1rem;
   }
   
+  .institutions-filters {
+    gap: 0.5rem;
+  }
+  
+  .search-input,
+  .filter-select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px; /* Better touch targets */
+  }
+  
   .control-buttons {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .control-button,
+  .view-button {
+    min-height: 44px;
+    padding: 0.75rem 1rem;
   }
   
   .institutions-grid {
@@ -951,6 +1072,7 @@
     flex-direction: column;
     gap: 0.75rem;
     align-items: flex-start;
+    padding: 1.25rem;
   }
   
   .institution-actions {
@@ -958,6 +1080,162 @@
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+}
+
+/* Extra small screens - Mobile phones */
+@media (max-width: 480px) {
+  .institutions-list {
+    padding: 0.5rem;
+  }
+  
+  .page-header {
+    padding: 1rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .page-title {
+    font-size: 1.25rem;
+    flex-wrap: wrap;
+  }
+  
+  .page-description {
+    font-size: 0.9rem;
+  }
+  
+  .header-stats {
+    grid-template-columns: repeat(2, 1fr);
+    display: grid;
+    gap: 0.5rem;
+    width: 100%;
+  }
+  
+  .stat-card {
+    min-width: unset;
+    padding: 0.5rem;
+  }
+  
+  .stat-number {
+    font-size: 1rem;
+  }
+  
+  .stat-label {
+    font-size: 0.65rem;
+  }
+  
+  .institutions-controls {
+    gap: 0.75rem;
+  }
+  
+  .search-input {
+    width: 100%;
+    font-size: 16px;
+  }
+  
+  .institutions-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .filter-select {
+    width: 100%;
+    font-size: 16px;
+  }
+  
+  .view-controls {
+    gap: 0.75rem;
+  }
+  
+  .view-toggle {
+    width: 100%;
+  }
+  
+  .view-button {
+    flex: 1;
+    min-height: 48px;
+    font-size: 0.85rem;
+  }
+  
+  .control-buttons {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .control-button {
+    flex: 1;
+    min-height: 48px;
+    font-size: 0.8rem;
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .institutions-grid {
+    gap: 0.75rem;
+  }
+  
+  .institution-card {
+    margin-bottom: 0;
+  }
+  
+  .institution-card-header {
+    padding: 1rem;
+  }
+  
+  .institution-card-content {
+    padding: 0 1rem 1rem;
+  }
+  
+  .institution-title {
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+  
+  .institution-badges {
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+  
+  .type-badge,
+  .level-badge,
+  .status-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .institution-actions {
+    justify-content: center;
+  }
+  
+  .pagination {
+    padding: 1rem;
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .pagination-info {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .pagination-button {
+    min-height: 48px;
+    font-size: 0.85rem;
+  }
+}
+
+/* Landscape phone optimization */
+@media (max-width: 768px) and (orientation: landscape) {
+  .header-stats {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+  
+  .stat-card {
+    flex: 1;
+    min-width: calc(25% - 0.375rem);
   }
 }
 
@@ -2892,33 +3170,86 @@
   }
 }
 
+/* Medium-Large screens (1200px - 1439px) */
+@media (min-width: 1200px) and (max-width: 1439px) {
+  .institutions-page,
+  .institutions-list {
+    width: 100% !important;
+    max-width: 100vw !important;
+    margin: 0 !important;
+    padding: 1rem 2rem !important;
+    box-sizing: border-box !important;
+  }
+  
+  .institutions-grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+  }
+  
+  .page-header,
+  .institutions-controls,
+  .institutions-filters,
+  .pagination,
+  .bulk-actions-bar {
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+}
+
 /* Large Screen Optimization - Fix for wide screens */
-@media (min-width: 1025px) {
+@media (min-width: 1200px) {
   .institutions-page {
     width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
+    max-width: 100vw !important;
+    margin: 0 auto !important;
     padding: 0 !important;
+    box-sizing: border-box !important;
   }
   
   .institutions-list {
     width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
+    max-width: 100% !important;
+    margin: 0 auto !important;
     padding: 1rem 2rem !important;
+    box-sizing: border-box !important;
   }
   
-  /* Ensure content uses full available width */
-  .institutions-header,
+  /* Ensure all elements use full available width */
+  .page-header,
   .institutions-controls,
+  .institutions-filters,
   .institutions-grid,
-  .institutions-pagination {
+  .pagination,
+  .bulk-actions-bar {
     width: 100% !important;
-    max-width: none !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    box-sizing: border-box !important;
   }
   
-  /* Grid should expand to use full width */
+  /* Grid should expand to use full width with optimal columns */
   .institutions-grid {
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)) !important;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)) !important;
+    gap: 1.5rem !important;
+    width: 100% !important;
+  }
+  
+  .institutions-filters {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 1rem !important;
+    width: 100% !important;
+  }
+  
+  .search-form {
+    flex: 1 1 300px !important;
+    min-width: 300px !important;
+  }
+  
+  .filter-select {
+    flex: 0 0 200px !important;
+    min-width: 200px !important;
   }
 }
