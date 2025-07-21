@@ -29,7 +29,7 @@ import DocumentPage from './pages/DocumentPage';
 import SchedulePage from './pages/SchedulePage';
 import TeachingLoadPage from './pages/TeachingLoadPage';
 import SchoolDashboardPage from './pages/SchoolDashboardPage';
-import RegionalDepartmentsPage from './pages/RegionalDepartmentsPage';
+import DepartmentsPage from './pages/DepartmentsPage';
 
 // Test components (not lazy loaded since they're for development)
 import SimpleLoginTest from './components/test/SimpleLoginTest';
@@ -129,10 +129,10 @@ const App: React.FC = () => {
 
             {/* Regional Departments */}
             <Route 
-              path="/regional-departments" 
+              path="/departments" 
               element={
                 <ProtectedRoute requiredRoles={['superadmin', 'regionadmin']}>
-                  <RegionalDepartmentsPage />
+                  <DepartmentsPage />
                 </ProtectedRoute>
               } 
             />

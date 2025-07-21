@@ -67,7 +67,7 @@ export const useSidebarState = (options: UseSidebarStateOptions = {}) => {
       { id: 'users', label: 'İstifadəçilər', path: '/users', icon: 'users', roles: ['superadmin', 'regionadmin'] },
       { id: 'institutions', label: 'Təhsil Müəssisələri', path: '/institutions', icon: 'building', roles: ['superadmin', 'regionadmin'] },
       { id: 'roles', label: 'Rollar və İcazələr', path: '/roles', icon: 'shield', roles: ['superadmin'] },
-      { id: 'regional-departments', label: 'Regional Şöbələr', path: '/regional-departments', icon: 'building', roles: ['superadmin', 'regionadmin'] },
+      { id: 'departments', label: 'Şöbələr', path: '/departments', icon: 'building', roles: ['superadmin', 'regionadmin'] },
       
       // Survey Management
       { id: 'surveys', label: 'Sorğular', path: '/surveys', icon: 'clipboard', roles: ['superadmin', 'regionadmin', 'schooladmin'] },

@@ -7,7 +7,9 @@ WORKDIR /app
 COPY frontend/ ./
 
 # Create .env file for Docker
-RUN echo "VITE_API_URL=http://localhost:8000" > .env
+RUN echo "VITE_API_URL=http://localhost:8000" > .env && \
+    echo "VITE_API_BASE_URL=http://localhost:8000/api" >> .env && \
+    echo "VITE_APP_URL=http://localhost:3000" >> .env
 
 # Install dependencies (use existing node_modules if available)
 RUN npm install --legacy-peer-deps 2>/dev/null || echo "NPM install failed, continuing..."

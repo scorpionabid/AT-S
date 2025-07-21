@@ -134,20 +134,20 @@ export const menuItems: MenuItem[] = [
     ]
   },
 
-  // Regional Departments Section
+  // Departments Section
   {
-    id: 'regional-departments',
-    title: 'Regional Şöbələr',
-    path: '/regional-departments',
+    id: 'departments',
+    title: 'Şöbələr',
+    path: '/departments',
     icon: FiUsers,
     roles: ['superadmin', 'regionadmin'],
-    description: 'Regional şöbələrin idarəetməsi və koordinasiyası',
-    category: 'Regional Management',
+    description: 'Şöbələrin idarəetməsi və koordinasiyası',
+    category: 'Department Management',
     children: [
       {
         id: 'departments-overview',
         title: 'Şöbələr Ümumi Baxış',
-        path: '/regional-departments',
+        path: '/departments',
         icon: FiGrid,
         roles: ['superadmin', 'regionadmin'],
         exactMatch: true,
@@ -155,21 +155,21 @@ export const menuItems: MenuItem[] = [
       {
         id: 'finance-department',
         title: 'Maliyyə Şöbəsi',
-        path: '/regional-departments/finance',
+        path: '/departments/finance',
         icon: FiTrendingUp,
         roles: ['superadmin', 'regionadmin', 'regionoperator_maliyye'],
       },
       {
         id: 'admin-department',
         title: 'İnzibati Şöbəsi',
-        path: '/regional-departments/administrative',
+        path: '/departments/administrative',
         icon: FiSettings,
         roles: ['superadmin', 'regionadmin', 'regionoperator_inzibati'],
       },
       {
         id: 'facility-department',
         title: 'Təsərrüfat Şöbəsi',
-        path: '/regional-departments/facility',
+        path: '/departments/facility',
         icon: FiFolder,
         roles: ['superadmin', 'regionadmin', 'regionoperator_tesserrufat'],
       }

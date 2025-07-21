@@ -45,6 +45,11 @@ backend/storage/framework/cache/*
 backend/storage/framework/sessions/*
 backend/storage/framework/views/*
 
+# Database files (will be mounted as volumes)
+backend/database/database.sqlite
+backend/database/*.sqlite
+backend/database/*.sqlite-*
+
 # Docker files in root (avoid recursion)
 docker-compose*.yml
 Dockerfile

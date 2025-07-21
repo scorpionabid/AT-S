@@ -137,6 +137,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('institutions/bulk/statistics', [App\Http\Controllers\InstitutionController::class, 'getBulkStatistics'])->middleware('permission:institutions.read');
     // Institution management - Core operations
     Route::get('institutions', [InstitutionController::class, 'index'])->middleware('permission:institutions.read');
+    Route::get('institutions/hierarchy', [InstitutionController::class, 'hierarchy'])->middleware('permission:institutions.read');
     Route::post('institutions', [InstitutionController::class, 'store'])->middleware(['permission:institutions.create', 'audit.logging']);
     Route::get('institutions/{institution}', [InstitutionController::class, 'show'])->middleware('permission:institutions.read');
     Route::put('institutions/{institution}', [InstitutionController::class, 'update'])->middleware(['permission:institutions.update', 'audit.logging']);

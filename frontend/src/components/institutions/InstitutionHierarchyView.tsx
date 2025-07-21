@@ -27,9 +27,10 @@ interface HierarchyInstitution {
 interface InstitutionHierarchyViewProps {
   onEditClick: (institutionId: number) => void;
   canManage: boolean;
+  onRefresh?: () => void;
 }
 
-const InstitutionHierarchyView: React.FC<InstitutionHierarchyViewProps> = ({ onEditClick, canManage }) => {
+const InstitutionHierarchyView: React.FC<InstitutionHierarchyViewProps> = ({ onEditClick, canManage, onRefresh }) => {
   const [hierarchy, setHierarchy] = useState<HierarchyInstitution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>('');
@@ -42,13 +43,20 @@ const InstitutionHierarchyView: React.FC<InstitutionHierarchyViewProps> = ({ onE
   const fetchHierarchy = async () => {
     try {
       setLoading(true);
-      const response = await api.get('/institutions?hierarchy=1&is_active=1');
+      // Use the new hierarchy endpoint with include_inactive parameter
+      const response = await api.get('/institutions/hierarchy?include_inactive=1&include_departments=0');
+      console.log('Hierarchy API response:', response.data);
+      
       setHierarchy(response.data.institutions || []);
       
       // Auto-expand root items
       const rootIds = response.data.institutions?.map((item: HierarchyInstitution) => item.id) || [];
       setExpandedItems(new Set(rootIds));
+      
+      console.log('Hierarchy data loaded:', response.data.institutions);
+      console.log('Total institutions:', response.data.total);
     } catch (err: any) {
+      console.error('Hierarchy fetch error:', err);
       setError(err.response?.data?.message || 'Ierarxiya yüklənərkən xəta baş verdi');
     } finally {
       setLoading(false);
@@ -387,6 +395,15 @@ const InstitutionHierarchyView: React.FC<InstitutionHierarchyViewProps> = ({ onE
           </p>
         </div>
         <div className="hierarchy-controls">
+          <button
+            onClick={() => {
+              fetchHierarchy();
+              onRefresh?.();
+            }}
+            className="refresh-button"
+          >
+            🔄 Yenilə
+          </button>
           <button
             onClick={expandAll}
             className="expand-all-button"

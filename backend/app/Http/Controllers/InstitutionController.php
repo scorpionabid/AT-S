@@ -399,8 +399,7 @@ class InstitutionController extends Controller
 
             // Apply filters
             if ($request->search) {
-                $query->where('name', 'ILIKE', "%{$request->search}%")
-                      ->orWhere('short_name', 'ILIKE', "%{$request->search}%");
+                $query->searchByName($request->search);
             }
 
             if ($request->type) {
@@ -789,6 +788,112 @@ class InstitutionController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : 'Server error',
             ], 500);
         }
+    }
+
+    /**
+     * Get institutions hierarchy
+     */
+    public function hierarchy(Request $request): JsonResponse
+    {
+        try {
+            $request->validate([
+                'include_inactive' => 'nullable|boolean',
+                'include_departments' => 'nullable|boolean',
+            ]);
+
+            // Build base query for root institutions
+            $query = Institution::with([
+                'children' => function ($query) use ($request) {
+                    $query->with(['children.children.children.children']); // Deep nesting for hierarchy
+                    if (!$request->include_inactive) {
+                        $query->active();
+                    }
+                    $query->orderBy('level')->orderBy('name');
+                },
+            ])->roots(); // Only root institutions (parent_id is null)
+
+            // Include/exclude inactive institutions
+            if (!$request->include_inactive) {
+                $query->active();
+            }
+
+            // Include departments if requested
+            if ($request->include_departments) {
+                $query->with(['departments' => function ($query) {
+                    $query->where('is_active', true)
+                          ->orderBy('name');
+                }]);
+            }
+
+            $query->orderBy('level')->orderBy('name');
+            
+            $institutions = $query->get();
+
+            // Transform to proper hierarchy format
+            $hierarchyData = $institutions->map(function ($institution) {
+                return $this->transformToHierarchy($institution);
+            });
+
+            return response()->json([
+                'success' => true,
+                'institutions' => $hierarchyData,
+                'total' => $this->countAllInstitutions($hierarchyData),
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'İerarxiya yüklənərkən xəta baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
+     * Transform institution to hierarchy format recursively
+     */
+    private function transformToHierarchy($institution)
+    {
+        return [
+            'id' => $institution->id,
+            'name' => $institution->name,
+            'short_name' => $institution->short_name,
+            'type' => $institution->type,
+            'level' => $institution->level,
+            'is_active' => $institution->is_active,
+            'region_code' => $institution->region_code,
+            'institution_code' => $institution->institution_code,
+            'established_date' => $institution->established_date,
+            'children' => $institution->children->map(function ($child) {
+                return $this->transformToHierarchy($child);
+            })->toArray(),
+            'departments' => $institution->departments && isset($institution->departments) ? $institution->departments->map(function ($dept) {
+                return [
+                    'id' => $dept->id,
+                    'name' => $dept->name,
+                    'short_name' => $dept->short_name ?? null,
+                    'department_type' => $dept->type ?? 'general',
+                    'is_active' => $dept->is_active ?? true,
+                    'users_count' => method_exists($dept, 'users') ? $dept->users()->count() : 0,
+                    'active_users_count' => method_exists($dept, 'users') ? $dept->users()->where('is_active', true)->count() : 0,
+                ];
+            })->toArray() : [],
+        ];
+    }
+
+    /**
+     * Count total institutions in hierarchy
+     */
+    private function countAllInstitutions($hierarchyData): int
+    {
+        $count = 0;
+        foreach ($hierarchyData as $institution) {
+            $count++; // Count current institution
+            if (!empty($institution['children'])) {
+                $count += $this->countAllInstitutions($institution['children']);
+            }
+        }
+        return $count;
     }
 
     /**

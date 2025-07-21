@@ -3,7 +3,7 @@ import { logger } from '../utils/logger';
 
 // Create axios instance with base configuration
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://127.0.0.1:8000/api'),  // Development vs production URLs
+  baseURL: import.meta.env.VITE_API_BASE_URL || (process.env.NODE_ENV === 'production' ? '/api' : 'http://localhost:8000/api'),  // Development vs production URLs
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',

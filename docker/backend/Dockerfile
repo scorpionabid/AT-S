@@ -27,9 +27,6 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
 # Install dependencies (will use vendor if exists)
 RUN composer install --no-dev --optimize-autoloader --no-interaction 2>/dev/null || echo "Composer install failed, continuing..."
 
-# Create SQLite database
-RUN touch database/database.sqlite
-
 # Expose port
 EXPOSE 8000
 

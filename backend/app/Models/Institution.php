@@ -269,7 +269,21 @@ class Institution extends Model
      */
     public function scopeSearchByName($query, string $search)
     {
-        return $query->where('name', 'ILIKE', "%{$search}%")
-                    ->orWhere('short_name', 'ILIKE', "%{$search}%");
+        $driver = config('database.default');
+        $connection = config("database.connections.{$driver}.driver");
+        
+        if ($connection === 'sqlite') {
+            // SQLite case-insensitive search using LIKE with UPPER/LOWER functions
+            return $query->where(function ($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                  ->orWhere('short_name', 'LIKE', "%{$search}%");
+            });
+        } else {
+            // PostgreSQL/MySQL supports ILIKE for case-insensitive search
+            return $query->where(function ($q) use ($search) {
+                $q->where('name', 'ILIKE', "%{$search}%")
+                  ->orWhere('short_name', 'ILIKE', "%{$search}%");
+            });
+        }
     }
 }
