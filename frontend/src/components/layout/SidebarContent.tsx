@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { useNavigation } from '../../contexts/NavigationContext';
-import EnhancedSidebarItem from './sidebar/EnhancedSidebarItem';
+import SidebarItem from './sidebar/SidebarItem';
 import SidebarIcon, { IconName } from './sidebar/SidebarIcon';
 
 export interface NavigationItem {
@@ -113,7 +113,7 @@ const SidebarContent: React.FC<SidebarContentProps> = memo(({
               animationDelay: `${index * 50}ms`
             }}
           >
-            <EnhancedSidebarItem
+            <SidebarItem
               item={item}
               isCollapsed={isCollapsed}
               isExpanded={expandedItems.includes(itemId)}

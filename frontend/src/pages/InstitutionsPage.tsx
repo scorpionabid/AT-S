@@ -96,6 +96,12 @@ const InstitutionsPage: React.FC = () => {
               pauseOnFocusLoss
               draggable
               pauseOnHover
+              style={{
+                position: 'fixed',
+                top: '20px',
+                right: '20px',
+                zIndex: 9999
+              }}
             />
               <InstitutionsList />
           </Dashboard>
