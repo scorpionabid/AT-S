@@ -112,12 +112,39 @@ const UsersList: React.FC = () => {
   // 🚀 NEW: Regional institutions fetching - avtomatik olaraq user scope tətbiq edir
   const {
     data: institutionsData
-  } = useRegionalData<{id: number, name: string, type: string}[]>('institutions');
+  } = useRegionalData<{institutions?: {id: number, name: string, type: string}[]} | {id: number, name: string, type: string}[]>('institutions');
 
   // Set institutions from role-based data
   useEffect(() => {
     if (institutionsData) {
-      setInstitutions(institutionsData);
+      // Handle different response formats
+      let institutionsArray: {id: number, name: string, type: string}[] = [];
+      
+      try {
+        if (Array.isArray(institutionsData)) {
+          // Direct array
+          institutionsArray = institutionsData;
+        } else if (institutionsData && typeof institutionsData === 'object') {
+          // Check for institutions property
+          if ('institutions' in institutionsData && Array.isArray(institutionsData.institutions)) {
+            institutionsArray = institutionsData.institutions;
+          } else if ('data' in institutionsData && Array.isArray(institutionsData.data)) {
+            institutionsArray = institutionsData.data;
+          } else if ('id' in institutionsData && 'name' in institutionsData) {
+            // Single institution object
+            institutionsArray = [institutionsData as any];
+          }
+        }
+        
+        console.log('🏢 Setting institutions:', institutionsArray);
+        setInstitutions(Array.isArray(institutionsArray) ? institutionsArray : []);
+      } catch (error) {
+        console.error('❌ Error processing institutions data:', error);
+        setInstitutions([]);
+      }
+    } else {
+      // Ensure institutions is always an array
+      setInstitutions([]);
     }
   }, [institutionsData]);
 
@@ -380,7 +407,7 @@ const UsersList: React.FC = () => {
               className="filter-select"
             >
               <option value="">İstənəc təşkilat</option>
-              {institutions.map(institution => (
+              {(institutions || []).map(institution => (
                 <option key={institution.id} value={institution.id}>
                   {institution.name} ({institution.type})
                 </option>

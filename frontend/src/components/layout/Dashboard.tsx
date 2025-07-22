@@ -42,12 +42,7 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
       <Sidebar variant="modern" />
       
       {/* Main Content */}
-      <main className={mainClasses} style={{
-        marginLeft: 'var(--sidebar-width)',
-        width: 'calc(100% - var(--sidebar-width))',
-        marginTop: 'var(--header-height)',
-        minHeight: 'calc(100vh - var(--header-height))'
-      }}>
+      <main className={mainClasses}>
         <div className="dashboard-content">
           {children}
         </div>

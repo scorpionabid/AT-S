@@ -56,23 +56,20 @@
   flex-direction: column;
   min-width: 0; /* Prevents flex item from overflowing container */
   min-height: 100vh;
-  width: calc(100vw - var(--sidebar-width));
-  max-width: calc(100vw - var(--sidebar-width));
   margin-left: var(--sidebar-width);
   transition: var(--sidebar-transition);
   overflow-x: hidden;
+  position: relative;
 }
 
 .dashboard-main.collapsed {
   margin-left: var(--sidebar-width-collapsed);
-  width: calc(100vw - var(--sidebar-width-collapsed));
-  max-width: calc(100vw - var(--sidebar-width-collapsed));
 }
 
 .dashboard-content {
   flex: 1;
-  padding: 2rem;
-  padding-top: calc(var(--header-height) + 2rem);
+  padding: 1.5rem;
+  padding-top: calc(var(--header-height) + 1.5rem);
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;

@@ -56,6 +56,7 @@ const DepartmentsPage: React.FC = () => {
   const [selectedInstitutionId, setSelectedInstitutionId] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [institutionSearchTerm, setInstitutionSearchTerm] = useState('');
+  const [localError, setLocalError] = useState<string>('');
 
   // 🚀 NEW: Role-based institutions data fetching
   const {
@@ -64,7 +65,28 @@ const DepartmentsPage: React.FC = () => {
     error: institutionsError
   } = useRegionalData<Institution[]>('institutions');
 
-  const institutions = institutionsData || [];
+  // Safely extract institutions array from API response
+  const institutions = React.useMemo(() => {
+    if (!institutionsData) return [];
+    
+    // Handle different API response formats
+    if (Array.isArray(institutionsData)) {
+      return institutionsData;
+    }
+    
+    if (institutionsData && typeof institutionsData === 'object') {
+      // Check for wrapped response
+      if ('data' in institutionsData && Array.isArray(institutionsData.data)) {
+        return institutionsData.data;
+      }
+      if ('institutions' in institutionsData && Array.isArray(institutionsData.institutions)) {
+        return institutionsData.institutions;
+      }
+    }
+    
+    console.warn('Unexpected institutions data format:', institutionsData);
+    return [];
+  }, [institutionsData]);
 
   // 🚀 NEW: Role-based departments data fetching for selected institution
   const {
@@ -121,7 +143,7 @@ const DepartmentsPage: React.FC = () => {
       resetForm();
       refetchDepartments();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Şöbə yaradılarkən xəta baş verdi');
+      setLocalError(err.response?.data?.message || 'Şöbə yaradılarkən xəta baş verdi');
     }
   };
 
@@ -136,7 +158,7 @@ const DepartmentsPage: React.FC = () => {
       resetForm();
       refetchDepartments();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Şöbə yenilənərkən xəta baş verdi');
+      setLocalError(err.response?.data?.message || 'Şöbə yenilənərkən xəta baş verdi');
     }
   };
 
@@ -147,7 +169,7 @@ const DepartmentsPage: React.FC = () => {
       await api.delete(`/institutions/${selectedInstitutionId}/departments/${departmentId}`);
       refetchDepartments();
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Şöbə silinərkən xəta baş verdi');
+      setLocalError(err.response?.data?.message || 'Şöbə silinərkən xəta baş verdi');
     }
   };
 
@@ -183,17 +205,17 @@ const DepartmentsPage: React.FC = () => {
   };
 
   const getSelectedInstitutionName = () => {
-    const institution = institutions.find(inst => inst.id === selectedInstitutionId);
+    const institution = (institutions || []).find(inst => inst.id === selectedInstitutionId);
     return institution ? institution.name : 'Müəssisə seçin';
   };
 
-  const filteredInstitutions = institutions.filter(inst => {
+  const filteredInstitutions = (institutions || []).filter(inst => {
     if (!institutionSearchTerm) return true;
     return inst.name.toLowerCase().includes(institutionSearchTerm.toLowerCase()) ||
            (inst.short_name && inst.short_name.toLowerCase().includes(institutionSearchTerm.toLowerCase()));
   });
 
-  const filteredDepartments = departments.filter(dept => {
+  const filteredDepartments = (departments || []).filter(dept => {
     if (!searchTerm) return true;
     return dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            (dept.short_name && dept.short_name.toLowerCase().includes(searchTerm.toLowerCase()));
@@ -234,8 +256,8 @@ const DepartmentsPage: React.FC = () => {
         <div className="text-center py-8">
           <div className="text-red-600 mb-4">{error}</div>
           <Button onClick={() => {
-            setError('');
-            fetchInstitutions();
+            setLocalError('');
+            window.location.reload();
           }}>Yenidən Yüklə</Button>
         </div>
       </DashboardLayout>
@@ -279,10 +301,10 @@ const DepartmentsPage: React.FC = () => {
           </div>
         </div>
 
-        {error && (
+        {(error || localError) && (
           <div className="error-message">
-            {error}
-            <button onClick={() => setError('')} className="dismiss-error">×</button>
+            {error || localError}
+            <button onClick={() => setLocalError('')} className="dismiss-error">×</button>
           </div>
         )}
 
@@ -320,7 +342,7 @@ const DepartmentsPage: React.FC = () => {
               
               {Object.entries(groupedInstitutions).map(([type, institutions]) => (
                 <optgroup key={type} label={institutionTypeLabels[type] || type}>
-                  {institutions.map((institution) => (
+                  {(institutions || []).map((institution) => (
                     <option key={institution.id} value={institution.id}>
                       {institution.name}
                       {institution.short_name && ` (${institution.short_name})`}
@@ -337,7 +359,7 @@ const DepartmentsPage: React.FC = () => {
                 <span className="institution-info">
                   <Icon type="INFO" />
                   {(() => {
-                    const institution = institutions.find(inst => inst.id === selectedInstitutionId);
+                    const institution = (institutions || []).find(inst => inst.id === selectedInstitutionId);
                     if (institution) {
                       return `${institution.type} - Səviyyə ${institution.level}`;
                     }
