@@ -16,12 +16,15 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
   
   const dashboardClasses = [
     'dashboard',
-    isCollapsed ? 'sidebar-collapsed' : ''
+    `dashboard-${screenSize}`,
+    isCollapsed ? 'sidebar-collapsed' : '',
+    isMobileOpen ? 'mobile-open' : ''
   ].filter(Boolean).join(' ');
 
   const mainClasses = [
     'dashboard-main',
-    isCollapsed ? 'collapsed' : ''
+    isCollapsed ? 'collapsed' : '',
+    `main-${screenSize}`
   ].filter(Boolean).join(' ');
 
   return (

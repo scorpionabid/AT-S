@@ -317,12 +317,21 @@
   /* ====================
    * LAYOUT TOKENS
    * ==================== */
-  --sidebar-width: 260px;
-  --sidebar-width-collapsed: 70px;
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 80px;
   --header-height: 70px;
   --footer-height: 60px;
-  --content-padding: 2rem;
+  --content-padding: clamp(1rem, 3vw, 2rem);
   --content-max-width: 1440px;
+  
+  /* Mobile Sidebar */
+  --sidebar-width-mobile: 100vw;
+  --sidebar-overlay-z: 1000;
+  
+  /* Touch Target Sizes */
+  --touch-target-min: 44px;
+  --touch-target-comfortable: 48px;
+  --touch-target-large: 56px;
 
   /* ====================
    * SEMANTIC TOKENS
@@ -570,9 +579,20 @@
 /* ====================
  * RESPONSIVE UTILITIES
  * ==================== */
+
+/* Tablet responsive */
+@media (max-width: 1024px) and (min-width: 768px) {
+  :root {
+    --sidebar-width: 0; /* Sidebar hidden on tablet */
+    --sidebar-width-collapsed: 0;
+    --content-padding: 1.5rem;
+  }
+}
+
+/* Mobile responsive */
 @media (max-width: 768px) {
   :root {
-    --sidebar-width: 100vw;
+    --sidebar-width: 0; /* Sidebar as overlay on mobile */
     --sidebar-width-collapsed: 0;
     --header-height: 60px;
     --content-padding: 1rem;

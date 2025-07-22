@@ -27,6 +27,7 @@
 
 /* Component Styles */
 @layer components {
+  /* Responsive sidebar */
   .app-sidebar {
     width: var(--sidebar-width);
     transition: var(--sidebar-transition);
@@ -36,18 +37,76 @@
     width: var(--sidebar-width-collapsed);
   }
   
+  /* Responsive main content */
   .app-main {
     margin-left: var(--sidebar-width);
     transition: var(--sidebar-transition);
+    min-width: 0; /* Prevent overflow */
+    flex: 1;
   }
   
   .app-main.sidebar-collapsed {
     margin-left: var(--sidebar-width-collapsed);
   }
+  
+  /* Mobile responsive overrides */
+  @media (max-width: 768px) {
+    .app-main {
+      margin-left: 0;
+      width: 100%;
+    }
+    
+    .app-main.sidebar-collapsed {
+      margin-left: 0;
+    }
+    
+    .app-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 1000;
+    }
+  }
 }
 
 /* Utility Classes */
 @layer utilities {
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+  
+  .touch-target-comfortable {
+    min-height: var(--touch-target-comfortable);
+    min-width: var(--touch-target-comfortable);
+  }
+  
+  .touch-target-large {
+    min-height: var(--touch-target-large);
+    min-width: var(--touch-target-large);
+  }
+  
+  /* Touch-friendly spacing on mobile */
+  @media (max-width: 768px) {
+    .btn, button, [type="button"], [type="submit"], [type="reset"] {
+      min-height: var(--touch-target-min);
+      padding: 0.75rem 1rem;
+    }
+    
+    input, select, textarea {
+      min-height: var(--touch-target-min);
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    a {
+      min-height: var(--touch-target-min);
+      display: inline-flex;
+      align-items: center;
+    }
+  }
+  
   .animate-spin {
     animation: spin 1s linear infinite;
   }

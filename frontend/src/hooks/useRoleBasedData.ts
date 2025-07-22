@@ -103,8 +103,17 @@ export function useRoleBasedData<T = any>(
   }, [user]);
 
   const fetchData = useCallback(async () => {
-    if (!user) {
+    // Real-time dəyərləri component state-dən götürürük
+    const currentUser = user;
+    const currentOptions = options;
+    
+    if (!currentUser) {
       setError('İstifadəçi məlumatları tapılmadı');
+      return;
+    }
+
+    if (!currentOptions.endpoint) {
+      setError('API endpoint təyin edilməyib');
       return;
     }
 
@@ -114,17 +123,16 @@ export function useRoleBasedData<T = any>(
     try {
       const userScope = getUserScope();
       const combinedFilters = {
-        ...options.filters,
+        ...currentOptions.filters,
         ...userScope
       };
 
       console.log('🔄 Fetching role-based data:', {
-        endpoint: options.endpoint,
+        endpoint: currentOptions.endpoint,
         userScope,
         combinedFilters
       });
 
-      // API çağırısında scope parametrlərini əlavə et
       const params = new URLSearchParams();
       Object.entries(combinedFilters).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -136,7 +144,7 @@ export function useRoleBasedData<T = any>(
         }
       });
 
-      const url = `${options.endpoint}${params.toString() ? `?${params.toString()}` : ''}`;
+      const url = `${currentOptions.endpoint}${params.toString() ? `?${params.toString()}` : ''}`;
       const response = await api.get(url);
 
       setData(response.data);
@@ -147,14 +155,57 @@ export function useRoleBasedData<T = any>(
     } finally {
       setLoading(false);
     }
-  }, [user, options.endpoint, options.filters, getUserScope]);
+  }, [getUserScope]);
 
   // Auto-fetch on mount and dependencies change
   useEffect(() => {
-    if (options.autoFetch !== false) {
-      fetchData();
+    if (options.autoFetch === false || !options.endpoint || !user) {
+      return;
     }
-  }, [fetchData, ...(options.dependencies || [])]);
+
+    const performFetch = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const userScope = getUserScope();
+        const combinedFilters = {
+          ...options.filters,
+          ...userScope
+        };
+
+        console.log('🔄 Fetching role-based data:', {
+          endpoint: options.endpoint,
+          userScope,
+          combinedFilters
+        });
+
+        const params = new URLSearchParams();
+        Object.entries(combinedFilters).forEach(([key, value]) => {
+          if (value !== undefined && value !== null) {
+            if (Array.isArray(value)) {
+              value.forEach(v => params.append(`${key}[]`, v.toString()));
+            } else {
+              params.append(key, value.toString());
+            }
+          }
+        });
+
+        const url = `${options.endpoint}${params.toString() ? `?${params.toString()}` : ''}`;
+        const response = await api.get(url);
+
+        setData(response.data);
+        console.log('✅ Role-based data fetched successfully:', response.data);
+      } catch (err: any) {
+        console.error('❌ Role-based data fetch error:', err);
+        setError(err.response?.data?.message || 'Məlumatlar yüklənərkən xəta baş verdi');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    performFetch();
+  }, [getUserScope, options.endpoint, JSON.stringify(options.filters), ...(options.dependencies || [])]);
 
   return {
     data,

@@ -17,6 +17,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/Loading';
 import { ToastContainer, toast } from 'react-toastify';
+import { api } from '../../services/api';
 import '../../styles/approval/approval-dashboard.css';
 
 interface ApprovalRequest {
@@ -87,22 +88,12 @@ const ApprovalDashboard: React.FC = () => {
   const fetchApprovalRequests = async () => {
     setIsLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (filterStatus !== 'all') params.append('status', filterStatus);
-      if (filterType !== 'all') params.append('type', filterType);
+      const params: Record<string, string> = {};
+      if (filterStatus !== 'all') params.status = filterStatus;
+      if (filterType !== 'all') params.type = filterType;
 
-      const API_BASE = 'http://127.0.0.1:8000/api';
-      const response = await fetch(`${API_BASE}/approval-requests?${params}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setApprovalRequests(data.data || []);
-      }
+      const response = await api.get('/approvals', { params });
+      setApprovalRequests(response.data.data || []);
     } catch (error) {
       toast.error('Təsdiq tələbləri yüklənərkən xəta baş verdi');
     } finally {
@@ -112,18 +103,8 @@ const ApprovalDashboard: React.FC = () => {
 
   const fetchApprovalStats = async () => {
     try {
-      const API_BASE = 'http://127.0.0.1:8000/api';
-      const response = await fetch(`${API_BASE}/approval-stats`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.data);
-      }
+      const response = await api.get('/approvals/stats');
+      setStats(response.data);
     } catch (error) {
       console.error('Stats yüklənə bilmədi:', error);
     }
@@ -133,27 +114,20 @@ const ApprovalDashboard: React.FC = () => {
     if (!selectedRequest) return;
 
     try {
-      const API_BASE = 'http://127.0.0.1:8000/api';
-      const response = await fetch(`${API_BASE}/approval-requests/${selectedRequest.id}/action`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(actionForm)
+      const endpoint = actionForm.action === 'approved' 
+        ? `/approvals/${selectedRequest.id}/approve`
+        : `/approvals/${selectedRequest.id}/reject`;
+      
+      const response = await api.post(endpoint, {
+        comments: actionForm.comments
       });
 
-      if (response.ok) {
-        toast.success(`Tələb ${actionForm.action === 'approved' ? 'təsdiqləndi' : 'rədd edildi'}`);
-        setShowModal(false);
-        setSelectedRequest(null);
-        setActionForm({ action: 'approved', comments: '', delegated_to: undefined });
-        fetchApprovalRequests();
-        fetchApprovalStats();
-      } else {
-        const error = await response.json();
-        toast.error(error.message || 'Əməliyyat uğursuz oldu');
-      }
+      toast.success(`Tələb ${actionForm.action === 'approved' ? 'təsdiqləndi' : 'rədd edildi'}`);
+      setShowModal(false);
+      setSelectedRequest(null);
+      setActionForm({ action: 'approved', comments: '', delegated_to: undefined });
+      fetchApprovalRequests();
+      fetchApprovalStats();
     } catch (error) {
       toast.error('Əməliyyat yerinə yetirilərkən xəta baş verdi');
     }
