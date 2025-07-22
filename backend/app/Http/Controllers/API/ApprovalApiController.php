@@ -15,24 +15,23 @@ class ApprovalApiController extends Controller
         $status = $request->get('status', 'pending');
         $type = $request->get('type');
         
-        $query = DB::table('approval_requests')
-            ->join('approval_workflows', 'approval_requests.workflow_id', '=', 'approval_workflows.id')
-            ->join('users as requester', 'approval_requests.requester_id', '=', 'requester.id')
-            ->where('approval_requests.approver_id', $user->id)
-            ->where('approval_requests.status', $status);
+        $query = DB::table('data_approval_requests')
+            ->join('approval_workflows', 'data_approval_requests.workflow_id', '=', 'approval_workflows.id')
+            ->join('users as requester', 'data_approval_requests.submitted_by', '=', 'requester.id')
+            ->where('data_approval_requests.current_status', $status);
             
         if ($type) {
-            $query->where('approval_workflows.approvable_type', $type);
+            $query->where('approval_workflows.workflow_type', $type);
         }
         
         $approvals = $query->select([
-            'approval_requests.*',
+            'data_approval_requests.*',
             'approval_workflows.name as workflow_name',
-            'approval_workflows.approvable_type',
+            'approval_workflows.workflow_type',
             'requester.username as requester_name',
-            'requester.full_name as requester_full_name'
+            'requester.email as requester_email'
         ])
-        ->orderBy('approval_requests.created_at', 'desc')
+        ->orderBy('data_approval_requests.created_at', 'desc')
         ->paginate(20);
 
         return response()->json([
@@ -47,10 +46,9 @@ class ApprovalApiController extends Controller
             'comments' => 'nullable|string|max:1000'
         ]);
 
-        $approval = DB::table('approval_requests')
+        $approval = DB::table('data_approval_requests')
             ->where('id', $id)
-            ->where('approver_id', $request->user()->id)
-            ->where('status', 'pending')
+            ->where('current_status', 'pending')
             ->first();
 
         if (!$approval) {
@@ -62,20 +60,21 @@ class ApprovalApiController extends Controller
 
         DB::beginTransaction();
         try {
-            DB::table('approval_requests')
+            DB::table('data_approval_requests')
                 ->where('id', $id)
                 ->update([
-                    'status' => 'approved',
-                    'approved_at' => now(),
-                    'comments' => $validated['comments'] ?? null,
+                    'current_status' => 'approved',
+                    'completed_at' => now(),
                     'updated_at' => now()
                 ]);
 
             DB::table('approval_actions')->insert([
                 'approval_request_id' => $id,
-                'user_id' => $request->user()->id,
+                'approver_id' => $request->user()->id,
+                'approval_level' => 1,
                 'action' => 'approved',
                 'comments' => $validated['comments'] ?? null,
+                'action_taken_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
@@ -102,10 +101,9 @@ class ApprovalApiController extends Controller
             'comments' => 'required|string|max:1000'
         ]);
 
-        $approval = DB::table('approval_requests')
+        $approval = DB::table('data_approval_requests')
             ->where('id', $id)
-            ->where('approver_id', $request->user()->id)
-            ->where('status', 'pending')
+            ->where('current_status', 'pending')
             ->first();
 
         if (!$approval) {
@@ -117,20 +115,21 @@ class ApprovalApiController extends Controller
 
         DB::beginTransaction();
         try {
-            DB::table('approval_requests')
+            DB::table('data_approval_requests')
                 ->where('id', $id)
                 ->update([
-                    'status' => 'rejected',
-                    'rejected_at' => now(),
-                    'comments' => $validated['comments'],
+                    'current_status' => 'rejected',
+                    'completed_at' => now(),
                     'updated_at' => now()
                 ]);
 
             DB::table('approval_actions')->insert([
                 'approval_request_id' => $id,
-                'user_id' => $request->user()->id,
+                'approver_id' => $request->user()->id,
+                'approval_level' => 1,
                 'action' => 'rejected',
                 'comments' => $validated['comments'],
+                'action_taken_at' => now(),
                 'created_at' => now(),
                 'updated_at' => now()
             ]);
@@ -156,19 +155,16 @@ class ApprovalApiController extends Controller
         $user = $request->user();
         
         $stats = [
-            'pending' => DB::table('approval_requests')
-                ->where('approver_id', $user->id)
-                ->where('status', 'pending')
+            'pending' => DB::table('data_approval_requests')
+                ->where('current_status', 'pending')
                 ->count(),
-            'approved_today' => DB::table('approval_requests')
-                ->where('approver_id', $user->id)
-                ->where('status', 'approved')
-                ->whereDate('approved_at', today())
+            'approved_today' => DB::table('data_approval_requests')
+                ->where('current_status', 'approved')
+                ->whereDate('completed_at', today())
                 ->count(),
-            'rejected_today' => DB::table('approval_requests')
-                ->where('approver_id', $user->id)
-                ->where('status', 'rejected')
-                ->whereDate('rejected_at', today())
+            'rejected_today' => DB::table('data_approval_requests')
+                ->where('current_status', 'rejected')
+                ->whereDate('completed_at', today())
                 ->count()
         ];
 
