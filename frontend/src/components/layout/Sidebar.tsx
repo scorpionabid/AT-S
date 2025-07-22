@@ -291,7 +291,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
                   {userProfile?.username || 'User'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400">
-                  {userProfile?.role || 'User'}
+                  {typeof userProfile?.role === 'string' ? userProfile.role : (userProfile?.role?.name || userProfile?.role?.display_name || 'User')}
                 </p>
               </div>
             )}

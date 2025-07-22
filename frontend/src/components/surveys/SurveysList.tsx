@@ -46,7 +46,15 @@ interface SurveysResponse {
   };
 }
 
-const SurveysList: React.FC = () => {
+interface SurveysListProps {
+  showCreateModal?: boolean;
+  onCreateModalClose?: () => void;
+}
+
+const SurveysList: React.FC<SurveysListProps> = ({ 
+  showCreateModal = false, 
+  onCreateModalClose 
+}) => {
   const { user } = useAuth();
   const [surveys, setSurveys] = useState<Survey[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,7 +68,7 @@ const SurveysList: React.FC = () => {
   const [dateFilter, setDateFilter] = useState('');
   const [creatorFilter, setCreatorFilter] = useState('');
   const [mySurveys, setMySurveys] = useState(false);
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [showCreateForm, setShowCreateForm] = useState(showCreateModal);
   const [showEditForm, setShowEditForm] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [editingSurveyId, setEditingSurveyId] = useState<number | null>(null);
@@ -80,6 +88,11 @@ const SurveysList: React.FC = () => {
     startAutoRefresh,
     stopAutoRefresh
   } = useSurveyEnhanced();
+
+  // Handle external modal control
+  useEffect(() => {
+    setShowCreateForm(showCreateModal);
+  }, [showCreateModal]);
 
   // Permission check function (must be defined before useEffect)
   const canCreateSurvey = () => {
@@ -1021,6 +1034,9 @@ const SurveysList: React.FC = () => {
           onClose={() => {
             console.log('Closing survey create form');
             setShowCreateForm(false);
+            if (onCreateModalClose) {
+              onCreateModalClose();
+            }
           }}
           onSuccess={handleCreateSuccess}
         />

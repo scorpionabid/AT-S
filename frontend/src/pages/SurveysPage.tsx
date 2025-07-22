@@ -16,6 +16,7 @@ const SurveysPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'surveys' | 'analytics' | 'create'>('surveys');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Show regional analytics for RegionAdmin users
   const isRegionAdmin = user?.role === 'regionadmin';
@@ -59,7 +60,17 @@ const SurveysPage: React.FC = () => {
           Yenilə
         </Button>
       )}
-      <Button variant="primary" size="sm">
+      <Button 
+        variant="primary" 
+        size="sm"
+        onClick={() => {
+          if (isRegionAdmin) {
+            setActiveTab('create');
+          } else {
+            setShowCreateModal(true);
+          }
+        }}
+      >
         <FiPlus className="w-4 h-4 mr-2" />
         Yeni Sorğu
       </Button>
@@ -132,12 +143,12 @@ const SurveysPage: React.FC = () => {
             <SurveysManagement onSurveyCreated={handleRefresh} />
           );
         default:
-          return <SurveysList />;
+          return <SurveysList showCreateModal={showCreateModal} onCreateModalClose={() => setShowCreateModal(false)} />;
       }
     }
 
     // Default view for other roles
-    return <SurveysList />;
+    return <SurveysList showCreateModal={showCreateModal} onCreateModalClose={() => setShowCreateModal(false)} />;
   };
 
   return (

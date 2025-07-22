@@ -55,10 +55,6 @@ const UsersPage: React.FC = () => {
         <FiRefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
         Yenilə
       </Button>
-      <Button variant="primary" size="sm">
-        <FiPlus className="w-4 h-4 mr-2" />
-        Yeni İstifadəçi
-      </Button>
     </div>
   );
 

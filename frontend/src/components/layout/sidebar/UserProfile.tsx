@@ -128,7 +128,7 @@ const UserProfile: React.FC<UserProfileProps> = memo(({ isCollapsed }) => {
             {user?.username || 'User'}
           </div>
           <div className="sidebar-user-role">
-            {user?.role || 'User'}
+            {typeof user?.role === 'string' ? user.role : (user?.role?.name || user?.role?.display_name || 'User')}
           </div>
           
           <p className="text-xs text-neutral-500 dark:text-neutral-400 truncate">

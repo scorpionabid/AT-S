@@ -262,8 +262,19 @@ const UsersList: React.FC = () => {
   return (
     <div className="users-list">
       <div className="page-header">
-        <h1 className="page-title">İstifadəçi İdarəetməsi</h1>
-        <p className="page-description">Sistem istifadəçilərini idarə edin</p>
+        <div className="header-content">
+          <h1 className="page-title">İstifadəçi İdarəetməsi</h1>
+          <p className="page-description">Sistem istifadəçilərini idarə edin</p>
+        </div>
+        <div className="header-actions">
+          <button
+            onClick={() => setShowCreateForm(true)}
+            className="add-user-button btn-with-icon"
+          >
+            <span className="btn-icon">➕</span>
+            Yeni İstifadəçi
+          </button>
+        </div>
       </div>
 
       {error && (

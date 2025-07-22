@@ -336,7 +336,7 @@ export const SidebarNavigation: React.FC<SidebarNavigationProps> = ({
         <div className="nav-footer">
           <div className="user-info">
             <div className="user-role">
-              {typeof user.role === 'string' ? user.role : user.role?.name || 'User'}
+              {typeof user.role === 'string' ? user.role : (user.role?.name || user.role?.display_name || 'User')}
             </div>
             <div className="user-name">
               {user.first_name && user.last_name 

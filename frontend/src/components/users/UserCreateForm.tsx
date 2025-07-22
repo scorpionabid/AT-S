@@ -91,40 +91,75 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ onClose, onSuccess }) =
 
   // Update filtered roles when allRoles or currentUser changes
   useEffect(() => {
-    if (!currentUser || allRoles.length === 0) return;
+    console.log('🔄 Updating filtered roles...');
+    console.log('   - Current user:', currentUser);
+    console.log('   - All roles:', allRoles);
+    console.log('   - Current user role:', currentUser?.role);
+    console.log('   - Current user roles array:', currentUser?.roles);
+    
+    if (!currentUser || allRoles.length === 0) {
+      console.log('   - No user or no roles, skipping filter');
+      return;
+    }
 
     const userRoleLevel = currentUser.role?.level || 0;
+    const userRoleName = currentUser.role?.name;
+    
+    console.log('   - User role name:', userRoleName);
+    console.log('   - User role level:', userRoleLevel);
+    
+    // Check multiple ways to detect superadmin
+    const isSuperAdmin = userRoleName === 'superadmin' || 
+                        (currentUser.roles && currentUser.roles.includes('superadmin'));
+    
+    console.log('   - Is superadmin?', isSuperAdmin);
     
     // Superadmin can assign any role
-    if (currentUser.role?.name === 'superadmin') {
+    if (isSuperAdmin) {
+      console.log('   - Setting all roles for superadmin');
       setFilteredRoles(allRoles);
     } 
     // Regionadmin can only assign roles with level > 2 (regionoperator and below)
-    else if (currentUser.role?.name === 'regionadmin') {
-      setFilteredRoles(allRoles.filter(role => role.level > 2));
+    else if (userRoleName === 'regionadmin' || 
+             (currentUser.roles && currentUser.roles.includes('regionadmin'))) {
+      console.log('   - Setting filtered roles for regionadmin');
+      const filteredForRegion = allRoles.filter(role => role.level > 2);
+      console.log('   - Filtered roles for regionadmin:', filteredForRegion);
+      setFilteredRoles(filteredForRegion);
     }
     // Other users can't assign any roles
     else {
+      console.log('   - No role assignment permission for user');
       setFilteredRoles([]);
     }
   }, [allRoles, currentUser]);
 
   const fetchCurrentUser = async () => {
     try {
+      console.log('🔍 Fetching current user for UserCreateForm...');
       const response = await api.get('/me');
-      setCurrentUser(response.data.user);
+      console.log('   - Current user response:', response.data);
+      const user = response.data.user || response.data;
+      console.log('   - Parsed user:', user);
+      console.log('   - User role:', user?.role);
+      console.log('   - User roles array:', user?.roles);
+      setCurrentUser(user);
     } catch (error) {
-      console.error('Failed to fetch current user:', error);
+      console.error('❌ Failed to fetch current user:', error);
       setCurrentUser(null);
     }
   };
 
   const fetchRoles = async () => {
     try {
+      console.log('🎭 Fetching roles for UserCreateForm...');
       const response = await api.get('/roles');
-      setAllRoles(response.data.roles || response.data.data || []);
+      console.log('   - Roles response:', response.data);
+      const roles = response.data.roles || response.data.data || [];
+      console.log('   - Parsed roles:', roles);
+      setAllRoles(roles);
     } catch (error) {
-      console.error('Roles fetch error:', error);
+      console.error('❌ Roles fetch error:', error);
       // If user doesn't have permission to access roles, set empty array
       setAllRoles([]);
     }
@@ -132,20 +167,42 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ onClose, onSuccess }) =
 
   const fetchInstitutions = async () => {
     try {
-      const response = await api.get('/institutions?per_page=100');
-      setInstitutions(response.data.institutions || response.data.data || []);
+      console.log('🏢 Fetching institutions for UserCreateForm...');
+      
+      // Try different approaches to get institutions
+      let response;
+      try {
+        // First try with pagination like departments page
+        response = await api.get('/institutions?page=1&per_page=50');
+      } catch (paginationError) {
+        console.log('   - Pagination failed, trying without parameters...');
+        // Fallback to no parameters
+        response = await api.get('/institutions');
+      }
+      
+      console.log('   - Institutions response:', response.data);
+      const institutions = response.data.institutions || response.data.data || [];
+      console.log('   - Parsed institutions:', institutions);
+      console.log('   - Number of institutions:', institutions.length);
+      setInstitutions(institutions);
     } catch (error) {
-      console.error('Institutions fetch error:', error);
+      console.error('❌ Institutions fetch error:', error);
       setInstitutions([]);
     }
   };
 
   const fetchDepartments = async () => {
     try {
-      const response = await api.get('/departments?per_page=100&is_active=1');
-      setDepartments(response.data.data || []);
+      console.log('🏛️ Fetching departments for UserCreateForm...');
+      // Try without is_active parameter since it may not be supported
+      const response = await api.get('/departments?per_page=100');
+      console.log('   - Departments response:', response.data);
+      const departments = response.data.data || response.data.departments || [];
+      console.log('   - Parsed departments:', departments);
+      setDepartments(departments);
     } catch (error) {
-      console.error('Departments fetch error:', error);
+      console.error('❌ Departments fetch error:', error);
+      setDepartments([]);
     }
   };
 

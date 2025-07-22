@@ -4,6 +4,71 @@
   margin: 0 auto;
 }
 
+/* Page Header Styles */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 20px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.header-content {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.page-description {
+  color: #6b7280;
+  font-size: 1rem;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* Add User Button */
+.add-user-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.add-user-button:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.add-user-button:active {
+  transform: translateY(0);
+}
+
+.btn-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
 /* Enhanced Sort Controls */
 .sort-controls {
   display: flex;
