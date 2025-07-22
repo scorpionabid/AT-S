@@ -48,6 +48,14 @@ export const ROLE_DISPLAY_NAMES: Record<string, string> = {
   [ROLES.FINANCE_MANAGER]: 'Finance Manager',
   [ROLES.SCHOOL_PSYCHOLOGIST]: 'School Psychologist',
   [ROLES.TEACHER]: 'Teacher',
+  // Additional mappings for backend compatibility
+  'regionadmin': 'Regional Administrator',
+  'regionoperator': 'Regional Operator',
+  'sektoradmin': 'Sector Administrator',
+  'məktəbadmin': 'School Administrator',
+  'mektebadmin': 'School Administrator',
+  'müəllim': 'Teacher',
+  'muellim': 'Teacher',
 };
 
 /**
@@ -67,6 +75,14 @@ export const ROLE_LEVELS: Record<string, number> = {
   [ROLES.FINANCE_MANAGER]: 6,
   [ROLES.SCHOOL_PSYCHOLOGIST]: 6,
   [ROLES.TEACHER]: 7,
+  // Additional mappings for backend compatibility
+  'regionadmin': 2,
+  'regionoperator': 3,
+  'sektoradmin': 4,
+  'məktəbadmin': 5,
+  'mektebadmin': 5,
+  'müəllim': 7,
+  'muellim': 7,
 };
 
 /**
@@ -194,9 +210,11 @@ export const LEGACY_ROLE_MAPPINGS: Record<string, string> = {
   'muellim': ROLES.TEACHER,           // Standard transliterated version
   'muelim': ROLES.TEACHER,            // Shortened version
   'teacher': ROLES.TEACHER,           // English version
+  'məktəbadmin': ROLES.SCHOOL_ADMIN,  // Azerbaijani character version
   'mektebadmin': ROLES.SCHOOL_ADMIN,  // Alternative spelling
   'schooladmin': ROLES.SCHOOL_ADMIN,  // Standard version
   'regionadmin': ROLES.REGION_ADMIN,  // Standard version
+  'regionoperator': ROLES.REGION_OPERATOR_ADMIN, // Regional operator
   'deputy': ROLES.DEPUTY_PRINCIPAL,   // Shortened version
   'sektoradmin': ROLES.SEKTOR_ADMIN,  // Standard version
 };
@@ -218,12 +236,19 @@ export function hasRole(userRole: string, requiredRoles: string[]): boolean {
 }
 
 /**
+ * Helper function to get role level
+ */
+export function getRoleLevel(userRole: string): number {
+  const standardizedRole = getStandardizedRole(userRole);
+  return ROLE_LEVELS[standardizedRole] || 999; // Return high number for unknown roles
+}
+
+/**
  * Helper function to check if user has sufficient role level
  */
 export function hasRoleLevel(userRole: string, minLevel: number): boolean {
-  const standardizedRole = getStandardizedRole(userRole);
-  const userLevel = ROLE_LEVELS[standardizedRole];
-  return userLevel ? userLevel <= minLevel : false;
+  const userLevel = getRoleLevel(userRole);
+  return userLevel <= minLevel;
 }
 
 /**

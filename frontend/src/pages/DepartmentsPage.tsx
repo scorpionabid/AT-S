@@ -5,6 +5,7 @@ import { Button } from '../components/ui/Button';
 import { LoadingSpinner } from '../components/ui/Loading';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
+import { useRoleBasedData, useRegionalData } from '../hooks/useRoleBasedData';
 import { Icon } from '../components/common/IconSystem';
 import '../styles/departments.css';
 import { 
@@ -52,14 +53,35 @@ interface Department {
 
 const DepartmentsPage: React.FC = () => {
   const { user } = useAuth();
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [selectedInstitutionId, setSelectedInstitutionId] = useState<number | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [institutionsLoading, setInstitutionsLoading] = useState(true);
-  const [error, setError] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [institutionSearchTerm, setInstitutionSearchTerm] = useState('');
+
+  // 🚀 NEW: Role-based institutions data fetching
+  const {
+    data: institutionsData,
+    loading: institutionsLoading,
+    error: institutionsError
+  } = useRegionalData<Institution[]>('institutions');
+
+  const institutions = institutionsData || [];
+
+  // 🚀 NEW: Role-based departments data fetching for selected institution
+  const {
+    data: departmentsData,
+    loading,
+    error,
+    refetch: refetchDepartments
+  } = useRoleBasedData<Department[]>({
+    endpoint: selectedInstitutionId ? `/institutions/${selectedInstitutionId}/departments` : '',
+    filters: {
+      ...(searchTerm && { search: searchTerm })
+    },
+    autoFetch: !!selectedInstitutionId,
+    dependencies: [selectedInstitutionId, searchTerm]
+  });
+
+  const departments = departmentsData || [];
   
   // Modal states
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -87,80 +109,7 @@ const DepartmentsPage: React.FC = () => {
     { value: 'informatika', label: 'İnformatika' }
   ];
 
-  useEffect(() => {
-    fetchInstitutions();
-  }, []);
-
-  useEffect(() => {
-    if (selectedInstitutionId) {
-      fetchDepartments();
-    } else {
-      setDepartments([]);
-      setLoading(false);
-    }
-  }, [selectedInstitutionId, searchTerm]);
-
-  const fetchInstitutions = async () => {
-    try {
-      setInstitutionsLoading(true);
-      console.log('🏢 Fetching institutions for departments page...');
-      
-      // Try different approaches to get institutions
-      let response;
-      try {
-        // First try with basic pagination like institutions page
-        const params = new URLSearchParams({
-          page: '1',
-          per_page: '50'
-        });
-        
-        console.log('   - Making API request to /institutions with params:', params.toString());
-        response = await api.get(`/institutions?${params}`);
-      } catch (paginationError) {
-        console.log('   - Pagination failed, trying without parameters...');
-        // Fallback to no parameters
-        response = await api.get('/institutions');
-      }
-      
-      console.log('   - Raw API response:', response.data);
-      
-      const institutionsData = response.data.institutions || response.data.data || [];
-      console.log('   - Parsed institutions:', institutionsData);
-      console.log('   - Number of institutions:', institutionsData.length);
-      
-      // Filter for active institutions on frontend if needed
-      const activeInstitutions = institutionsData.filter((inst: Institution) => inst.is_active);
-      console.log('   - Active institutions:', activeInstitutions.length);
-      
-      setInstitutions(institutionsData); // Keep all institutions, let user choose
-      setError(''); // Clear any previous errors
-    } catch (err: any) {
-      console.error('❌ Error fetching institutions:', err);
-      console.error('   - Error response:', err.response);
-      setError('Müəssisələr yüklənərkən xəta baş verdi: ' + (err.response?.data?.message || err.message));
-      setInstitutions([]); // Clear institutions on error
-    } finally {
-      setInstitutionsLoading(false);
-    }
-  };
-
-  const fetchDepartments = async () => {
-    if (!selectedInstitutionId) return;
-    
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      
-      const response = await api.get(`/institutions/${selectedInstitutionId}/departments?${params}`);
-      const departmentsData = response.data.departments || response.data.data || [];
-      setDepartments(departmentsData);
-    } catch (err: any) {
-      setError('Şöbələr yüklənərkən xəta baş verdi: ' + (err.response?.data?.message || err.message));
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Manual fetch removed - handled by useRoleBasedData and useRegionalData hooks automatically
 
   const handleCreateDepartment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -170,7 +119,7 @@ const DepartmentsPage: React.FC = () => {
       await api.post(`/institutions/${selectedInstitutionId}/departments`, formData);
       setShowCreateForm(false);
       resetForm();
-      fetchDepartments();
+      refetchDepartments();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Şöbə yaradılarkən xəta baş verdi');
     }
@@ -185,7 +134,7 @@ const DepartmentsPage: React.FC = () => {
       setShowEditForm(false);
       setEditingDepartment(null);
       resetForm();
-      fetchDepartments();
+      refetchDepartments();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Şöbə yenilənərkən xəta baş verdi');
     }
@@ -196,7 +145,7 @@ const DepartmentsPage: React.FC = () => {
     
     try {
       await api.delete(`/institutions/${selectedInstitutionId}/departments/${departmentId}`);
-      fetchDepartments();
+      refetchDepartments();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Şöbə silinərkən xəta baş verdi');
     }

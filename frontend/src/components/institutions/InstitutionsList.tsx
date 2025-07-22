@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRoleBasedData, useRegionalData } from '../../hooks/useRoleBasedData';
 import InstitutionCreateForm from './InstitutionCreateForm';
 import InstitutionEditForm from './InstitutionEditForm';
 import InstitutionHierarchyView from './InstitutionHierarchyView';
@@ -46,26 +47,7 @@ interface InstitutionsResponse {
 }
 
 const InstitutionsList: React.FC = () => {
-  console.log('🟢 InstitutionsList component rendered');
-  
   const { user } = useAuth();
-  console.log('👤 Current user in InstitutionsList:', user);
-  
-  // Additional debugging - check localStorage directly
-  const storedUser = localStorage.getItem('user_data');
-  console.log('💾 Stored user data in localStorage:', storedUser);
-  if (storedUser) {
-    try {
-      const parsedUser = JSON.parse(storedUser);
-      console.log('📄 Parsed user data:', parsedUser);
-      console.log('🔍 User roles from localStorage:', parsedUser.roles);
-    } catch (e) {
-      console.error('❌ Error parsing localStorage user data:', e);
-    }
-  }
-  const [institutions, setInstitutions] = useState<Institution[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [levelFilter, setLevelFilter] = useState('');
@@ -82,9 +64,30 @@ const InstitutionsList: React.FC = () => {
   const [deletingInstitutionId, setDeletingInstitutionId] = useState<number | null>(null);
   const [departmentsInstitutionId, setDepartmentsInstitutionId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
   const [selectedInstitutions, setSelectedInstitutions] = useState<number[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
+
+  // 🚀 NEW: Role-based institutions data fetching
+  const {
+    data: institutionsResponse,
+    loading,
+    error,
+    refetch: refetchInstitutions
+  } = useRoleBasedData<InstitutionsResponse>({
+    endpoint: '/institutions',
+    filters: {
+      page: currentPage,
+      per_page: 12,
+      ...(searchTerm && { search: searchTerm }),
+      ...(typeFilter && { type: typeFilter }),
+      ...(levelFilter && { level: levelFilter })
+    },
+    dependencies: [currentPage, searchTerm, typeFilter, levelFilter]
+  });
+
+  // Extract institutions and pagination from response
+  const institutions = institutionsResponse?.institutions || [];
+  const totalPages = institutionsResponse?.meta?.last_page || 1;
 
   const institutionTypes = [
     { value: 'ministry', label: 'Nazirlik' },
@@ -103,59 +106,7 @@ const InstitutionsList: React.FC = () => {
     { value: 5, label: 'Səviyyə 5 - Şöbə' }
   ];
 
-  useEffect(() => {
-    console.log('🔄 InstitutionsList useEffect triggered');
-    console.log('   - Dependencies changed:', { currentPage, searchTerm, typeFilter, levelFilter });
-    fetchInstitutions();
-  }, [currentPage, searchTerm, typeFilter, levelFilter]);
-
-  const fetchInstitutions = async () => {
-    console.log('📥 fetchInstitutions called');
-    
-    try {
-      console.log('   - Setting loading to true...');
-      setLoading(true);
-      
-      const params = new URLSearchParams({
-        page: currentPage.toString(),
-        per_page: '15'
-      });
-
-      if (searchTerm) params.append('search', searchTerm);
-      if (typeFilter) params.append('type', typeFilter);
-      if (levelFilter) params.append('level', levelFilter);
-
-      console.log('   - Making API request to /institutions with params:', params.toString());
-      const response = await api.get(`/institutions?${params}`);
-      console.log('   - Raw API response:', response.data);
-      const data: InstitutionsResponse = response.data;
-      
-      console.log('   - API response received:', data);
-      console.log('   - Institutions array:', data.institutions);
-      console.log('   - Institutions count:', data.institutions?.length || 0);
-      console.log('   - Is institutions array:', Array.isArray(data.institutions));
-      
-      // Ensure institutions is always an array
-      const institutionsArray = Array.isArray(data.institutions) ? data.institutions : [];
-      setInstitutions(institutionsArray);
-      setTotalPages(data.meta?.last_page || 1);
-      
-      console.log('   - State updated successfully');
-    } catch (err: any) {
-      console.error('❌ fetchInstitutions error:', err);
-      console.error('   - Error response:', err.response);
-      const errorMessage = err.response?.data?.message || 'Institution məlumatları yüklənərkən xəta baş verdi';
-      console.error('   - Setting error message:', errorMessage);
-      setError(errorMessage);
-      
-      // Ensure institutions is empty array on error
-      setInstitutions([]);
-      setTotalPages(1);
-    } finally {
-      console.log('   - Setting loading to false...');
-      setLoading(false);
-    }
-  };
+  // Manual fetch removed - handled by useRoleBasedData hook automatically
 
   const canManageInstitutions = () => {
     // Check if user has roles array (from /me endpoint)
@@ -171,11 +122,9 @@ const InstitutionsList: React.FC = () => {
   };
 
   const handleCreateSuccess = () => {
-    console.log('🎉 handleCreateSuccess called');
-    console.log('   - Closing create form...');
     setShowCreateForm(false);
-    console.log('   - Fetching updated institutions list...');
-    fetchInstitutions();
+    // 🚀 NEW: Use refetch instead of manual fetchInstitutions
+    refetchInstitutions();
   };
 
   const handleEditClick = (institutionId: number) => {
@@ -196,7 +145,8 @@ const InstitutionsList: React.FC = () => {
   const handleEditSuccess = () => {
     setShowEditForm(false);
     setEditingInstitutionId(null);
-    fetchInstitutions();
+    // 🚀 NEW: Use refetch instead of manual fetchInstitutions
+    refetchInstitutions();
   };
 
   const handleToggleStatus = async (institution: Institution) => {
@@ -204,7 +154,7 @@ const InstitutionsList: React.FC = () => {
       await api.put(`/institutions/${institution.id}`, {
         is_active: !institution.is_active
       });
-      fetchInstitutions();
+      refetchInstitutions();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Status dəyişdirilərkən xəta baş verdi');
     }
@@ -226,7 +176,7 @@ const InstitutionsList: React.FC = () => {
       };
 
       await api.post('/institutions', duplicateData);
-      fetchInstitutions();
+      refetchInstitutions();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Təşkilat kopyalanarkən xəta baş verdi');
     }
@@ -249,7 +199,7 @@ const InstitutionsList: React.FC = () => {
       await api.delete(`/institutions/${deletingInstitutionId}`);
       setShowDeleteModal(false);
       setDeletingInstitutionId(null);
-      fetchInstitutions();
+      refetchInstitutions();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Təşkilat silinərkən xəta baş verdi');
     }

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useDebounce } from '../../hooks/useDebounce';
+import { useRoleBasedData, useRegionalData } from '../../hooks/useRoleBasedData';
+import { useAuth } from '../../contexts/AuthContext';
 import UserCreateForm from './UserCreateForm';
 import UserEditForm from './UserEditForm';
 import UserDeleteConfirm from './UserDeleteConfirm';
@@ -41,12 +43,8 @@ interface UsersResponse {
 }
 
 const UsersList: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  const { user: currentUser } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalUsers, setTotalUsers] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -69,61 +67,59 @@ const UsersList: React.FC = () => {
   // Debounced search
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
-  const fetchUsers = async (page: number = 1) => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams({
-        page: page.toString(),
-        per_page: '10',
-        ...(debouncedSearchTerm && { search: debouncedSearchTerm }),
-        ...(roleFilter && { role: roleFilter }),
-        ...(statusFilter && { status: statusFilter }),
-        ...(institutionFilter && { institution: institutionFilter }),
-        ...(sortField && { sort: sortField }),
-        ...(sortOrder && { order: sortOrder }),
-        ...(createdFromDate && { created_from: createdFromDate }),
-        ...(createdToDate && { created_to: createdToDate }),
-        ...(lastLoginFromDate && { last_login_from: lastLoginFromDate }),
-        ...(lastLoginToDate && { last_login_to: lastLoginToDate })
-      });
+  // 🚀 NEW: Role-based data fetching
+  const {
+    data: usersResponse,
+    loading,
+    error,
+    refetch: refetchUsers
+  } = useRoleBasedData<UsersResponse>({
+    endpoint: '/users',
+    filters: {
+      page: currentPage,
+      per_page: 10,
+      search: debouncedSearchTerm,
+      ...(roleFilter && { role: roleFilter }),
+      ...(statusFilter && { status: statusFilter }),
+      ...(institutionFilter && { institution_id: institutionFilter }),
+      sort_field: sortField,
+      sort_order: sortOrder,
+      ...(createdFromDate && { created_from: createdFromDate }),
+      ...(createdToDate && { created_to: createdToDate }),
+      ...(lastLoginFromDate && { last_login_from: lastLoginFromDate }),
+      ...(lastLoginToDate && { last_login_to: lastLoginToDate }),
+    },
+    dependencies: [
+      currentPage, 
+      debouncedSearchTerm, 
+      roleFilter, 
+      statusFilter, 
+      institutionFilter,
+      sortField,
+      sortOrder,
+      createdFromDate,
+      createdToDate,
+      lastLoginFromDate,
+      lastLoginToDate
+    ]
+  });
 
-      const response = await api.get(`/users?${params}`);
-      const data: UsersResponse = response.data;
-      
-      setUsers(data.users);
-      setCurrentPage(data.meta.current_page);
-      setTotalPages(data.meta.last_page);
-      setTotalUsers(data.meta.total);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'İstifadəçilər yüklənərkən xəta baş verdi');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Extract users and pagination from response
+  const users = usersResponse?.users || [];
+  const totalPages = usersResponse?.meta?.last_page || 1;
+  const totalUsers = usersResponse?.meta?.total || 0;
 
-  const fetchInstitutions = async () => {
-    try {
-      const response = await api.get('/users/institutions/available');
-      setInstitutions(response.data.institutions);
-    } catch (err: any) {
-      console.error('Institutions loading error:', err);
-    }
-  };
+  // 🚀 NEW: Regional institutions fetching - avtomatik olaraq user scope tətbiq edir
+  const {
+    data: institutionsData
+  } = useRegionalData<{id: number, name: string, type: string}[]>('institutions');
 
+  // Set institutions from role-based data
   useEffect(() => {
-    fetchUsers(currentPage);
-  }, [currentPage, debouncedSearchTerm, roleFilter, statusFilter, institutionFilter, sortField, sortOrder, createdFromDate, createdToDate, lastLoginFromDate, lastLoginToDate]);
-
-  useEffect(() => {
-    fetchInstitutions();
-  }, []);
-
-  // Search debouncingdə avtomatik işləyir, manual search lazım deyil
-  // const handleSearch = (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   setCurrentPage(1);
-  //   fetchUsers(1);
-  // };
+    if (institutionsData) {
+      setInstitutions(institutionsData);
+    }
+  }, [institutionsData]);
 
   const handleStatusToggle = (user: User) => {
     setStatusChangingUser(user);
@@ -138,7 +134,8 @@ const UsersList: React.FC = () => {
         is_active: !statusChangingUser.is_active
       });
       setStatusChangingUser(null);
-      fetchUsers(currentPage);
+      // 🚀 NEW: Use refetch instead of manual fetchUsers
+      refetchUsers();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Status dəyişdirilərkən xəta baş verdi');
     } finally {
@@ -157,7 +154,8 @@ const UsersList: React.FC = () => {
       setDeleteLoading(true);
       await api.delete(`/users/${deletingUser.id}`);
       setDeletingUser(null);
-      fetchUsers(currentPage);
+      // 🚀 NEW: Use refetch instead of manual fetchUsers
+      refetchUsers();
     } catch (err: any) {
       setError(err.response?.data?.message || 'İstifadəçi silinərkən xəta baş verdi');
     } finally {
@@ -192,12 +190,14 @@ const UsersList: React.FC = () => {
 
   const handleCreateSuccess = () => {
     setShowCreateForm(false);
-    fetchUsers(currentPage);
+    // 🚀 NEW: Use refetch instead of manual fetchUsers
+    refetchUsers();
   };
 
   const handleEditSuccess = () => {
     setEditingUserId(null);
-    fetchUsers(currentPage);
+    // 🚀 NEW: Use refetch instead of manual fetchUsers
+    refetchUsers();
   };
 
   // Modal handlers
