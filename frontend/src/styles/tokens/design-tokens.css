@@ -317,16 +317,27 @@
   /* ====================
    * LAYOUT TOKENS
    * ==================== */
+  /* Sidebar Dimensions with Fallbacks */
   --sidebar-width: 280px;
   --sidebar-width-collapsed: 80px;
-  --header-height: 70px;
+  --sidebar-width-fallback: 280px; /* Fallback for JavaScript failure */
+  
+  /* Header & Footer */
+  --header-height: 80px;
   --footer-height: 60px;
+  
+  /* Content Layout */
   --content-padding: clamp(1rem, 3vw, 2rem);
   --content-max-width: 1440px;
   
   /* Mobile Sidebar */
   --sidebar-width-mobile: 100vw;
   --sidebar-overlay-z: 1000;
+  
+  /* Layout Transitions - Synchronized */
+  --layout-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --sidebar-transition: var(--layout-transition);
+  --header-transition: var(--layout-transition);
   
   /* Touch Target Sizes */
   --touch-target-min: 44px;

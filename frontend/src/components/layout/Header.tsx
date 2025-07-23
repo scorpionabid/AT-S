@@ -48,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="app-header fixed top-0 z-40 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200" style={{
+      <header className="app-header fixed top-0 z-[1001] bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200" style={{
         left: 'var(--sidebar-width)',
         width: 'calc(100% - var(--sidebar-width))',
         marginLeft: 0
