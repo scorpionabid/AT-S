@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
-import SurveyTargetSelector from './SurveyTargetSelector';
+import SurveyTargetingForm from './targeting/SurveyTargetingForm';
+
 
 
 interface Question {
@@ -12,27 +13,16 @@ interface Question {
   placeholder?: string;
 }
 
-interface Section {
-  id: string;
-  title: string;
-  description?: string;
-  questions: Question[];
-}
-
 interface SurveyData {
   title: string;
-  description: string;
   survey_type: 'form' | 'poll' | 'assessment' | 'feedback';
   is_anonymous: boolean;
   allow_multiple_responses: boolean;
-  structure: {
-    sections: Section[];
-  };
+  questions: Question[];
   target_institutions: number[];
   target_departments: number[];
   start_date: string;
   end_date: string;
-  completion_threshold: number;
 }
 
 interface SurveyCreateFormProps {
@@ -44,29 +34,20 @@ interface SurveyCreateFormProps {
 const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess, isModal = true }) => {
   const [formData, setFormData] = useState<SurveyData>({
     title: '',
-    description: '',
     survey_type: 'form',
     is_anonymous: false,
     allow_multiple_responses: false,
-    structure: {
-      sections: [{
-        id: 'section-1',
-        title: 'Əsas Bölmə',
-        description: '',
-        questions: [{
-          id: 'question-1',
-          question: '',
-          type: 'text',
-          required: true,
-          placeholder: ''
-        }]
-      }]
-    },
+    questions: [{
+      id: 'question-1',
+      question: '',
+      type: 'text',
+      required: true,
+      placeholder: ''
+    }],
     target_institutions: [],
     target_departments: [],
     start_date: '',
-    end_date: '',
-    completion_threshold: 80
+    end_date: ''
   });
 
   const [loading, setLoading] = useState(false);
@@ -93,11 +74,6 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
         ...prev,
         [name]: checked
       }));
-    } else if (name === 'completion_threshold') {
-      setFormData(prev => ({
-        ...prev,
-        [name]: parseInt(value) || 0
-      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -113,52 +89,7 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
     }
   };
 
-
-  const addSection = () => {
-    const newSection: Section = {
-      id: `section-${Date.now()}`,
-      title: 'Yeni Bölmə',
-      description: '',
-      questions: [{
-        id: `question-${Date.now()}`,
-        question: '',
-        type: 'text',
-        required: true,
-        placeholder: ''
-      }]
-    };
-
-    setFormData(prev => ({
-      ...prev,
-      structure: {
-        sections: [...prev.structure.sections, newSection]
-      }
-    }));
-  };
-
-  const removeSection = (sectionIndex: number) => {
-    if (formData.structure.sections.length <= 1) return;
-    
-    setFormData(prev => ({
-      ...prev,
-      structure: {
-        sections: prev.structure.sections.filter((_, index) => index !== sectionIndex)
-      }
-    }));
-  };
-
-  const updateSection = (sectionIndex: number, field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      structure: {
-        sections: prev.structure.sections.map((section, index) => 
-          index === sectionIndex ? { ...section, [field]: value } : section
-        )
-      }
-    }));
-  };
-
-  const addQuestion = (sectionIndex: number) => {
+  const addQuestion = () => {
     const newQuestion: Question = {
       id: `question-${Date.now()}`,
       question: '',
@@ -169,50 +100,25 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
 
     setFormData(prev => ({
       ...prev,
-      structure: {
-        sections: prev.structure.sections.map((section, index) => 
-          index === sectionIndex 
-            ? { ...section, questions: [...section.questions, newQuestion] }
-            : section
-        )
-      }
+      questions: [...prev.questions, newQuestion]
     }));
   };
 
-  const removeQuestion = (sectionIndex: number, questionIndex: number) => {
-    const section = formData.structure.sections[sectionIndex];
-    if (section.questions.length <= 1) return;
+  const removeQuestion = (questionIndex: number) => {
+    if (formData.questions.length <= 1) return;
 
     setFormData(prev => ({
       ...prev,
-      structure: {
-        sections: prev.structure.sections.map((section, index) => 
-          index === sectionIndex 
-            ? { 
-                ...section, 
-                questions: section.questions.filter((_, qIndex) => qIndex !== questionIndex) 
-              }
-            : section
-        )
-      }
+      questions: prev.questions.filter((_, index) => index !== questionIndex)
     }));
   };
 
-  const updateQuestion = (sectionIndex: number, questionIndex: number, field: string, value: any) => {
+  const updateQuestion = (questionIndex: number, field: string, value: any) => {
     setFormData(prev => ({
       ...prev,
-      structure: {
-        sections: prev.structure.sections.map((section, sIndex) => 
-          sIndex === sectionIndex 
-            ? {
-                ...section,
-                questions: section.questions.map((question, qIndex) =>
-                  qIndex === questionIndex ? { ...question, [field]: value } : question
-                )
-              }
-            : section
-        )
-      }
+      questions: prev.questions.map((question, index) =>
+        index === questionIndex ? { ...question, [field]: value } : question
+      )
     }));
   };
 
@@ -227,17 +133,11 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
       newErrors.target_institutions = 'Ən azı bir təşkilat seçilməlidir';
     }
 
-    // Validate sections and questions
-    formData.structure.sections.forEach((section, sIndex) => {
-      if (!section.title.trim()) {
-        newErrors[`section_${sIndex}_title`] = 'Bölmə başlığı mütləqdir';
+    // Validate questions
+    formData.questions.forEach((question, index) => {
+      if (!question.question.trim()) {
+        newErrors[`question_${index}`] = 'Sual mətni mütləqdir';
       }
-
-      section.questions.forEach((question, qIndex) => {
-        if (!question.question.trim()) {
-          newErrors[`question_${sIndex}_${qIndex}`] = 'Sual mətni mütləqdir';
-        }
-      });
     });
 
     if (formData.start_date && formData.end_date) {
@@ -264,8 +164,24 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
     setErrors({});
 
     try {
-      console.log('Sending survey data:', formData);
-      const response = await api.post('/surveys', formData);
+      // Transform questions to backend expected format
+      const backendData = {
+        ...formData,
+        structure: {
+          sections: [{
+            id: 'section-1',
+            title: 'Əsas Bölmə',
+            description: '',
+            questions: formData.questions
+          }]
+        }
+      };
+      
+      // Remove the questions field from root level
+      delete (backendData as any).questions;
+      
+      console.log('Sending survey data:', backendData);
+      const response = await api.post('/surveys', backendData);
       console.log('Survey created successfully:', response.data);
       onSuccess();
       onClose();
@@ -334,32 +250,8 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
                 </select>
               </div>
 
-              <div className="form-group">
-                <label htmlFor="completion_threshold">Tamamlanma məqsədi (%)</label>
-                <input
-                  type="number"
-                  id="completion_threshold"
-                  name="completion_threshold"
-                  value={formData.completion_threshold}
-                  onChange={handleInputChange}
-                  min="1"
-                  max="100"
-                  placeholder="80"
-                />
-              </div>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="description">Təsvir</label>
-              <textarea
-                id="description"
-                name="description"
-                value={formData.description}
-                onChange={handleInputChange}
-                rows={3}
-                placeholder="Sorğu haqqında əlavə məlumat"
-              />
-            </div>
 
             <div className="form-grid">
               <div className="form-group">
@@ -410,166 +302,118 @@ const SurveyCreateForm: React.FC<SurveyCreateFormProps> = ({ onClose, onSuccess,
             </div>
           </div>
 
+          {/* Survey Questions */}
+          <div className="form-section">
+            <div className="section-header">
+              <h3>Sorğu Sualları</h3>
+              <button
+                type="button"
+                onClick={addQuestion}
+                className="btn-secondary small"
+              >
+                ➕ Sual əlavə et
+              </button>
+            </div>
+
+            {formData.questions.map((question, questionIndex) => (
+              <div key={question.id} className="question-item">
+                <div className="question-header">
+                  <span>Sual {questionIndex + 1}</span>
+                  {formData.questions.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeQuestion(questionIndex)}
+                      className="btn-danger small"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Sual mətni *</label>
+                    <input
+                      type="text"
+                      value={question.question}
+                      onChange={(e) => updateQuestion(questionIndex, 'question', e.target.value)}
+                      className={errors[`question_${questionIndex}`] ? 'error' : ''}
+                      placeholder="Sualı daxil edin"
+                    />
+                    {errors[`question_${questionIndex}`] && (
+                      <span className="field-error">{errors[`question_${questionIndex}`]}</span>
+                    )}
+                  </div>
+
+                  <div className="form-group">
+                    <label>Sual növü</label>
+                    <select
+                      value={question.type}
+                      onChange={(e) => updateQuestion(questionIndex, 'type', e.target.value)}
+                    >
+                      {questionTypes.map(type => (
+                        <option key={type.value} value={type.value}>
+                          {type.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label>Placeholder mətn</label>
+                    <input
+                      type="text"
+                      value={question.placeholder || ''}
+                      onChange={(e) => updateQuestion(questionIndex, 'placeholder', e.target.value)}
+                      placeholder="Cavab üçün göstəriş mətni"
+                    />
+                  </div>
+
+                  <div className="checkbox-group">
+                    <label className="checkbox-item">
+                      <input
+                        type="checkbox"
+                        checked={question.required}
+                        onChange={(e) => updateQuestion(questionIndex, 'required', e.target.checked)}
+                      />
+                      <span className="checkbox-label">Mütləq sual</span>
+                    </label>
+                  </div>
+                </div>
+
+                {(question.type === 'select' || question.type === 'radio' || question.type === 'checkbox') && (
+                  <div className="form-group">
+                    <label>Seçim variantları (hər sətirdə bir variant)</label>
+                    <textarea
+                      value={question.options?.join('\n') || ''}
+                      onChange={(e) => updateQuestion(questionIndex, 'options', e.target.value.split('\n').filter(opt => opt.trim()))}
+                      rows={3}
+                      placeholder="Seçim 1&#10;Seçim 2&#10;Seçim 3"
+                    />
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
           {/* Advanced Survey Targeting */}
           <div className="form-section">
-            <SurveyTargetSelector
-              selectedInstitutions={formData.target_institutions}
-              selectedDepartments={formData.target_departments}
-              onInstitutionsChange={(institutions) => setFormData(prev => ({ ...prev, target_institutions: institutions }))}
-              onDepartmentsChange={(departments) => setFormData(prev => ({ ...prev, target_departments: departments }))}
+            <SurveyTargetingForm
+              value={{ 
+                target_institutions: formData.target_institutions, 
+                target_departments: formData.target_departments 
+              }}
+              onChange={(criteria) => setFormData(prev => ({ 
+                ...prev, 
+                target_institutions: criteria.target_institutions || [],
+                target_departments: criteria.target_departments || []
+              }))}
             />
             {errors.target_institutions && (
               <span className="field-error">{errors.target_institutions}</span>
             )}
-          </div>
-
-          {/* Survey Structure */}
-          <div className="form-section">
-            <div className="section-header">
-              <h3>Sorğu Strukturu</h3>
-              <button
-                type="button"
-                onClick={addSection}
-                className="btn-secondary small"
-              >
-                ➕ Bölmə əlavə et
-              </button>
-            </div>
-
-            {formData.structure.sections.map((section, sectionIndex) => (
-              <div key={section.id} className="survey-section">
-                <div className="section-header">
-                  <h4>Bölmə {sectionIndex + 1}</h4>
-                  {formData.structure.sections.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeSection(sectionIndex)}
-                      className="btn-danger small"
-                    >
-                      🗑️ Sil
-                    </button>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Bölmə başlığı *</label>
-                  <input
-                    type="text"
-                    value={section.title}
-                    onChange={(e) => updateSection(sectionIndex, 'title', e.target.value)}
-                    className={errors[`section_${sectionIndex}_title`] ? 'error' : ''}
-                    placeholder="Bölmə başlığı"
-                  />
-                  {errors[`section_${sectionIndex}_title`] && (
-                    <span className="field-error">{errors[`section_${sectionIndex}_title`]}</span>
-                  )}
-                </div>
-
-                <div className="form-group">
-                  <label>Bölmə təsviri</label>
-                  <textarea
-                    value={section.description || ''}
-                    onChange={(e) => updateSection(sectionIndex, 'description', e.target.value)}
-                    rows={2}
-                    placeholder="Bölmə haqqında qısa təsvir"
-                  />
-                </div>
-
-                {/* Questions */}
-                <div className="questions-container">
-                  <div className="questions-header">
-                    <h5>Suallar</h5>
-                    <button
-                      type="button"
-                      onClick={() => addQuestion(sectionIndex)}
-                      className="btn-secondary small"
-                    >
-                      ➕ Sual əlavə et
-                    </button>
-                  </div>
-
-                  {section.questions.map((question, questionIndex) => (
-                    <div key={question.id} className="question-item">
-                      <div className="question-header">
-                        <span>Sual {questionIndex + 1}</span>
-                        {section.questions.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeQuestion(sectionIndex, questionIndex)}
-                            className="btn-danger small"
-                          >
-                            🗑️
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="form-grid">
-                        <div className="form-group">
-                          <label>Sual mətni *</label>
-                          <input
-                            type="text"
-                            value={question.question}
-                            onChange={(e) => updateQuestion(sectionIndex, questionIndex, 'question', e.target.value)}
-                            className={errors[`question_${sectionIndex}_${questionIndex}`] ? 'error' : ''}
-                            placeholder="Sualı daxil edin"
-                          />
-                          {errors[`question_${sectionIndex}_${questionIndex}`] && (
-                            <span className="field-error">{errors[`question_${sectionIndex}_${questionIndex}`]}</span>
-                          )}
-                        </div>
-
-                        <div className="form-group">
-                          <label>Sual növü</label>
-                          <select
-                            value={question.type}
-                            onChange={(e) => updateQuestion(sectionIndex, questionIndex, 'type', e.target.value)}
-                          >
-                            {questionTypes.map(type => (
-                              <option key={type.value} value={type.value}>
-                                {type.label}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="form-group">
-                        <label>Placeholder mətn</label>
-                        <input
-                          type="text"
-                          value={question.placeholder || ''}
-                          onChange={(e) => updateQuestion(sectionIndex, questionIndex, 'placeholder', e.target.value)}
-                          placeholder="Cavab üçün göstəriş mətni"
-                        />
-                      </div>
-
-                      <div className="checkbox-group">
-                        <label className="checkbox-item">
-                          <input
-                            type="checkbox"
-                            checked={question.required}
-                            onChange={(e) => updateQuestion(sectionIndex, questionIndex, 'required', e.target.checked)}
-                          />
-                          <span className="checkbox-label">Mütləq sual</span>
-                        </label>
-                      </div>
-
-                      {(question.type === 'select' || question.type === 'radio' || question.type === 'checkbox') && (
-                        <div className="form-group">
-                          <label>Seçim variantları (hər sətirdə bir variant)</label>
-                          <textarea
-                            value={question.options?.join('\n') || ''}
-                            onChange={(e) => updateQuestion(sectionIndex, questionIndex, 'options', e.target.value.split('\n').filter(opt => opt.trim()))}
-                            rows={3}
-                            placeholder="Seçim 1&#10;Seçim 2&#10;Seçim 3"
-                          />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
 
           <div className={isModal ? "modal-footer" : "form-footer"}>

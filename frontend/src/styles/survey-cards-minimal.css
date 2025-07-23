@@ -1,0 +1,355 @@
+/* Minimalist Survey Cards */
+.survey-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 160px;
+  max-height: 180px;
+}
+
+.survey-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  border-color: #3b82f6;
+}
+
+.survey-card.selected {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* Card Header - Minimalist */
+.survey-card-header {
+  padding: 16px 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.survey-title-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.survey-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.survey-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.status-badge, .type-badge {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.status-badge.active { background: #dcfce7; color: #166534; }
+.status-badge.draft { background: #fef3c7; color: #92400e; }
+.status-badge.closed { background: #fee2e2; color: #991b1b; }
+
+.type-badge {
+  background: #e0e7ff;
+  color: #3730a3;
+}
+
+/* Card Actions - Compact */
+.survey-card-actions {
+  display: flex;
+  gap: 8px;
+  position: relative;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #f9fafb;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  font-size: 14px;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+  color: #374151;
+  transform: scale(1.05);
+}
+
+.action-btn.view-btn:hover {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.action-btn.edit-btn:hover {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.action-btn.delete-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Delete Dropdown */
+.delete-dropdown {
+  position: relative;
+}
+
+.delete-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  min-width: 120px;
+  overflow: hidden;
+}
+
+.delete-option {
+  display: block;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: white;
+  color: #374151;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.delete-option:hover {
+  background: #f9fafb;
+}
+
+.delete-option.soft-delete:hover {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.delete-option.hard-delete:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Card Content - Compact Stats */
+.survey-card-content {
+  padding: 12px 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.survey-stats-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.stat-item {
+  text-align: center;
+}
+
+.stat-value {
+  display: block;
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.stat-label {
+  display: block;
+  font-size: 11px;
+  color: #6b7280;
+  margin-top: 2px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.survey-dates-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.date-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-label {
+  font-weight: 500;
+  margin-bottom: 2px;
+}
+
+.date-value {
+  color: #374151;
+}
+
+/* Card Footer - Simple Actions */
+.survey-card-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #f3f4f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafbfc;
+}
+
+.respond-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 6px 12px;
+  border-radius: 6px;
+  background: #eff6ff;
+  transition: all 0.2s ease;
+}
+
+.respond-link:hover {
+  background: #dbeafe;
+  text-decoration: none;
+}
+
+.publish-btn {
+  background: #10b981;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.publish-btn:hover {
+  background: #059669;
+  transform: translateY(-1px);
+}
+
+/* Delete Confirm Modal */
+.delete-confirm-modal {
+  max-width: 400px;
+  width: 90%;
+}
+
+.delete-confirm-modal .modal-body {
+  padding: 20px;
+}
+
+.delete-confirm-modal .modal-body p {
+  margin-bottom: 12px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.delete-confirm-modal .modal-body strong {
+  color: #dc2626;
+}
+
+.delete-confirm-modal .modal-footer {
+  padding: 16px 20px;
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-warning {
+  background: #f59e0b;
+  color: white;
+}
+
+.btn-warning:hover {
+  background: #d97706;
+}
+
+.btn-danger {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-danger:hover {
+  background: #b91c1c;
+}
+
+/* Grid responsive */
+.surveys-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .surveys-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .survey-card {
+    min-height: 140px;
+    max-height: 160px;
+  }
+  
+  .survey-stats-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  
+  .stat-value {
+    font-size: 16px;
+  }
+}

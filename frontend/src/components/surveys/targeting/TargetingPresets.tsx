@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { 
   FiTarget, 
   FiUsers, 
-  FiBuilding, 
+ 
   FiArrowRight,
   FiStar,
   FiPlay
 } from 'react-icons/fi';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import type { TargetingPreset } from '../../services/surveyTargetingService';
+import { Card } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import type { TargetingPreset } from '../../../services/surveyTargetingService';
 
 interface TargetingPresetsProps {
   presets: Record<string, TargetingPreset>;
@@ -34,11 +34,11 @@ const TargetingPresets: React.FC<TargetingPresetsProps> = ({
       case 'all_admins':
         return <FiStar className="h-5 w-5 text-purple-600" />;
       case 'regional_schools':
-        return <FiBuilding className="h-5 w-5 text-blue-600" />;
+        return <FiUsers className="h-5 w-5 text-blue-600" />;
       case 'sector_heads':
         return <FiTarget className="h-5 w-5 text-orange-600" />;
       case 'all_institutions':
-        return <FiBuilding className="h-5 w-5 text-gray-600" />;
+        return <FiUsers className="h-5 w-5 text-gray-600" />;
       case 'ministry_level':
         return <FiStar className="h-5 w-5 text-red-600" />;
       default:

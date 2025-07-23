@@ -3,15 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { 
   FiChevronRight, 
   FiChevronDown, 
-  FiBuilding, 
   FiHome,
   FiCheck,
   FiMinus,
   FiFilter
 } from 'react-icons/fi';
-import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import type { Institution } from '../../services/surveyTargetingService';
+import { Button } from '../../ui/Button';
+import { Card } from '../../ui/Card';
+import type { Institution } from '../../../services/surveyTargetingService';
 
 interface InstitutionTreeSelectorProps {
   institutions: Institution[];
@@ -100,10 +99,10 @@ const InstitutionTreeSelector: React.FC<InstitutionTreeSelectorProps> = ({
   const getInstitutionIcon = (institution: Institution) => {
     switch (institution.level) {
       case 1: return <FiHome className="h-4 w-4 text-purple-600" />;
-      case 2: return <FiBuilding className="h-4 w-4 text-blue-600" />;
-      case 3: return <FiBuilding className="h-4 w-4 text-green-600" />;
-      case 4: return <FiBuilding className="h-4 w-4 text-orange-600" />;
-      default: return <FiBuilding className="h-4 w-4 text-gray-600" />;
+      case 2: return <FiHome className="h-4 w-4 text-blue-600" />;
+      case 3: return <FiHome className="h-4 w-4 text-green-600" />;
+      case 4: return <FiHome className="h-4 w-4 text-orange-600" />;
+      default: return <FiHome className="h-4 w-4 text-gray-600" />;
     }
   };
 
@@ -308,7 +307,7 @@ const InstitutionTreeSelector: React.FC<InstitutionTreeSelectorProps> = ({
                     {levelNames[level as keyof typeof levelNames]}
                   </span>
                   <span className="ml-2 text-xs text-gray-500">
-                    ({selected}/{count} {t('common.selected')})
+                    ({selected}/{count} seçilmiş)
                   </span>
                 </div>
                 
@@ -341,7 +340,7 @@ const InstitutionTreeSelector: React.FC<InstitutionTreeSelectorProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <span className="text-sm text-gray-600">
-            {selectedIds.length} / {institutions.length} {t('common.selected')}
+            {selectedIds.length} / {institutions.length} seçilmiş
           </span>
         </div>
         
@@ -367,7 +366,7 @@ const InstitutionTreeSelector: React.FC<InstitutionTreeSelectorProps> = ({
               </div>
             ) : (
               <div className="text-center py-8 text-gray-500">
-                <FiBuilding className="h-8 w-8 mx-auto mb-2" />
+                <FiHome className="h-8 w-8 mx-auto mb-2" />
                 <p>{t('survey.targeting.noInstitutions')}</p>
               </div>
             )}

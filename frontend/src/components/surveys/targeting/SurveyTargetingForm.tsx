@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   FiUsers, 
-  FiBuilding, 
+ 
   FiTarget, 
   FiFilter,
   FiCheckCircle,
@@ -10,9 +10,9 @@ import {
   FiInfo,
   FiRefreshCw
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { useToast } from '../../contexts/ToastContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { useToast } from '../../../contexts/ToastContext';
 import { 
   surveyTargetingService,
   type EstimationCriteria,
@@ -20,7 +20,7 @@ import {
   type TargetingOptions,
   type TargetingValidation,
   Institution
-} from '../../services/surveyTargetingService';
+} from '../../../services/surveyTargetingService';
 import InstitutionTreeSelector from './InstitutionTreeSelector';
 import BulkSelectionModal from './BulkSelectionModal';
 import TargetingPresets from './TargetingPresets';
@@ -282,8 +282,8 @@ const SurveyTargetingForm: React.FC<SurveyTargetingFormProps> = ({
           <div className="border-b border-gray-200 mb-6">
             <nav className="-mb-px flex space-x-8">
               {[
-                { key: 'institutions', label: t('survey.targeting.institutions'), icon: FiBuilding },
-                { key: 'departments', label: t('survey.targeting.departments'), icon: FiBuilding },
+                { key: 'institutions', label: t('survey.targeting.institutions'), icon: FiUsers },
+                { key: 'departments', label: t('survey.targeting.departments'), icon: FiUsers },
                 { key: 'user_types', label: t('survey.targeting.userTypes'), icon: FiUsers },
                 { key: 'presets', label: t('survey.targeting.presets'), icon: FiTarget }
               ].map((tab) => (

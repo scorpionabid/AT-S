@@ -8,6 +8,7 @@ import SurveyCreateForm from './SurveyCreateForm';
 import SurveyEditForm from './SurveyEditForm';
 import { Icon, ActionIcon, StatusIcon } from '../common/IconSystem';
 import '../../styles/surveys.css';
+import '../../styles/survey-cards-minimal.css';
 
 interface Survey {
   id: number;
@@ -76,6 +77,8 @@ const SurveysList: React.FC<SurveysListProps> = ({
   const [selectedSurveys, setSelectedSurveys] = useState<number[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [activeDeleteMenu, setActiveDeleteMenu] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{id: number, type: 'soft' | 'hard'} | null>(null);
   
   // Enhanced functionality hooks
   const {
@@ -294,6 +297,57 @@ const SurveysList: React.FC<SurveysListProps> = ({
   const handleEditClick = (surveyId: number) => {
     setEditingSurveyId(surveyId);
     setShowEditForm(true);
+  };
+
+  const handleViewSurvey = (surveyId: number) => {
+    window.open(`/surveys/${surveyId}`, '_blank');
+  };
+
+  const handleEditSurvey = (surveyId: number) => {
+    setEditingSurveyId(surveyId);
+    setShowEditForm(true);
+  };
+
+  const toggleDeleteMenu = (surveyId: number) => {
+    setActiveDeleteMenu(activeDeleteMenu === surveyId ? null : surveyId);
+  };
+
+  const handleSoftDelete = (surveyId: number) => {
+    setDeleteConfirm({ id: surveyId, type: 'soft' });
+    setActiveDeleteMenu(null);
+  };
+
+  const handleHardDelete = (surveyId: number) => {
+    setDeleteConfirm({ id: surveyId, type: 'hard' });
+    setActiveDeleteMenu(null);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteConfirm) return;
+
+    try {
+      if (deleteConfirm.type === 'soft') {
+        await api.patch(`/surveys/${deleteConfirm.id}/archive`);
+      } else {
+        await api.delete(`/surveys/${deleteConfirm.id}`);
+      }
+      
+      setDeleteConfirm(null);
+      fetchSurveys(currentPage);
+    } catch (error) {
+      console.error('Delete error:', error);
+      setError('Sorğu silinərkən xəta baş verdi');
+    }
+  };
+
+  const handlePublishSurvey = async (surveyId: number) => {
+    try {
+      await api.patch(`/surveys/${surveyId}/publish`);
+      fetchSurveys(currentPage);
+    } catch (error) {
+      console.error('Publish error:', error);
+      setError('Sorğu dərc edilərkən xəta baş verdi');
+    }
   };
 
   const handleEditSuccess = () => {
@@ -734,166 +788,105 @@ const SurveysList: React.FC<SurveysListProps> = ({
             className={`survey-card ${selectedSurveys.includes(survey.id) ? 'selected' : ''}`}
           >
             <div className="survey-card-header">
-              <div className="survey-selection">
-                <input
-                  type="checkbox"
-                  checked={selectedSurveys.includes(survey.id)}
-                  onChange={() => handleSelectSurvey(survey.id)}
-                  className="survey-checkbox"
-                />
-              </div>
               <div className="survey-title-section">
                 <h3 className="survey-title">{survey.title}</h3>
                 <div className="survey-badges">
                   {getStatusBadge(survey)}
                   <span className="type-badge">{getTypeBadge(survey.survey_type)}</span>
-                  {survey.is_anonymous && (
-                    <span className="anonymous-badge">
-                      <Icon type="SHIELD" /> Anonim
-                    </span>
-                  )}
                 </div>
               </div>
-              <div className="survey-actions">
-                <ActionIcon 
-                  action={() => window.open(`/surveys/${survey.id}`, '_blank')}
-                  type="VIEW"
-                  tooltip="Ətraflı bax"
-                />
+              <div className="survey-card-actions">
+                <button 
+                  className="action-btn view-btn"
+                  onClick={() => handleViewSurvey(survey.id)}
+                  title="Sorğuya bax"
+                >
+                  👁️
+                </button>
                 {survey.creator.id === user?.id && (
-                  <ActionIcon
-                    action={() => handleEditClick(survey.id)}
-                    type="EDIT"
-                    tooltip="Redaktə et"
-                  />
+                  <button 
+                    className="action-btn edit-btn"
+                    onClick={() => handleEditSurvey(survey.id)}
+                    title="Redaktə et"
+                  >
+                    ✏️
+                  </button>
                 )}
-                <ActionIcon
-                  action={() => {/* Handle analytics */}}
-                  type="ANALYTICS"
-                  tooltip="Analitika"
-                />
+                <div className="delete-dropdown">
+                  <button 
+                    className="action-btn delete-btn"
+                    onClick={() => toggleDeleteMenu(survey.id)}
+                    title="Sil"
+                  >
+                    🗑️
+                  </button>
+                  {activeDeleteMenu === survey.id && (
+                    <div className="delete-menu">
+                      <button 
+                        className="delete-option soft-delete"
+                        onClick={() => handleSoftDelete(survey.id)}
+                      >
+                        📊 Arxivlə
+                      </button>
+                      <button 
+                        className="delete-option hard-delete"
+                        onClick={() => handleHardDelete(survey.id)}
+                      >
+                        🗑️ Tam sil
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
             <div className="survey-card-content">
-              <p className="survey-description">
-                {survey.description || 'Təsvir mövcud deyil'}
-              </p>
-
-              {/* Enhanced Progress Section */}
-              <div className="survey-progress-section">
-                <div className="progress-header">
-                  <span className="progress-label">Tamamlanma:</span>
-                  <span className="progress-percentage">{survey.completion_percentage}%</span>
+              <div className="survey-stats-row">
+                <div className="stat-item">
+                  <span className="stat-value">{survey.response_count}</span>
+                  <span className="stat-label">Cavab</span>
                 </div>
-                {getProgressBar(survey)}
-                <div className="progress-details">
-                  <span className="response-count">
-                    <Icon type="USERS" /> {survey.response_count} cavab
-                  </span>
-                  {survey.start_date && survey.end_date && (
-                    <span className="time-remaining">
-                      <Icon type="CLOCK" />
-                      {new Date(survey.end_date) > new Date() 
-                        ? `${Math.ceil((new Date(survey.end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} gün qalıb`
-                        : 'Vaxtı keçib'
-                      }
-                    </span>
-                  )}
+                <div className="stat-item">
+                  <span className="stat-value">{survey.completion_percentage}%</span>
+                  <span className="stat-label">Tamamlanma</span>
+                </div>
+                <div className="stat-item">
+                  <span className="stat-value">{survey.creator.name}</span>
+                  <span className="stat-label">Yaradıcı</span>
                 </div>
               </div>
-
-              <div className="survey-meta">
-                <div className="survey-dates">
-                  <div className="date-item">
-                    <Icon type="CALENDAR" />
-                    <div className="date-content">
-                      <span className="date-label">Başlama:</span>
-                      <span className="date-value">{formatDate(survey.start_date)}</span>
-                    </div>
-                  </div>
-                  <div className="date-item">
-                    <Icon type="CALENDAR" />
-                    <div className="date-content">
-                      <span className="date-label">Bitmə:</span>
-                      <span className="date-value">{formatDate(survey.end_date)}</span>
-                    </div>
-                  </div>
+              
+              <div className="survey-dates-row">
+                <div className="date-info">
+                  <span className="date-label">📅 Başlama:</span>
+                  <span className="date-value">{formatDate(survey.start_date)}</span>
                 </div>
-
-                <div className="survey-stats">
-                  <div className="stat-item">
-                    <div className="stat-icon">
-                      <Icon type="CHART" />
-                    </div>
-                    <div className="stat-content">
-                      <span className="stat-value">{survey.response_count}</span>
-                      <span className="stat-label">Cavab</span>
-                    </div>
+                {survey.end_date && (
+                  <div className="date-info">
+                    <span className="date-label">📅 Bitmə:</span>
+                    <span className="date-value">{formatDate(survey.end_date)}</span>
                   </div>
-                  <div className="stat-item">
-                    <div className="stat-icon">
-                      <Icon type="TARGET" />
-                    </div>
-                    <div className="stat-content">
-                      <span className="stat-value">{survey.completion_percentage}%</span>
-                      <span className="stat-label">Tamamlanma</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="survey-creator">
-                <div className="creator-info">
-                  <Icon type="USER" />
-                  <span>Yaradıcı: <strong>{survey.creator.name}</strong></span>
-                </div>
-                <span className="created-date">
-                  <Icon type="CLOCK" />
-                  {formatDate(survey.created_at)}
-                </span>
+                )}
               </div>
             </div>
 
             <div className="survey-card-footer">
-              <div className="survey-footer-actions">
-                {survey.is_open_for_responses && (
-                  <Link 
-                    to={`/surveys/${survey.id}/respond`} 
-                    className="action-button primary respond-button"
-                  >
-                    <Icon type="EDIT" /> Cavablandır
-                  </Link>
-                )}
-                {survey.creator.id === user?.id && survey.status === 'draft' && (
-                  <button 
-                    className="action-button success publish-button"
-                    onClick={() => handleBulkAction('publish')}
-                  >
-                    <Icon type="PUBLISH" /> Dərc et
-                  </button>
-                )}
-                <button
-                  className="action-button secondary share-button"
-                  onClick={() => {/* Handle share */}}
-                  title="Paylaş"
+              {survey.is_open_for_responses && (
+                <Link 
+                  to={`/surveys/${survey.id}/respond`} 
+                  className="respond-link"
                 >
-                  <Icon type="SHARE" />
+                  📝 Cavablandır
+                </Link>
+              )}
+              {survey.creator.id === user?.id && survey.status === 'draft' && (
+                <button 
+                  className="publish-btn"
+                  onClick={() => handlePublishSurvey(survey.id)}
+                >
+                  🚀 Dərc et
                 </button>
-              </div>
-              
-              {/* Survey Status Indicator */}
-              <div className="survey-status-indicator">
-                {survey.is_active && (
-                  <div className="status-dot active" title="Aktiv sorğu"></div>
-                )}
-                {survey.has_expired && (
-                  <div className="status-dot expired" title="Vaxtı keçmiş"></div>
-                )}
-                {survey.status === 'draft' && (
-                  <div className="status-dot draft" title="Layihə vəziyyətində"></div>
-                )}
-              </div>
+              )}
             </div>
           </div>
         ))}
@@ -1061,6 +1054,40 @@ const SurveysList: React.FC<SurveysListProps> = ({
           }}
           onSuccess={handleEditSuccess}
         />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirm && (
+        <div className="modal-overlay">
+          <div className="modal-content delete-confirm-modal">
+            <div className="modal-header">
+              <h3>Sorğunu sil</h3>
+            </div>
+            <div className="modal-body">
+              <p>
+                {deleteConfirm.type === 'soft' 
+                  ? 'Sorğu arxivlənəcək və gizlədiləcək, lakin tamamilə silinməyəcək.'
+                  : 'Sorğu tamamilə silinəcək və bərpa edilə bilməyəcək.'
+                }
+              </p>
+              <p><strong>Bu əməliyyat geri qaytarıla bilməz!</strong></p>
+            </div>
+            <div className="modal-footer">
+              <button 
+                className="btn btn-secondary"
+                onClick={() => setDeleteConfirm(null)}
+              >
+                Ləğv et
+              </button>
+              <button 
+                className={`btn ${deleteConfirm.type === 'soft' ? 'btn-warning' : 'btn-danger'}`}
+                onClick={confirmDelete}
+              >
+                {deleteConfirm.type === 'soft' ? '📁 Arxivlə' : '🗑️ Tam sil'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

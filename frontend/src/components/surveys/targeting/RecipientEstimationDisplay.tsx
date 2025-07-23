@@ -2,16 +2,16 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   FiUsers, 
-  FiBuilding, 
-  FiBarChart3,
+ 
+  FiBarChart,
   FiPieChart,
   FiChevronDown,
   FiChevronUp,
   FiRefreshCw
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import type { RecipientEstimation } from '../../services/surveyTargetingService';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import type { RecipientEstimation } from '../../../services/surveyTargetingService';
 
 interface RecipientEstimationDisplayProps {
   estimation: RecipientEstimation;
@@ -58,7 +58,7 @@ const RecipientEstimationDisplay: React.FC<RecipientEstimationDisplayProps> = ({
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center">
-            <FiBarChart3 className="h-5 w-5 mr-2 text-blue-600" />
+            <FiBarChart className="h-5 w-5 mr-2 text-blue-600" />
             {t('survey.targeting.estimationTitle')}
           </div>
           
@@ -85,7 +85,7 @@ const RecipientEstimationDisplay: React.FC<RecipientEstimationDisplayProps> = ({
 
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
             <div className="flex items-center justify-center mb-2">
-              <FiBuilding className="h-6 w-6 text-green-600" />
+              <FiUsers className="h-6 w-6 text-green-600" />
             </div>
             <div className="text-2xl font-bold text-green-900">
               {estimation.breakdown.summary.institutions}
@@ -109,7 +109,7 @@ const RecipientEstimationDisplay: React.FC<RecipientEstimationDisplayProps> = ({
 
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4 text-center">
             <div className="flex items-center justify-center mb-2">
-              <FiBuilding className="h-6 w-6 text-orange-600" />
+              <FiUsers className="h-6 w-6 text-orange-600" />
             </div>
             <div className="text-2xl font-bold text-orange-900">
               {estimation.breakdown.summary.departments}
@@ -128,7 +128,7 @@ const RecipientEstimationDisplay: React.FC<RecipientEstimationDisplayProps> = ({
               className="flex items-center justify-between w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <div className="flex items-center">
-                <FiBuilding className="h-5 w-5 mr-2 text-gray-600" />
+                <FiUsers className="h-5 w-5 mr-2 text-gray-600" />
                 <span className="font-medium text-gray-900">
                   {t('survey.targeting.breakdownByInstitution')}
                 </span>
@@ -306,7 +306,7 @@ const RecipientEstimationDisplay: React.FC<RecipientEstimationDisplayProps> = ({
               <span className="ml-1 font-medium">
                 {estimation.criteria.institution_levels.length > 0 
                   ? estimation.criteria.institution_levels.join(', ')
-                  : t('common.all')
+                  : 'Hamısı'
                 }
               </span>
             </div>

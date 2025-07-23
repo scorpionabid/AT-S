@@ -3,19 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { 
   FiX, 
   FiFilter, 
-  FiBuilding, 
+ 
   FiMap, 
   FiLayers,
   FiCheck,
   FiUsers
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { useToast } from '../../contexts/ToastContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { useToast } from '../../../contexts/ToastContext';
 import { 
   surveyTargetingService,
   type BulkSelectionOption
-} from '../../services/surveyTargetingService';
+} from '../../../services/surveyTargetingService';
 
 interface BulkSelectionModalProps {
   onClose: () => void;
@@ -118,7 +118,7 @@ const BulkSelectionModal: React.FC<BulkSelectionModalProps> = ({
   const getTabIcon = (tab: string) => {
     switch (tab) {
       case 'by_level': return <FiLayers className="h-4 w-4" />;
-      case 'by_type': return <FiBuilding className="h-4 w-4" />;
+      case 'by_type': return <FiLayers className="h-4 w-4" />;
       case 'by_region': return <FiMap className="h-4 w-4" />;
       default: return <FiFilter className="h-4 w-4" />;
     }
@@ -255,7 +255,7 @@ const BulkSelectionModal: React.FC<BulkSelectionModalProps> = ({
                       })
                     ) : (
                       <div className="text-center py-8 text-gray-500">
-                        <FiBuilding className="h-8 w-8 mx-auto mb-2" />
+                        <FiLayers className="h-8 w-8 mx-auto mb-2" />
                         <p>{t('survey.targeting.noOptionsAvailable')}</p>
                       </div>
                     )}
