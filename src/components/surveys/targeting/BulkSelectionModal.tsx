@@ -9,13 +9,13 @@ import {
   FiCheck,
   FiUsers
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { useToast } from '../../contexts/ToastContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { useToast } from '../../../contexts/ToastContext';
 import { 
   surveyTargetingService,
   type BulkSelectionOption
-} from '../../services/surveyTargetingService';
+} from '../../../services/surveyTargetingService';
 
 interface BulkSelectionModalProps {
   onClose: () => void;

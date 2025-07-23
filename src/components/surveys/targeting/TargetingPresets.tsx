@@ -8,9 +8,9 @@ import {
   FiStar,
   FiPlay
 } from 'react-icons/fi';
-import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import type { TargetingPreset } from '../../services/surveyTargetingService';
+import { Card } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import type { TargetingPreset } from '../../../services/surveyTargetingService';
 
 interface TargetingPresetsProps {
   presets: Record<string, TargetingPreset>;

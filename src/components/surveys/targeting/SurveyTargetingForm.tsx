@@ -10,9 +10,9 @@ import {
   FiInfo,
   FiRefreshCw
 } from 'react-icons/fi';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { useToast } from '../../contexts/ToastContext';
+import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
+import { Button } from '../../ui/Button';
+import { useToast } from '../../../contexts/ToastContext';
 import { 
   surveyTargetingService,
   type EstimationCriteria,
@@ -20,7 +20,7 @@ import {
   type TargetingOptions,
   type TargetingValidation,
   Institution
-} from '../../services/surveyTargetingService';
+} from '../../../services/surveyTargetingService';
 import InstitutionTreeSelector from './InstitutionTreeSelector';
 import BulkSelectionModal from './BulkSelectionModal';
 import TargetingPresets from './TargetingPresets';
