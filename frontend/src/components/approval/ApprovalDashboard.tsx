@@ -193,6 +193,7 @@ const ApprovalDashboard: React.FC = () => {
   };
 
   const filteredRequests = useMemo(() => {
+    if (!Array.isArray(approvalRequests)) return [];
     return approvalRequests.filter(request => {
       if (filterStatus !== 'all' && request.current_status !== filterStatus) return false;
       if (filterType !== 'all' && request.workflow.workflow_type !== filterType) return false;
@@ -247,7 +248,7 @@ const ApprovalDashboard: React.FC = () => {
             <div className="stat-content">
               <UserCheck className="stat-icon" />
               <div>
-                <span className="stat-number">{stats.avg_approval_time.toFixed(1)}h</span>
+                <span className="stat-number">{stats.avg_approval_time ? stats.avg_approval_time.toFixed(1) : '0.0'}h</span>
                 <span className="stat-label">Orta Təsdiq Vaxtı</span>
               </div>
             </div>

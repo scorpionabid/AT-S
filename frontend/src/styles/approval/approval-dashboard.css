@@ -110,12 +110,13 @@
 
 .filter-select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 12px;
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 14px;
   background: white;
   transition: border-color 0.2s;
+  height: 2.5rem; /* Fixed height for consistency */
 }
 
 .filter-select:focus {
