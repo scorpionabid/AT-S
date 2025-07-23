@@ -297,9 +297,9 @@ class TaskController extends Controller
     }
 
     /**
-     * Delete task
+     * Delete task (soft delete by deactivating or hard delete by removal)
      */
-    public function destroy(Task $task): JsonResponse
+    public function destroy(Request $request, Task $task): JsonResponse
     {
         $user = Auth::user();
 
@@ -311,12 +311,45 @@ class TaskController extends Controller
             ], 403);
         }
 
-        $task->delete();
+        $deleteType = $request->query('type', 'soft');
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Tapşırıq uğurla silindi.'
-        ]);
+        try {
+            DB::beginTransaction();
+
+            if ($deleteType === 'hard') {
+                // Hard delete - permanent removal
+                $taskTitle = $task->title;
+                $task->delete();
+
+                $message = "Tapşırıq '{$taskTitle}' tam olaraq silindi.";
+            } else {
+                // Soft delete - mark as deleted and set status to cancelled
+                $task->update([
+                    'status' => 'cancelled',
+                    'deleted_at' => now(),
+                    'cancelled_at' => now(),
+                    'cancelled_by' => $user->id
+                ]);
+
+                $message = "Tapşırıq '{$task->title}' ləğv edildi.";
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Tapşırıq silinərkən xəta baş verdi.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

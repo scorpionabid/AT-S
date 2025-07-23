@@ -5,6 +5,7 @@ import InstitutionEditForm from '../../institutions/InstitutionEditForm';
 import DepartmentManagement from './components/DepartmentManagement';
 import { LoadingSpinner } from '../../ui/Loading';
 import { EmptyState } from '../../common/EmptyState';
+import DeleteConfirmationModal from '../../ui/DeleteConfirmationModal';
 
 // Types
 interface Institution {
@@ -88,30 +89,62 @@ const RegionAdminInstitutionsList: React.FC = () => {
     setShowDepartments(true);
   };
 
-  const handleDelete = async (institution: Institution) => {
-    if (!confirm(`"${institution.name}" təşkilatını silmək istədiyinizə əminsiniz?`)) {
-      return;
-    }
+  const [deletingInstitution, setDeletingInstitution] = useState<Institution | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleDelete = (institution: Institution) => {
+    setDeletingInstitution(institution);
+  };
+
+  const confirmInstitutionDelete = async (deleteType: 'soft' | 'hard') => {
+    if (!deletingInstitution) return;
 
     try {
+      setDeleteLoading(true);
       const token = localStorage.getItem('auth_token');
       const baseURL = import.meta.env.MODE === 'production' ? '/api' : 'http://127.0.0.1:8000/api';
-      const response = await fetch(`${baseURL}/regionadmin/institutions/${institution.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json'
-        }
-      });
+      
+      if (deleteType === 'soft') {
+        // Soft delete - deactivate institution
+        const response = await fetch(`${baseURL}/regionadmin/institutions/${deletingInstitution.id}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            is_active: false,
+            deleted_at: new Date().toISOString()
+          })
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Təşkilat silinə bilmədi');
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Təşkilat deaktiv edilərkən xəta baş verdi');
+        }
+      } else {
+        // Hard delete - permanently delete
+        const response = await fetch(`${baseURL}/regionadmin/institutions/${deletingInstitution.id}?type=hard`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Təşkilat silinərkən xəta baş verdi');
+        }
       }
 
+      setDeletingInstitution(null);
       fetchInstitutions();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : 'Xəta baş verdi');
+    } catch (err: any) {
+      setError(err.message || 'Xəta baş verdi');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -427,6 +460,29 @@ const RegionAdminInstitutionsList: React.FC = () => {
             />
           </div>
         </div>
+      )}
+
+      {/* Delete Institution Modal */}
+      {deletingInstitution && (
+        <DeleteConfirmationModal
+          isOpen={true}
+          onClose={() => setDeletingInstitution(null)}
+          onConfirm={confirmInstitutionDelete}
+          item={{
+            id: deletingInstitution.id,
+            name: deletingInstitution.name,
+            type: getInstitutionTypeDisplay(deletingInstitution.type),
+            additional_info: {
+              children_count: deletingInstitution.children.length,
+              parent: deletingInstitution.parent?.name
+            }
+          }}
+          itemType="institution"
+          title="Təşkilatı Sil"
+          loading={deleteLoading}
+          canHardDelete={deletingInstitution.children.length === 0}
+          showBothOptions={true}
+        />
       )}
     </div>
   );

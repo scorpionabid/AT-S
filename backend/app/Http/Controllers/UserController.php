@@ -455,7 +455,7 @@ class UserController extends Controller
     }
 
     /**
-     * Delete user (soft delete by deactivating)
+     * Delete user (soft delete by deactivating or hard delete by removal)
      */
     public function destroy(Request $request, User $user): JsonResponse
     {
@@ -465,42 +465,99 @@ class UserController extends Controller
             ], 422);
         }
 
+        $deleteType = $request->query('type', 'soft');
         $oldData = $user->toArray();
 
-        $user->update([
-            'is_active' => false,
-            'locked_until' => now()->addYears(10) // Effectively permanent lock
-        ]);
+        try {
+            DB::beginTransaction();
 
-        // Revoke all tokens
-        $user->tokens()->delete();
+            if ($deleteType === 'hard') {
+                // Hard delete - permanently remove user
+                // Revoke all tokens first
+                $user->tokens()->delete();
 
-        // Log activity
-        ActivityLog::logActivity([
-            'user_id' => $request->user()->id,
-            'activity_type' => 'user_delete',
-            'entity_type' => 'User',
-            'entity_id' => $user->id,
-            'description' => "Deactivated user: {$user->username}",
-            'before_state' => $oldData,
-            'after_state' => $user->toArray(),
-            'institution_id' => $request->user()->institution_id
-        ]);
+                // Delete user profile if exists
+                if ($user->profile) {
+                    $user->profile->delete();
+                }
 
-        SecurityEvent::logEvent([
-            'event_type' => 'user_deactivated',
-            'severity' => 'warning',
-            'user_id' => $request->user()->id,
-            'target_user_id' => $user->id,
-            'description' => 'User account deactivated',
-            'event_data' => [
-                'deactivated_username' => $user->username
-            ]
-        ]);
+                // Delete user permanently
+                $user->delete();
 
-        return response()->json([
-            'message' => 'User deactivated successfully'
-        ]);
+                // Log activity for hard delete
+                ActivityLog::logActivity([
+                    'user_id' => $request->user()->id,
+                    'activity_type' => 'user_hard_delete',
+                    'entity_type' => 'User',
+                    'entity_id' => $user->id,
+                    'description' => "Permanently deleted user: {$user->username}",
+                    'before_state' => $oldData,
+                    'institution_id' => $request->user()->institution_id
+                ]);
+
+                SecurityEvent::logEvent([
+                    'event_type' => 'user_hard_deleted',
+                    'severity' => 'high',
+                    'user_id' => $request->user()->id,
+                    'target_user_id' => $user->id,
+                    'description' => 'User account permanently deleted',
+                    'event_data' => [
+                        'deleted_username' => $user->username
+                    ]
+                ]);
+
+                $message = 'User permanently deleted successfully';
+            } else {
+                // Soft delete - deactivate user
+                $user->update([
+                    'is_active' => false,
+                    'locked_until' => now()->addYears(10), // Effectively permanent lock
+                    'deleted_at' => now()
+                ]);
+
+                // Revoke all tokens
+                $user->tokens()->delete();
+
+                // Log activity for soft delete
+                ActivityLog::logActivity([
+                    'user_id' => $request->user()->id,
+                    'activity_type' => 'user_soft_delete',
+                    'entity_type' => 'User',
+                    'entity_id' => $user->id,
+                    'description' => "Deactivated user: {$user->username}",
+                    'before_state' => $oldData,
+                    'after_state' => $user->toArray(),
+                    'institution_id' => $request->user()->institution_id
+                ]);
+
+                SecurityEvent::logEvent([
+                    'event_type' => 'user_deactivated',
+                    'severity' => 'warning',
+                    'user_id' => $request->user()->id,
+                    'target_user_id' => $user->id,
+                    'description' => 'User account deactivated',
+                    'event_data' => [
+                        'deactivated_username' => $user->username
+                    ]
+                ]);
+
+                $message = 'User deactivated successfully';
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'User deletion failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

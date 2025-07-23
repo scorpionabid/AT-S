@@ -21,6 +21,8 @@ const buttonVariants = cva(
         success: 'bg-success-500 text-white hover:bg-success-600 focus-visible:ring-success-500',
         warning: 'bg-warning-500 text-white hover:bg-warning-600 focus-visible:ring-warning-500',
         error: 'bg-error-500 text-white hover:bg-error-600 focus-visible:ring-error-500',
+        destructive: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+        danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
         link: 'text-primary-500 underline-offset-4 hover:underline focus-visible:ring-primary-500',
       },
       size: {

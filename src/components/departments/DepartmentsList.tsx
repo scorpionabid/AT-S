@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import DepartmentCreateForm from './DepartmentCreateForm';
 import DepartmentEditForm from './DepartmentEditForm';
 import DepartmentCard from './DepartmentCard';
+import DeleteConfirmationModal from '../ui/DeleteConfirmationModal';
 
 interface Department {
   id: number;
@@ -149,16 +150,36 @@ const DepartmentsList: React.FC<DepartmentsListProps> = ({
     }
   };
 
-  const handleDeleteDepartment = async (departmentId: number) => {
-    if (!confirm('Bu şöbəni silmək istədiyinizdən əminsiniz?')) {
-      return;
-    }
+  const [deletingDepartment, setDeletingDepartment] = useState<any>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const handleDeleteDepartment = (department: any) => {
+    setDeletingDepartment(department);
+  };
+
+  const confirmDepartmentDelete = async (deleteType: 'soft' | 'hard') => {
+    if (!deletingDepartment) return;
 
     try {
-      await api.delete(`/departments/${departmentId}`);
+      setDeleteLoading(true);
+      
+      if (deleteType === 'soft') {
+        // Soft delete - deactivate department
+        await api.put(`/departments/${deletingDepartment.id}`, {
+          is_active: false,
+          deleted_at: new Date().toISOString()
+        });
+      } else {
+        // Hard delete - permanently delete
+        await api.delete(`/departments/${deletingDepartment.id}?type=hard`);
+      }
+      
+      setDeletingDepartment(null);
       fetchDepartments();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Şöbə silinərkən xəta baş verdi');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -325,6 +346,29 @@ const DepartmentsList: React.FC<DepartmentsListProps> = ({
             setEditingDepartmentId(null);
           }}
           onSuccess={handleEditSuccess}
+        />
+      )}
+
+      {/* Department Delete Modal */}
+      {deletingDepartment && (
+        <DeleteConfirmationModal
+          isOpen={true}
+          onClose={() => setDeletingDepartment(null)}
+          onConfirm={confirmDepartmentDelete}
+          item={{
+            id: deletingDepartment.id,
+            name: deletingDepartment.name,
+            type: deletingDepartment.department_type_display,
+            additional_info: {
+              institution: deletingDepartment.institution?.name,
+              children_count: deletingDepartment.children_count
+            }
+          }}
+          itemType="department"
+          title="Şöbəni Sil"
+          loading={deleteLoading}
+          canHardDelete={deletingDepartment.children_count === 0}
+          showBothOptions={true}
         />
       )}
     </div>

@@ -1,89 +1,57 @@
 import React from 'react';
+import DeleteConfirmationModal, { DeleteType } from '../ui/DeleteConfirmationModal';
 
 interface User {
   id: number;
   username: string;
   email: string;
   is_active: boolean;
+  first_name?: string;
+  last_name?: string;
 }
 
 interface UserDeleteConfirmProps {
   user: User;
-  onConfirm: () => void;
+  onConfirm: (deleteType: DeleteType) => Promise<void>;
   onCancel: () => void;
   loading?: boolean;
+  canHardDelete?: boolean;
 }
 
 const UserDeleteConfirm: React.FC<UserDeleteConfirmProps> = ({ 
   user, 
   onConfirm, 
   onCancel, 
-  loading = false 
+  loading = false,
+  canHardDelete = true
 }) => {
+  const userName = user.first_name && user.last_name 
+    ? `${user.first_name} ${user.last_name}` 
+    : user.username;
+
+  const deleteItem = {
+    id: user.id,
+    name: userName,
+    email: user.email,
+    type: user.is_active ? 'Aktiv İstifadəçi' : 'Deaktiv İstifadəçi',
+    additional_info: {
+      username: user.username,
+      is_active: user.is_active
+    }
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content user-delete-modal">
-        <div className="modal-header">
-          <h2>İstifadəçini Sil</h2>
-          <button onClick={onCancel} className="modal-close">×</button>
-        </div>
-
-        <div className="delete-confirm-content">
-          <div className="warning-icon">
-            ⚠️
-          </div>
-          
-          <div className="confirm-message">
-            <h3>Bu əməliyyatı təsdiq edirsizmi?</h3>
-            <p>
-              <strong>{user.username}</strong> ({user.email}) istifadəçisini silmək istəyirsiniz.
-              Bu əməliyyat geriyə dönməzdir və istifadəçi sistemə daxil ola bilməyəcək.
-            </p>
-            
-            <div className="user-info-box">
-              <div className="user-detail">
-                <span className="label">İstifadəçi adı:</span>
-                <span className="value">{user.username}</span>
-              </div>
-              <div className="user-detail">
-                <span className="label">Email:</span>
-                <span className="value">{user.email}</span>
-              </div>
-              <div className="user-detail">
-                <span className="label">Cari status:</span>
-                <span className={`status-badge ${user.is_active ? 'active' : 'inactive'}`}>
-                  {user.is_active ? 'Aktiv' : 'Deaktiv'}
-                </span>
-              </div>
-            </div>
-
-            <div className="warning-text">
-              <strong>Diqqət:</strong> Bu əməliyyat istifadəçini tamamilə deaktiv edəcək və 
-              sistem giriş imkanlarını məhdudlaşdıracaq.
-            </div>
-          </div>
-        </div>
-
-        <div className="modal-footer">
-          <button 
-            type="button" 
-            onClick={onCancel} 
-            className="btn-secondary"
-            disabled={loading}
-          >
-            Ləğv et
-          </button>
-          <button 
-            type="button" 
-            onClick={onConfirm} 
-            className="btn-danger"
-            disabled={loading}
-          >
-            {loading ? 'Silinir...' : 'Bəli, Sil'}
-          </button>
-        </div>
-      </div>
-    </div>
+    <DeleteConfirmationModal
+      isOpen={true}
+      onClose={onCancel}
+      onConfirm={onConfirm}
+      item={deleteItem}
+      itemType="user"
+      title="İstifadəçini Sil"
+      loading={loading}
+      canHardDelete={canHardDelete}
+      showBothOptions={true}
+    />
   );
 };
 

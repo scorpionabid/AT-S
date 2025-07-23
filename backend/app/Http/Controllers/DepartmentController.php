@@ -248,9 +248,9 @@ class DepartmentController extends Controller
     }
 
     /**
-     * Delete department (soft delete by deactivating)
+     * Delete department (soft delete by deactivating or hard delete by removal)
      */
-    public function destroy(Department $department): JsonResponse
+    public function destroy(Request $request, Department $department): JsonResponse
     {
         // Check institution access for non-superadmin users
         if (!auth()->user()->hasRole('superadmin')) {
@@ -267,27 +267,73 @@ class DepartmentController extends Controller
             }
         }
 
-        // Check if department has active children
-        $activeChildren = $department->children()->where('is_active', true)->count();
-        if ($activeChildren > 0) {
+        $deleteType = $request->query('type', 'soft');
+
+        try {
+            DB::beginTransaction();
+
+            if ($deleteType === 'hard') {
+                // Hard delete - permanent removal
+                // Check if department has any children (active or inactive)
+                $childrenCount = $department->children()->count();
+                if ($childrenCount > 0) {
+                    return response()->json([
+                        'message' => "Cannot permanently delete department with {$childrenCount} child departments"
+                    ], 422);
+                }
+
+                // Check if department has any users (active or inactive)
+                $usersCount = $department->users()->count();
+                if ($usersCount > 0) {
+                    return response()->json([
+                        'message' => "Cannot permanently delete department with {$usersCount} users"
+                    ], 422);
+                }
+
+                $departmentName = $department->name;
+                $department->delete();
+
+                $message = "Department '{$departmentName}' permanently deleted successfully";
+            } else {
+                // Soft delete - deactivate department
+                // Check if department has active children
+                $activeChildren = $department->children()->where('is_active', true)->count();
+                if ($activeChildren > 0) {
+                    return response()->json([
+                        'message' => "Cannot deactivate department with {$activeChildren} active child departments"
+                    ], 422);
+                }
+
+                // Check if department has active users
+                $activeUsers = $department->users()->where('is_active', true)->count();
+                if ($activeUsers > 0) {
+                    return response()->json([
+                        'message' => "Cannot deactivate department with {$activeUsers} active users"
+                    ], 422);
+                }
+
+                $department->update([
+                    'is_active' => false,
+                    'deleted_at' => now()
+                ]);
+
+                $message = "Department '{$department->name}' deactivated successfully";
+            }
+
+            DB::commit();
+
             return response()->json([
-                'message' => "Cannot delete department with {$activeChildren} active child departments"
-            ], 422);
-        }
+                'message' => $message
+            ]);
 
-        // Check if department has active users
-        $activeUsers = $department->users()->where('is_active', true)->count();
-        if ($activeUsers > 0) {
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
             return response()->json([
-                'message' => "Cannot delete department with {$activeUsers} active users"
-            ], 422);
+                'message' => 'Department deletion failed',
+                'error' => $e->getMessage()
+            ], 500);
         }
-
-        $department->delete();
-
-        return response()->json([
-            'message' => 'Department deleted successfully'
-        ]);
     }
 
     /**

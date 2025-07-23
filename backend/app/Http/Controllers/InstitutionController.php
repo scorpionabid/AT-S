@@ -283,11 +283,18 @@ class InstitutionController extends Controller
     /**
      * Remove the specified institution
      */
-    public function destroy(Institution $institution): JsonResponse
+    public function destroy(Request $request, Institution $institution): JsonResponse
     {
         $user = Auth::user();
+        $deleteType = $request->query('type', 'soft');
         
-        if (!$user->hasRole(['superadmin'])) {
+        // Authorization based on delete type
+        if ($deleteType === 'hard' && !$user->hasRole(['superadmin'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Təşkilatı tam silmək üçün icazəniz yoxdur.',
+            ], 403);
+        } elseif ($deleteType === 'soft' && !$user->hasRole(['superadmin', 'regionadmin'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
@@ -295,30 +302,67 @@ class InstitutionController extends Controller
         }
 
         try {
-            // Check if institution has children
-            if ($institution->children()->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Bu təşkilatın alt təşkilatları var. Əvvəlcə onları silin.',
-                ], 400);
+            DB::beginTransaction();
+
+            if ($deleteType === 'hard') {
+                // Hard delete - permanent removal
+                // Check if institution has any children (active or inactive)
+                if ($institution->children()->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bu təşkilatın alt təşkilatları var. Təşkilatı tam silmək üçün əvvəlcə onları silin.',
+                    ], 400);
+                }
+
+                // Check if institution has any users (active or inactive)
+                if ($institution->users()->count() > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Bu təşkilata aid istifadəçilər var. Təşkilatı tam silmək üçün əvvəlcə onları başqa təşkilata köçürün.',
+                    ], 400);
+                }
+
+                $institutionName = $institution->name;
+                $institution->forceDelete();
+                $message = "Təşkilat '{$institutionName}' tam olaraq silindi.";
+            } else {
+                // Soft delete - deactivate institution
+                // Check if institution has active children
+                $activeChildren = $institution->children()->where('is_active', true)->count();
+                if ($activeChildren > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Bu təşkilatın {$activeChildren} aktiv alt təşkilatı var. Əvvəlcə onları deaktiv edin.",
+                    ], 400);
+                }
+
+                // Check if institution has active users
+                $activeUsers = $institution->users()->where('is_active', true)->count();
+                if ($activeUsers > 0) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Bu təşkilata aid {$activeUsers} aktiv istifadəçi var. Əvvəlcə onları deaktiv edin və ya başqa təşkilata köçürün.",
+                    ], 400);
+                }
+
+                $institution->update([
+                    'is_active' => false,
+                    'deleted_at' => now()
+                ]);
+                $institution->delete(); // Soft delete
+                $message = "Təşkilat '{$institution->name}' deaktiv edildi.";
             }
 
-            // Check if institution has users
-            if ($institution->users()->count() > 0) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Bu təşkilata aid istifadəçilər var. Əvvəlcə onları başqa təşkilata köçürün.',
-                ], 400);
-            }
-
-            $institution->delete();
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Təşkilat silindi.',
+                'message' => $message,
             ]);
 
         } catch (\Exception $e) {
+            DB::rollBack();
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Təşkilat silinərkən xəta baş verdi.',

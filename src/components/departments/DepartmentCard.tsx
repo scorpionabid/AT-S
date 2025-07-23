@@ -30,7 +30,7 @@ interface DepartmentCardProps {
   department: Department;
   onEdit: (id: number) => void;
   onToggleStatus: (department: Department) => void;
-  onDelete: (id: number) => void;
+  onDelete: (department: Department) => void;
   canManage: boolean;
   compactView?: boolean;
 }
@@ -130,7 +130,7 @@ const DepartmentCard: React.FC<DepartmentCardProps> = ({
               {department.is_active ? '⏸️' : '▶️'}
             </button>
             <button 
-              onClick={() => onDelete(department.id)}
+              onClick={() => onDelete(department)}
               className="action-button delete"
               title="Sil"
             >

@@ -150,12 +150,23 @@ const UsersList: React.FC = () => {
     setDeletingUser(user);
   };
 
-  const confirmUserDelete = async () => {
+  const confirmUserDelete = async (deleteType: 'soft' | 'hard') => {
     if (!deletingUser) return;
 
     try {
       setDeleteLoading(true);
-      await api.delete(`/users/${deletingUser.id}`);
+      
+      if (deleteType === 'soft') {
+        // Soft delete - deactivate user
+        await api.put(`/users/${deletingUser.id}`, {
+          is_active: false,
+          deleted_at: new Date().toISOString()
+        });
+      } else {
+        // Hard delete - permanently delete
+        await api.delete(`/users/${deletingUser.id}?type=hard`);
+      }
+      
       setDeletingUser(null);
       fetchUsers(currentPage);
     } catch (err: any) {

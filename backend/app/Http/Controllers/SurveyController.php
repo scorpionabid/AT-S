@@ -393,7 +393,7 @@ class SurveyController extends Controller
     }
 
     /**
-     * Delete survey
+     * Delete survey (soft delete by deactivating or hard delete by removal)
      */
     public function destroy(Request $request, Survey $survey): JsonResponse
     {
@@ -404,31 +404,73 @@ class SurveyController extends Controller
             ], 403);
         }
 
-        // Cannot delete published surveys with responses
-        if ($survey->status !== 'draft' && $survey->responses()->count() > 0) {
-            return response()->json([
-                'message' => 'Cannot delete survey that has responses'
-            ], 422);
-        }
-
+        $deleteType = $request->query('type', 'soft');
         $oldData = $survey->toArray();
 
-        $survey->delete();
+        try {
+            DB::beginTransaction();
 
-        // Log activity
-        ActivityLog::logActivity([
-            'user_id' => $request->user()->id,
-            'activity_type' => 'survey_delete',
-            'entity_type' => 'Survey',
-            'entity_id' => $survey->id,
-            'description' => "Deleted survey: {$survey->title}",
-            'before_state' => $oldData,
-            'institution_id' => $request->user()->institution_id
-        ]);
+            if ($deleteType === 'hard') {
+                // Hard delete - permanent removal
+                // Cannot permanently delete surveys with responses
+                if ($survey->responses()->count() > 0) {
+                    return response()->json([
+                        'message' => 'Cannot permanently delete survey that has responses. Use soft delete instead.'
+                    ], 422);
+                }
 
-        return response()->json([
-            'message' => 'Survey deleted successfully'
-        ]);
+                $surveyTitle = $survey->title;
+                $survey->delete();
+
+                // Log hard delete activity
+                ActivityLog::logActivity([
+                    'user_id' => $request->user()->id,
+                    'activity_type' => 'survey_hard_delete',
+                    'entity_type' => 'Survey',
+                    'entity_id' => $survey->id,
+                    'description' => "Permanently deleted survey: {$surveyTitle}",
+                    'before_state' => $oldData,
+                    'institution_id' => $request->user()->institution_id
+                ]);
+
+                $message = "Survey '{$surveyTitle}' permanently deleted successfully";
+            } else {
+                // Soft delete - deactivate survey
+                $survey->update([
+                    'status' => 'archived',
+                    'is_active' => false,
+                    'deleted_at' => now()
+                ]);
+
+                // Log soft delete activity
+                ActivityLog::logActivity([
+                    'user_id' => $request->user()->id,
+                    'activity_type' => 'survey_soft_delete',
+                    'entity_type' => 'Survey',
+                    'entity_id' => $survey->id,
+                    'description' => "Archived survey: {$survey->title}",
+                    'before_state' => $oldData,
+                    'after_state' => $survey->toArray(),
+                    'institution_id' => $request->user()->institution_id
+                ]);
+
+                $message = "Survey '{$survey->title}' archived successfully";
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'message' => $message
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            return response()->json([
+                'message' => 'Survey deletion failed',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
