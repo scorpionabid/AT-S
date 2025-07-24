@@ -4,6 +4,7 @@
 // ====================
 
 import { TaskServiceCore } from './TaskServiceCore';
+import { api } from '../api';
 import { 
   ATİSTypes,
   TaskWithRelations,
@@ -23,7 +24,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Create task with dependencies and workflow
    */
   async createTaskWithWorkflow(data: CreateTaskData): Promise<TaskWithRelations> {
-    const response = await this.apiClient.post<{
+    const response = await api.post<{
       status: string;
       data: TaskWithRelations;
       message: string;
@@ -39,7 +40,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Update task status with workflow actions
    */
   async updateTaskStatus(taskId: number, action: TaskWorkflowAction): Promise<TaskWithRelations> {
-    const response = await this.apiClient.patch<{
+    const response = await api.patch<{
       status: string;
       data: TaskWithRelations;
       message: string;
@@ -55,7 +56,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Assign task to user with notification
    */
   async assignTask(taskId: number, assigneeId: number, comment?: string): Promise<void> {
-    const response = await this.apiClient.patch<{
+    const response = await api.patch<{
       status: string;
       message: string;
     }>(`${this.endpoint}/${taskId}/assign`, {
@@ -73,7 +74,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    */
   async bulkOperation(operation: BulkTaskOperation): Promise<ATİSTypes.BulkOperationResultType> {
     try {
-      const response = await this.apiClient.post<{
+      const response = await api.post<{
         status: string;
         data: ATİSTypes.BulkOperationResultType;
         message: string;
@@ -93,7 +94,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Create recurring task
    */
   async createRecurringTask(data: CreateRecurringTaskData): Promise<TaskWithRelations> {
-    const response = await this.apiClient.post<{
+    const response = await api.post<{
       status: string;
       data: TaskWithRelations;
     }>(`${this.endpoint}/recurring`, data);
@@ -108,7 +109,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Add comment to task
    */
   async addComment(taskId: number, comment: string, mentions?: number[]): Promise<TaskComment> {
-    const response = await this.apiClient.post<{
+    const response = await api.post<{
       status: string;
       data: TaskComment;
     }>(`${this.endpoint}/${taskId}/comments`, {
@@ -126,7 +127,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Get task comments
    */
   async getComments(taskId: number): Promise<TaskComment[]> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: TaskComment[];
     }>(`${this.endpoint}/${taskId}/comments`);
@@ -144,7 +145,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await this.apiClient.post<{
+    const response = await api.post<{
       status: string;
       data: TaskAttachment;
     }>(`${this.endpoint}/${taskId}/attachments`, formData, {
@@ -163,7 +164,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
    * Get task attachments
    */
   async getAttachments(taskId: number): Promise<TaskAttachment[]> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: TaskAttachment[];
     }>(`${this.endpoint}/${taskId}/attachments`);
@@ -182,7 +183,7 @@ export class TaskServiceWorkflow extends TaskServiceCore {
     filters?: any,
     options?: BulkExportOptions
   ): Promise<Blob> {
-    const response = await this.apiClient.post<Blob>(
+    const response = await api.post<Blob>(
       `${this.endpoint}/export`,
       { format, filters, options },
       { responseType: 'blob' }

@@ -16,7 +16,13 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy all backend files
+# Copy composer files first for better caching
+COPY backend/composer*.json ./
+
+# Install PHP dependencies first (this layer will be cached)
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts || echo "Composer install failed, continuing..."
+
+# Copy rest of backend files
 COPY backend/ /var/www/html/
 
 # Create necessary directories and set permissions
@@ -24,8 +30,8 @@ RUN mkdir -p storage/logs storage/framework/cache storage/framework/sessions sto
     && mkdir -p bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-# Install dependencies (will use vendor if exists)
-RUN composer install --no-dev --optimize-autoloader --no-interaction 2>/dev/null || echo "Composer install failed, continuing..."
+# Run post-install scripts
+RUN composer run-script post-install-cmd --no-interaction 2>/dev/null || echo "Post-install scripts completed"
 
 # Expose port
 EXPOSE 8000

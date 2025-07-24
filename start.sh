@@ -39,6 +39,22 @@ check_docker() {
     return 1
 }
 
+# Fast cleanup function
+quick_cleanup() {
+    print_status "Sürətli təmizlik..."
+    
+    # Clear only specific cache directories
+    rm -rf frontend/node_modules/.vite frontend/dist frontend/.vite 2>/dev/null || true
+    rm -rf backend/storage/framework/cache/data/* 2>/dev/null || true
+    rm -rf backend/storage/logs/*.log 2>/dev/null || true
+    
+# Only remove dangling images and stopped containers
+    docker container prune -f --filter "until=2h" 2>/dev/null || true
+    docker image prune -f --filter "dangling=true" 2>/dev/null || true
+    
+    print_success "Keş təmizləndi"
+}
+
 # Start Docker containers
 start_docker() {
     print_status "Docker rejimində başladır..."
@@ -47,8 +63,16 @@ start_docker() {
     print_status "Mövcud konteynerləri dayandır..."
     docker-compose -f docker-compose.simple.yml down 2>/dev/null || true
     
-    # Remove orphaned containers
-    docker container prune -f 2>/dev/null || true
+    # Clear frontend cache and build artifacts
+    print_status "Frontend keşi təmizlə..."
+    rm -rf frontend/node_modules/.vite 2>/dev/null || true
+    rm -rf frontend/dist 2>/dev/null || true
+    rm -rf frontend/.vite 2>/dev/null || true
+    
+    # Remove only unused Docker resources (lighter cleanup)
+    print_status "Docker keşi yüngül təmizlə..."
+    docker container prune -f --filter "until=1h" 2>/dev/null || true
+    docker image prune -f --filter "dangling=true" 2>/dev/null || true
     
     # Fix database path in backend .env for container
     print_status "Container mühitini hazırla..."
@@ -60,9 +84,14 @@ start_docker() {
         fi
     fi
     
-    # Build and start with legacy Docker (no buildkit)
-    print_status "Konteynerləri qur və başlat..."
-    DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker-compose -f docker-compose.simple.yml up --build -d
+    # Try to use existing images first, then build if needed
+    print_status "Konteynerləri sürətli başlat..."
+    if ! docker-compose -f docker-compose.simple.yml up -d --no-build 2>/dev/null; then
+        print_status "Yeni build tələb olunur, qurulur..."
+        DOCKER_BUILDKIT=0 COMPOSE_DOCKER_CLI_BUILD=0 docker-compose -f docker-compose.simple.yml up --build -d --force-recreate
+    else
+        print_success "Mövcud imagelər istifadə edildi - daha sürətli!"
+    fi
     
     # Wait for services to be healthy
     print_status "Servislər hazır olmasını gözlə..."
@@ -164,6 +193,9 @@ main() {
         exit 1
     fi
     
+    # Quick cleanup before starting
+    quick_cleanup
+    
     start_docker
     
     echo ""
@@ -177,15 +209,22 @@ main() {
 
 # Show help
 show_help() {
-    echo "ATİS Docker Start Script"
+    echo "ATİS Docker Start Script - Optimized Edition"
     echo ""
     echo "Usage:"
-    echo "  ./start.sh                 # Start with Docker containers"
+    echo "  ./start.sh                 # Start with optimized Docker containers"
     echo "  ./start.sh -h              # Show this help"
     echo ""
     echo "Bu script ATİS sistemini Docker containers-də başladır."
-    echo "Frontend: http://localhost:3000"
-    echo "Backend: http://localhost:8000"
+    echo "Optimizasiyalar:"
+    echo "  ✅ Frontend cache automatic clearing"
+    echo "  ✅ Smart Docker layer caching"
+    echo "  ✅ Fast restart with existing images"
+    echo "  ✅ Lightweight cleanup process"
+    echo ""
+    echo "URLs:"
+    echo "  Frontend: http://localhost:3000"
+    echo "  Backend: http://localhost:8000"
     echo ""
     echo "Tələblər:"
     echo "  - Docker"

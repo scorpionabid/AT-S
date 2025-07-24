@@ -4,6 +4,7 @@
 // ====================
 
 import { GenericCrudService } from './base/GenericCrudService';
+import { api } from './api';
 import { ATİSTypes } from '../types/shared';
 
 // Re-export shared types for consistency
@@ -73,7 +74,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Get role by ID with permissions
    */
   async getRoleWithPermissions(id: number): Promise<RoleWithPermissions> {
-    const response = await this.apiClient.get<{ 
+    const response = await api.get<{ 
       status: string; 
       data: RoleWithPermissions 
     }>(`${this.endpoint}/${id}/permissions`);
@@ -88,7 +89,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Create role with permissions
    */
   async createRoleWithPermissions(data: CreateRoleData): Promise<Role> {
-    const response = await this.apiClient.post<{ 
+    const response = await api.post<{ 
       status: string; 
       data: Role; 
       message: string 
@@ -104,7 +105,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Update role permissions
    */
   async updateRolePermissions(roleId: number, data: AssignPermissionsData): Promise<void> {
-    const response = await this.apiClient.put<{ 
+    const response = await api.put<{ 
       status: string; 
       message: string 
     }>(`${this.endpoint}/${roleId}/permissions`, data);
@@ -125,7 +126,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Remove permissions from role
    */
   async removePermissions(roleId: number, permissionIds: number[]): Promise<void> {
-    const response = await this.apiClient.delete<{ 
+    const response = await api.delete<{ 
       status: string; 
       message: string 
     }>(`${this.endpoint}/${roleId}/permissions`, {
@@ -141,7 +142,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Get all permissions with optional filtering
    */
   async getPermissions(params?: GetPermissionsParams) {
-    return this.apiClient.get<{
+    return api.get<{
       status: string;
       data: Permission[];
       meta?: any;
@@ -160,7 +161,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Get permissions by category
    */
   async getPermissionsByCategory(): Promise<Record<string, Permission[]>> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: Record<string, Permission[]>;
     }>('/permissions/by-category');
@@ -175,7 +176,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Check if role has specific permission
    */
   async checkRolePermission(roleId: number, permissionName: string): Promise<boolean> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: { has_permission: boolean };
     }>(`${this.endpoint}/${roleId}/check-permission/${permissionName}`);
@@ -190,7 +191,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Get role hierarchy levels
    */
   async getRoleLevels(): Promise<Array<{ level: number; name: string; roles: Role[] }>> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: Array<{ level: number; name: string; roles: Role[] }>;
     }>(`${this.endpoint}/hierarchy`);
@@ -212,7 +213,7 @@ class RoleServiceUnified extends GenericCrudService<Role, CreateRoleData, Update
    * Clone role with all permissions
    */
   async cloneRole(roleId: number, newRoleData: Omit<CreateRoleData, 'permissions'>): Promise<Role> {
-    const response = await this.apiClient.post<{
+    const response = await api.post<{
       status: string;
       data: Role;
       message: string;

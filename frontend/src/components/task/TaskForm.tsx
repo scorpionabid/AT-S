@@ -155,19 +155,19 @@ const TaskForm: React.FC<TaskFormProps> = ({
   // Checklist management
   const addChecklistItem = () => {
     updateField('checklist_items', [
-      ...data.checklist_items,
+      ...(data?.checklist_items || []),
       { item: '', completed: false }
     ]);
   };
 
   const updateChecklistItem = (index: number, item: string) => {
-    const updatedItems = [...data.checklist_items];
+    const updatedItems = [...(data?.checklist_items || [])];
     updatedItems[index] = { ...updatedItems[index], item };
     updateField('checklist_items', updatedItems);
   };
 
   const removeChecklistItem = (index: number) => {
-    const updatedItems = data.checklist_items.filter((_, i) => i !== index);
+    const updatedItems = (data?.checklist_items || []).filter((_, i) => i !== index);
     updateField('checklist_items', updatedItems);
   };
 
@@ -186,17 +186,17 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </label>
           <input
             type="text"
-            value={data.title}
+            value={data?.title || ''}
             onChange={(e) => updateField('title', e.target.value)}
             onBlur={() => validateField('title')}
-            className={`input-base ${errors.title ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.title ? 'border-red-500' : ''}`}
             placeholder="Tapşırığın qısa və aydın başlığı"
             disabled={loading}
           />
-          {errors.title && (
+          {errors?.title && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
               <AlertCircle className="w-4 h-4 mr-1" />
-              {errors.title}
+              {errors?.title}
             </p>
           )}
         </div>
@@ -206,18 +206,18 @@ const TaskForm: React.FC<TaskFormProps> = ({
             Təfərrüatlı təsvir *
           </label>
           <textarea
-            value={data.description}
+            value={data?.description || ''}
             onChange={(e) => updateField('description', e.target.value)}
             onBlur={() => validateField('description')}
-            className={`input-base ${errors.description ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.description ? 'border-red-500' : ''}`}
             rows={4}
             placeholder="Tapşırığın ətraflı təsviri, məqsədi və gözlənilən nəticə"
             disabled={loading}
           />
-          {errors.description && (
+          {errors?.description && (
             <p className="text-red-600 text-sm mt-1 flex items-center">
               <AlertCircle className="w-4 h-4 mr-1" />
-              {errors.description}
+              {errors?.description}
             </p>
           )}
         </div>
@@ -227,9 +227,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
             Tapşırıq növü *
           </label>
           <select
-            value={data.task_type}
+            value={data?.task_type || 'document_approval'}
             onChange={(e) => updateField('task_type', e.target.value as TaskType)}
-            className={`input-base ${errors.task_type ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.task_type ? 'border-red-500' : ''}`}
             disabled={loading}
           >
             <option value="attendance_report">Davamiyyət Hesabatı</option>
@@ -239,8 +239,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
             <option value="inspection">Yoxlama</option>
             <option value="meeting">Görüş</option>
           </select>
-          {errors.task_type && (
-            <p className="text-red-600 text-sm mt-1">{errors.task_type}</p>
+          {errors?.task_type && (
+            <p className="text-red-600 text-sm mt-1">{errors?.task_type}</p>
           )}
         </div>
 
@@ -249,9 +249,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
             Prioritet *
           </label>
           <select
-            value={data.priority}
+            value={data?.priority || 'medium'}
             onChange={(e) => updateField('priority', e.target.value as TaskPriority)}
-            className={`input-base ${errors.priority ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.priority ? 'border-red-500' : ''}`}
             disabled={loading}
           >
             <option value="low">Aşağı</option>
@@ -259,8 +259,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
             <option value="high">Yüksək</option>
             <option value="urgent">Təcili</option>
           </select>
-          {errors.priority && (
-            <p className="text-red-600 text-sm mt-1">{errors.priority}</p>
+          {errors?.priority && (
+            <p className="text-red-600 text-sm mt-1">{errors?.priority}</p>
           )}
         </div>
       </div>
@@ -280,9 +280,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
             İcraçı *
           </label>
           <select
-            value={data.assigned_to}
+            value={data?.assigned_to || ''}
             onChange={(e) => updateField('assigned_to', Number(e.target.value) || '')}
-            className={`input-base ${errors.assigned_to ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.assigned_to ? 'border-red-500' : ''}`}
             disabled={loading}
           >
             <option value="">İcraçı seçin</option>
@@ -292,8 +292,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
               </option>
             ))}
           </select>
-          {errors.assigned_to && (
-            <p className="text-red-600 text-sm mt-1">{errors.assigned_to}</p>
+          {errors?.assigned_to && (
+            <p className="text-red-600 text-sm mt-1">{errors?.assigned_to}</p>
           )}
         </div>
 
@@ -302,9 +302,9 @@ const TaskForm: React.FC<TaskFormProps> = ({
             Təşkilat *
           </label>
           <select
-            value={data.institution_id}
+            value={data?.institution_id || ''}
             onChange={(e) => updateField('institution_id', Number(e.target.value) || '')}
-            className={`input-base ${errors.institution_id ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.institution_id ? 'border-red-500' : ''}`}
             disabled={loading}
           >
             <option value="">Təşkilat seçin</option>
@@ -314,8 +314,8 @@ const TaskForm: React.FC<TaskFormProps> = ({
               </option>
             ))}
           </select>
-          {errors.institution_id && (
-            <p className="text-red-600 text-sm mt-1">{errors.institution_id}</p>
+          {errors?.institution_id && (
+            <p className="text-red-600 text-sm mt-1">{errors?.institution_id}</p>
           )}
         </div>
 
@@ -325,15 +325,15 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </label>
           <input
             type="date"
-            value={data.due_date}
+            value={data?.due_date || ''}
             onChange={(e) => updateField('due_date', e.target.value)}
             onBlur={() => validateField('due_date')}
-            className={`input-base ${errors.due_date ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.due_date ? 'border-red-500' : ''}`}
             min={new Date().toISOString().split('T')[0]}
             disabled={loading}
           />
-          {errors.due_date && (
-            <p className="text-red-600 text-sm mt-1">{errors.due_date}</p>
+          {errors?.due_date && (
+            <p className="text-red-600 text-sm mt-1">{errors?.due_date}</p>
           )}
         </div>
 
@@ -343,17 +343,17 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </label>
           <input
             type="number"
-            value={data.estimated_hours}
+            value={data?.estimated_hours || ''}
             onChange={(e) => updateField('estimated_hours', Number(e.target.value) || '')}
             onBlur={() => validateField('estimated_hours')}
-            className={`input-base ${errors.estimated_hours ? 'border-red-500' : ''}`}
+            className={`input-base ${errors?.estimated_hours ? 'border-red-500' : ''}`}
             min="1"
             max="1000"
             placeholder="Saat"
             disabled={loading}
           />
-          {errors.estimated_hours && (
-            <p className="text-red-600 text-sm mt-1">{errors.estimated_hours}</p>
+          {errors?.estimated_hours && (
+            <p className="text-red-600 text-sm mt-1">{errors?.estimated_hours}</p>
           )}
         </div>
       </div>
@@ -372,7 +372,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
           <input
             type="checkbox"
             id="requires_approval"
-            checked={data.requires_approval}
+            checked={data?.requires_approval || false}
             onChange={(e) => updateField('requires_approval', e.target.checked)}
             className="input-base w-4 h-4 mr-3"
             disabled={loading}
@@ -382,13 +382,13 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </label>
         </div>
 
-        {data.requires_approval && (
+        {data?.requires_approval && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Təsdiq səviyyəsi
             </label>
             <select
-              value={data.approval_level}
+              value={data?.approval_level || 'standard'}
               onChange={(e) => updateField('approval_level', e.target.value)}
               className="input-base"
               disabled={loading}
@@ -422,7 +422,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
       </div>
 
       <div className="space-y-3">
-        {data.checklist_items.map((item, index) => (
+        {(data?.checklist_items || []).map((item, index) => (
           <div key={index} className="flex items-center space-x-3">
             <input
               type="text"
@@ -443,7 +443,7 @@ const TaskForm: React.FC<TaskFormProps> = ({
           </div>
         ))}
         
-        {data.checklist_items.length === 0 && (
+        {(data?.checklist_items || []).length === 0 && (
           <p className="text-gray-500 text-sm text-center py-4">
             Hələ heç bir checklist elementi əlavə edilməyib
           </p>
