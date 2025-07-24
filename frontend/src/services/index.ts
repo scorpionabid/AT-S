@@ -3,6 +3,13 @@
 // Centralized service exports with unified architecture
 // ====================
 
+// Import unified services for default export
+import { userService } from './userServiceUnified';
+import { institutionService } from './institutionServiceUnified';
+import { roleService } from './roleServiceUnified';
+import { dashboardService } from './dashboardServiceUnified';
+import { taskService, taskUtils } from './taskServiceUnified';
+
 // Base services and utilities
 export { GenericCrudService } from './base/GenericCrudService';
 export type { 
@@ -14,7 +21,7 @@ export type {
 export { api } from './api';
 
 // Unified services (recommended)
-export { userService as userServiceUnified } from './userServiceUnified';
+export { userService, userService as userServiceUnified } from './userServiceUnified';
 export type { 
   User, 
   CreateUserData, 
@@ -22,7 +29,7 @@ export type {
   GetUsersParams 
 } from './userServiceUnified';
 
-export { institutionService as institutionServiceUnified } from './institutionServiceUnified';
+export { institutionService, institutionService as institutionServiceUnified } from './institutionServiceUnified';
 export type { 
   Institution, 
   CreateInstitutionData, 
@@ -31,7 +38,7 @@ export type {
   InstitutionHierarchy 
 } from './institutionServiceUnified';
 
-export { roleService as roleServiceUnified } from './roleServiceUnified';
+export { roleService, roleService as roleServiceUnified } from './roleServiceUnified';
 export type {
   Role,
   Permission,
@@ -43,7 +50,7 @@ export type {
   AssignPermissionsData
 } from './roleServiceUnified';
 
-export { dashboardService as dashboardServiceUnified } from './dashboardServiceUnified';
+export { dashboardService, dashboardService as dashboardServiceUnified } from './dashboardServiceUnified';
 export type {
   DashboardStats,
   RecentActivity,
@@ -54,14 +61,22 @@ export type {
   PerformanceMetrics
 } from './dashboardServiceUnified';
 
+export { taskService, taskService as taskServiceUnified, taskUtils } from './taskServiceUnified';
+export type {
+  CreateTaskData,
+  UpdateTaskData,
+  TaskWorkflowAction,
+  BulkTaskOperation
+} from '../types/taskTypes';
+
 // Legacy services (for backward compatibility)
 // TODO: Migrate components to use unified versions above
-export { default as authService } from './authService';
-export { default as userService } from './userService';
-export { default as institutionService } from './institutionService';
-export { default as roleService } from './roleService';
+export { authService } from './authService';
+export { default as userServiceLegacy } from './userService';
+export { default as institutionServiceLegacy } from './institutionService';
+export { default as roleServiceLegacy } from './roleService';
 export { default as surveyService } from './surveyService';
-export { default as dashboardService } from './dashboardService';
+export { dashboardService as dashboardServiceLegacy } from './dashboardService';
 export { default as reportsService } from './reportsService';
 
 // Specialized services (already optimized or unique functionality)
@@ -92,6 +107,7 @@ export class ServiceFactory {
 export const MIGRATION_GUIDE = {
   userService: {
     old: 'import userService from "./services/userService"',
+    legacy: 'import { userServiceLegacy } from "./services"',
     new: 'import { userServiceUnified } from "./services"',
     benefits: [
       'Consistent error handling',
@@ -103,6 +119,7 @@ export const MIGRATION_GUIDE = {
   },
   institutionService: {
     old: 'import institutionService from "./services/institutionService"',
+    legacy: 'import { institutionServiceLegacy } from "./services"',
     new: 'import { institutionServiceUnified } from "./services"',
     benefits: [
       'Hierarchy operations built-in',
@@ -114,6 +131,7 @@ export const MIGRATION_GUIDE = {
   },
   roleService: {
     old: 'import roleService from "./services/roleService"',
+    legacy: 'import { roleServiceLegacy } from "./services"',
     new: 'import { roleServiceUnified } from "./services"',
     benefits: [
       'Permission management built-in',
@@ -125,6 +143,7 @@ export const MIGRATION_GUIDE = {
   },
   dashboardService: {
     old: 'import dashboardService from "./services/dashboardService"',
+    legacy: 'import { dashboardServiceLegacy } from "./services"',
     new: 'import { dashboardServiceUnified } from "./services"',
     benefits: [
       'Enhanced analytics capabilities',
@@ -168,10 +187,12 @@ await myService.delete(1);
 
 export default {
   // Unified services (recommended)
-  users: userServiceUnified,
-  institutions: institutionServiceUnified,
-  roles: roleServiceUnified,
-  dashboard: dashboardServiceUnified,
+  users: userService,
+  institutions: institutionService,
+  roles: roleService,
+  dashboard: dashboardService,
+  tasks: taskService,
+  taskUtils,
   
   // Factory for new services
   createService: ServiceFactory.createCrudService,

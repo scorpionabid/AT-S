@@ -145,3 +145,5 @@ export const surveyTargetingService = {
     return response.data.options;
   }
 };
+
+export default surveyTargetingService;

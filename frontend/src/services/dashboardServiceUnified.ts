@@ -5,6 +5,7 @@
 
 import { GenericCrudService } from './base/GenericCrudService';
 import { ATİSTypes } from '../types/shared';
+import { api } from './api';
 
 // Dashboard-specific types
 export interface DashboardStats {
@@ -208,7 +209,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
   async getStats(filters?: DashboardFilters): Promise<DashboardStats> {
     try {
       console.log('Dashboard Service: Fetching stats...', filters);
-      const response = await this.apiClient.get<{
+      const response = await api.get<{
         status: string;
         data: DashboardStats;
         message?: string;
@@ -244,7 +245,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
    */
   async getDetailedStats(filters?: DashboardFilters): Promise<any> {
     try {
-      const response = await this.apiClient.get<{
+      const response = await api.get<{
         status: string;
         data: any;
         message?: string;
@@ -268,7 +269,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
   async getSuperAdminAnalytics(filters?: DashboardFilters): Promise<SuperAdminAnalytics> {
     try {
       console.log('Dashboard Service: Fetching SuperAdmin analytics...', filters);
-      const response = await this.apiClient.get<{
+      const response = await api.get<{
         status: string;
         data: SuperAdminAnalytics;
         message?: string;
@@ -296,7 +297,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
   async getSystemStatus(): Promise<SystemStatusDetailed> {
     try {
       console.log('Dashboard Service: Fetching system status...');
-      const response = await this.apiClient.get<{
+      const response = await api.get<{
         status: string;
         data: SystemStatusDetailed;
         message?: string;
@@ -324,7 +325,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
   async getPerformanceMetrics(
     timeframe: '1h' | '6h' | '24h' | '7d' | '30d' = '24h'
   ): Promise<PerformanceMetrics> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: PerformanceMetrics;
     }>(`${this.endpoint}/performance-metrics`, {
@@ -347,7 +348,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
     recent_activities: RecentActivity[];
     alerts: any[];
   }> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: any;
     }>(`${this.endpoint}/real-time`);
@@ -369,7 +370,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
       sections?: string[];
     } = {}
   ): Promise<Blob> {
-    const response = await this.apiClient.post<Blob>(
+    const response = await api.post<Blob>(
       `${this.endpoint}/export`,
       { format, ...options },
       { responseType: 'blob' }
@@ -382,7 +383,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
    * Get dashboard widgets configuration
    */
   async getWidgetsConfig(): Promise<ATİSTypes.DashboardWidget[]> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: ATİSTypes.DashboardWidget[];
     }>(`${this.endpoint}/widgets`);
@@ -397,7 +398,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
    * Update dashboard layout
    */
   async updateDashboardLayout(layout: ATİSTypes.DashboardLayout): Promise<void> {
-    const response = await this.apiClient.put<{
+    const response = await api.put<{
       status: string;
       message: string;
     }>(`${this.endpoint}/layout`, layout);
@@ -414,7 +415,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
     userId?: number,
     timeframe: '1d' | '7d' | '30d' = '7d'
   ): Promise<RecentActivity[]> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: RecentActivity[];
     }>(`${this.endpoint}/user-activity`, {
@@ -435,7 +436,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
     resolved?: boolean;
     limit?: number;
   } = {}): Promise<any[]> {
-    const response = await this.apiClient.get<{
+    const response = await api.get<{
       status: string;
       data: any[];
     }>(`${this.endpoint}/alerts`, { params: filters });
@@ -450,7 +451,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
    * Acknowledge/resolve system alert
    */
   async resolveAlert(alertId: string, resolution?: string): Promise<void> {
-    const response = await this.apiClient.patch<{
+    const response = await api.patch<{
       status: string;
       message: string;
     }>(`${this.endpoint}/alerts/${alertId}/resolve`, { resolution });

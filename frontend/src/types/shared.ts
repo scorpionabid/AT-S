@@ -380,19 +380,269 @@ export interface Theme {
   };
 }
 
+// ===== TASK RELATED TYPES =====
+
+export type TaskType = 'attendance_report' | 'schedule_review' | 'document_approval' | 'survey_response' | 'inspection' | 'meeting';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'urgent';
+export type TaskStatus = 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
+
+export interface BaseTask {
+  id: number;
+  title: string;
+  description: string;
+  task_type: TaskType;
+  priority: TaskPriority;
+  status: TaskStatus;
+  assigned_to: number;
+  assigned_by: number;
+  institution_id: number;
+  due_date: string;
+  created_at: string;
+  updated_at: string;
+  completed_at?: string;
+  progress_percentage?: number;
+  estimated_hours?: number;
+  actual_hours?: number;
+  is_active: boolean;
+}
+
+export interface TaskWithRelations extends BaseTask {
+  assignee: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  assigner: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+  };
+  institution: {
+    id: number;
+    name: string;
+    type: string;
+    level: number;
+  };
+  task_metadata?: TaskMetadata;
+  comments?: TaskComment[];
+  attachments?: TaskAttachment[];
+  dependencies?: number[];
+  subtasks?: BaseTask[];
+}
+
+export interface TaskMetadata {
+  requires_approval: boolean;
+  approval_level: string;
+  approval_chain?: number[];
+  related_documents: string[];
+  checklist_items: Array<{
+    id: string;
+    item: string;
+    completed: boolean;
+    completed_at?: string;
+    completed_by?: number;
+    notes?: string;
+  }>;
+  recurring_pattern?: RecurringPattern;
+  notification_settings?: NotificationSettings;
+}
+
+export interface RecurringPattern {
+  type: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval: number;
+  end_date?: string;
+  days_of_week?: number[];
+  day_of_month?: number;
+}
+
+export interface NotificationSettings {
+  notify_on_assign: boolean;
+  notify_on_due: boolean;
+  notify_before_hours: number;
+  notify_on_status_change: boolean;
+}
+
+export interface TaskComment {
+  id: number;
+  task_id: number;
+  user_id: number;
+  comment: string;
+  created_at: string;
+  user: {
+    id: number;
+    username: string;
+    first_name: string;
+    last_name: string;
+  };
+  mentions?: number[];
+}
+
+export interface TaskAttachment {
+  id: number;
+  task_id: number;
+  filename: string;
+  original_name: string;
+  file_size: number;
+  mime_type: string;
+  uploaded_by: number;
+  uploaded_at: string;
+  download_url: string;
+}
+
+export interface TaskStats {
+  total_tasks: number;
+  pending_tasks: number;
+  in_progress_tasks: number;
+  completed_tasks: number;
+  cancelled_tasks: number;
+  overdue_tasks: number;
+  urgent_tasks: number;
+  avg_completion_time: number;
+  completion_rate: number;
+  on_time_completion_rate: number;
+  by_type: Record<TaskType, number>;
+  by_priority: Record<TaskPriority, number>;
+  by_status: Record<TaskStatus, number>;
+  by_assignee: Array<{
+    user_id: number;
+    username: string;
+    full_name: string;
+    task_count: number;
+    completion_rate: number;
+  }>;
+  performance_metrics: {
+    avg_estimated_vs_actual: number;
+    most_delayed_tasks: BaseTask[];
+    top_performers: Array<{
+      user_id: number;
+      username: string;
+      completion_rate: number;
+      avg_completion_time: number;
+    }>;
+  };
+}
+
+export interface TaskFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  status?: TaskStatus | TaskStatus[];
+  priority?: TaskPriority | TaskPriority[];
+  task_type?: TaskType | TaskType[];
+  assigned_to?: number | number[];
+  assigned_by?: number;
+  institution_id?: number;
+  due_date_from?: string;
+  due_date_to?: string;
+  created_from?: string;
+  created_to?: string;
+  sort_by?: 'created_at' | 'due_date' | 'priority' | 'status' | 'title';
+  sort_direction?: 'asc' | 'desc';
+  include_completed?: boolean;
+  include_overdue?: boolean;
+}
+
+export interface CreateTaskData {
+  title: string;
+  description: string;
+  task_type: TaskType;
+  priority: TaskPriority;
+  assigned_to: number;
+  institution_id: number;
+  due_date: string;
+  estimated_hours?: number;
+  task_metadata?: Partial<TaskMetadata>;
+  parent_task_id?: number;
+  dependencies?: number[];
+}
+
+export interface UpdateTaskData {
+  title?: string;
+  description?: string;
+  task_type?: TaskType;
+  priority?: TaskPriority;
+  status?: TaskStatus;
+  assigned_to?: number;
+  due_date?: string;
+  progress_percentage?: number;
+  actual_hours?: number;
+  task_metadata?: Partial<TaskMetadata>;
+}
+
+export interface TaskWorkflowAction {
+  action: 'start' | 'pause' | 'resume' | 'complete' | 'cancel' | 'approve' | 'reject';
+  comment?: string;
+  progress_percentage?: number;
+  actual_hours?: number;
+}
+
+export interface BulkTaskOperation {
+  task_ids: number[];
+  operation: 'assign' | 'update_status' | 'update_priority' | 'delete' | 'duplicate';
+  data?: {
+    assigned_to?: number;
+    status?: TaskStatus;
+    priority?: TaskPriority;
+    due_date?: string;
+  };
+}
+
 // Export all types as a namespace for easier importing
+// ATİSTypes namespace for external consumption
 export namespace ATİSTypes {
-  export type PaginatedResponse<T> = PaginatedResponse<T>;
-  export type ApiResponse<T> = ApiResponse<T>;
-  export type BulkOperationResult = BulkOperationResult;
-  export type BaseUser = BaseUser;
-  export type BaseInstitution = BaseInstitution;
-  export type UserRole = UserRole;
-  export type Permission = Permission;
-  export type SelectOption = SelectOption;
-  export type TableColumn<T> = TableColumn<T>;
-  export type Notification = Notification;
-  export type BaseSurvey = BaseSurvey;
-  export type SurveyQuestion = SurveyQuestion;
-  export type Theme = Theme;
+  // Basic types - re-export the original types without circular reference
+  export type PaginatedResponseType<T> = {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from?: number;
+    to?: number;
+  };
+  
+  export type ApiResponseType<T> = {
+    status: 'success' | 'error';
+    message?: string;
+    data?: T;
+    meta?: any;
+    errors?: Record<string, string[]>;
+  };
+  
+  export type BulkOperationResultType = {
+    success_count: number;
+    error_count: number;
+    errors: Array<{
+      id: number;
+      error: string;
+    }>;
+  };
+
+  // Re-export main types
+  export type BaseUserType = BaseUser;
+  export type BaseInstitutionType = BaseInstitution;
+  export type UserRoleType = UserRole;
+  export type PermissionType = Permission;
+  export type SelectOptionType = SelectOption;
+  export type TableColumnType<T> = TableColumn<T>;
+  export type NotificationType = Notification;
+  export type BaseSurveyType = BaseSurvey;
+  export type SurveyQuestionType = SurveyQuestion;
+  export type ThemeType = Theme;
+  
+  // Task types
+  export type BaseTaskType = BaseTask;
+  export type TaskWithRelationsType = TaskWithRelations;
+  export type TaskTypeEnum = TaskType;
+  export type TaskPriorityEnum = TaskPriority;
+  export type TaskStatusEnum = TaskStatus;
+  export type TaskStatsType = TaskStats; 
+  export type TaskFiltersType = TaskFilters;
+  export type TaskMetadataType = TaskMetadata;
+  export type TaskCommentType = TaskComment;
+  export type TaskAttachmentType = TaskAttachment;
 }

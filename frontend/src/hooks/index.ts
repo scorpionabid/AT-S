@@ -35,3 +35,10 @@ export {
 
 // 🚀 NEW: Export functionality hooks
 export { useRoleBasedExport } from './useRoleBasedExport';
+
+// 🚀 NEW: Task management hooks
+export { useTaskManagement } from './useTaskManagement';
+export type { UseTaskManagementOptions, UseTaskManagementReturn } from './useTaskManagement';
+
+export { useTaskFilters } from './useTaskFilters';
+export type { UseTaskFiltersOptions, UseTaskFiltersReturn } from './useTaskFilters';
