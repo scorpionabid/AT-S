@@ -996,21 +996,15 @@
 .controls-card { animation: slideInLeft 0.8s ease 0.2s both; }
 .manager-header { animation: scaleIn 0.8s ease 0.1s both; }
 
-/* Enhanced button styles */
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border: none;
-  color: white;
-  padding: 12px 24px;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Enhanced button styles - Using Unified System */
+/* Base button styles (.btn-base, .btn-primary) are defined in unified-components.css */
+/* Teaching load specific button animations */
+.teaching-load .btn-primary {
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
-.btn-primary::before {
+.teaching-load .btn-primary::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1021,18 +1015,8 @@
   transition: left 0.6s ease;
 }
 
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.6);
-}
-
-.btn-primary:hover::before {
+.teaching-load .btn-primary:hover::before {
   left: 100%;
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 /* Enhanced workload badges with glow effects */

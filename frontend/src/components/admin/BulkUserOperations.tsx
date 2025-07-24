@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { userService } from '../../services/userService';
-import { roleService } from '../../services/roleService';
-import { institutionService } from '../../services/institutionService';
+import { userServiceUnified, roleServiceUnified, institutionServiceUnified } from '../../services';
 
 interface BulkUserOperationsProps {
   selectedUserIds: number[];
@@ -55,9 +53,9 @@ const BulkUserOperations: React.FC<BulkUserOperationsProps> = ({
   const fetchInitialData = async () => {
     try {
       const [rolesData, institutionsData, statsData] = await Promise.all([
-        roleService.getRoles(),
-        institutionService.getInstitutions({ per_page: 100 }),
-        userService.getBulkStatistics()
+        roleServiceUnified.getRoles(),
+        institutionServiceUnified.getInstitutions({ per_page: 100 }),
+        userServiceUnified.getBulkStatistics()
       ]);
 
       setRoles(rolesData.roles || []);
@@ -78,34 +76,34 @@ const BulkUserOperations: React.FC<BulkUserOperationsProps> = ({
       
       switch (operation) {
         case 'activate':
-          result = await userService.bulkActivate(selectedUserIds);
+          result = await userServiceUnified.bulkActivate(selectedUserIds);
           break;
         case 'deactivate':
-          result = await userService.bulkDeactivate(selectedUserIds);
+          result = await userServiceUnified.bulkDeactivate(selectedUserIds);
           break;
         case 'assign-role':
           if (!selectedRoleId) {
             setMessage({ type: 'error', text: 'Lütfən rol seçin' });
             return;
           }
-          result = await userService.bulkAssignRole(selectedUserIds, selectedRoleId);
+          result = await userServiceUnified.bulkAssignRole(selectedUserIds, selectedRoleId);
           break;
         case 'assign-institution':
           if (!selectedInstitutionId) {
             setMessage({ type: 'error', text: 'Lütfən təşkilat seçin' });
             return;
           }
-          result = await userService.bulkAssignInstitution(selectedUserIds, selectedInstitutionId);
+          result = await userServiceUnified.bulkAssignInstitution(selectedUserIds, selectedInstitutionId);
           break;
         case 'delete':
           if (!deleteConfirmation) {
             setMessage({ type: 'error', text: 'Lütfən silmə təsdiqini işarələyin' });
             return;
           }
-          result = await userService.bulkDelete(selectedUserIds, true);
+          result = await userServiceUnified.bulkDelete(selectedUserIds, true);
           break;
         case 'export':
-          result = await userService.exportUsers(exportFormat, {}, includeProfiles);
+          result = await userServiceUnified.exportUsers(exportFormat, {}, includeProfiles);
           break;
         default:
           return;

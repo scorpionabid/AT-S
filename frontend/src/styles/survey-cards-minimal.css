@@ -82,40 +82,42 @@
   position: relative;
 }
 
+/* Using unified button system - icon buttons */
 .action-btn {
+  /* Extend from unified button system */
   width: 36px;
   height: 36px;
   border: none;
-  border-radius: 8px;
-  background: #f9fafb;
-  color: #6b7280;
+  border-radius: var(--radius-md);
+  background: var(--color-neutral-100);
+  color: var(--color-neutral-600);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: all var(--transition-duration-200) var(--transition-timing-in-out);
   font-size: 16px;
 }
 
 .action-btn:hover {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--color-neutral-200);
+  color: var(--color-neutral-700);
   transform: scale(1.05);
 }
 
 .action-btn.view-btn:hover {
-  background: #dbeafe;
-  color: #1d4ed8;
+  background: var(--color-primary-100);
+  color: var(--color-primary-700);
 }
 
 .action-btn.edit-btn:hover {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--color-warning-100);
+  color: var(--color-warning-700);
 }
 
 .action-btn.delete-btn:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-error-100);
+  color: var(--color-error-700);
 }
 
 /* Delete Dropdown */
@@ -136,31 +138,32 @@
   overflow: hidden;
 }
 
+/* Using unified button system for dropdown options */
 .delete-option {
   display: block;
   width: 100%;
-  padding: 8px 12px;
+  padding: var(--space-2) var(--space-3);
   border: none;
   background: white;
-  color: #374151;
-  font-size: 13px;
+  color: var(--color-neutral-700);
+  font-size: var(--font-size-xs);
   text-align: left;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background-color var(--transition-duration-200) var(--transition-timing-in-out);
 }
 
 .delete-option:hover {
-  background: #f9fafb;
+  background: var(--color-neutral-50);
 }
 
 .delete-option.soft-delete:hover {
-  background: #fef3c7;
-  color: #d97706;
+  background: var(--color-warning-50);
+  color: var(--color-warning-700);
 }
 
 .delete-option.hard-delete:hover {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--color-error-50);
+  color: var(--color-error-700);
 }
 
 /* Card Content - Compact Stats */
@@ -238,36 +241,37 @@
   min-height: 60px;
 }
 
+/* Using unified button system for card footer buttons */
 .respond-link {
-  color: #3b82f6;
+  color: var(--color-primary-600);
   text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 8px 16px;
-  border-radius: 8px;
-  background: #eff6ff;
-  transition: all 0.2s ease;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-50);
+  transition: all var(--transition-duration-200) var(--transition-timing-in-out);
 }
 
 .respond-link:hover {
-  background: #dbeafe;
+  background: var(--color-primary-100);
   text-decoration: none;
 }
 
 .publish-btn {
-  background: #10b981;
+  background: var(--color-success-500);
   color: white;
   border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 500;
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-duration-200) var(--transition-timing-in-out);
 }
 
 .publish-btn:hover {
-  background: #059669;
+  background: var(--color-success-600);
   transform: translateY(-1px);
 }
 
@@ -298,48 +302,79 @@
   justify-content: flex-end;
 }
 
-.btn {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 500;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* Remove duplicate button definitions - use unified system */
+/* Base button styles are now defined in unified-components.css */
+/* Modal buttons will use .btn-base with appropriate variant classes */
+
+/* Modal-specific button extensions */
+.delete-confirm-modal .btn-base {
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
 }
 
-.btn-secondary {
-  background: #f3f4f6;
-  color: #374151;
-}
-
-.btn-secondary:hover {
-  background: #e5e7eb;
-}
-
-.btn-warning {
-  background: #f59e0b;
-  color: white;
-}
-
-.btn-warning:hover {
-  background: #d97706;
-}
-
-.btn-danger {
-  background: #dc2626;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #b91c1c;
-}
-
-/* Grid responsive */
+/* Grid responsive - Mobile First */
 .surveys-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 24px;
+  gap: 16px;
+  width: 100%;
+}
+
+/* Mobile: Single column */
+.surveys-grid--grid {
+  grid-template-columns: 1fr;
+}
+
+/* Tablet: Two columns */
+@media (min-width: 640px) {
+  .surveys-grid--grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
+/* Desktop: Three columns */
+@media (min-width: 1024px) {
+  .surveys-grid--grid {
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+  }
+}
+
+/* Large desktop: Four columns */
+@media (min-width: 1440px) {
+  .surveys-grid--grid {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  }
+}
+
+/* List view - always single column */
+.surveys-grid--list {
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.surveys-grid--list .survey-card {
+  min-height: auto;
+}
+
+.surveys-grid--list .survey-card-header {
+  min-height: auto;
+  padding: 16px 20px 12px;
+}
+
+.surveys-grid--list .survey-card-content {
+  min-height: auto;
+  padding: 12px 20px;
+}
+
+.surveys-grid--list .survey-stats-row {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.surveys-grid--list .survey-card-footer {
+  padding: 12px 20px;
+  min-height: auto;
 }
 
 @media (max-width: 768px) {

@@ -2519,32 +2519,14 @@
   border-top: 1px solid #4b5563;
 }
 
-.btn-secondary,
-.btn-primary {
-  padding: 0.875rem 1.5rem;
-  border-radius: 0.75rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border: none;
-}
+/* Button styles are defined in unified-components.css */
+/* Use .btn-base with appropriate variant classes (.btn-primary, .btn-secondary) */
 
-.btn-secondary {
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #cbd5e1;
-}
-
-.btn-secondary:hover {
-  background: #e2e8f0;
-  transform: translateY(-1px);
-}
-
-.btn-primary {
-  background: var(--gradient-primary);
-  color: white;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+/* Institution-specific button customizations */
+.institution-form .btn-base {
+  padding: var(--space-3-5) var(--space-6);
+  border-radius: var(--radius-xl);
+  font-size: var(--font-size-base);
 }
 
 .btn-primary:hover:not(:disabled) {

@@ -171,27 +171,27 @@
   /* ====================
    * ENHANCED SIDEBAR TOKENS
    * ==================== */
-  /* Base Colors */
-  --sidebar-bg: var(--color-white);
+  /* Base Colors - Green Theme */
+  --sidebar-bg: var(--color-secondary-50); /* Light green background */
   --sidebar-text: var(--color-neutral-800);
-  --sidebar-border: var(--color-neutral-200);
-  --sidebar-hover-bg: var(--color-neutral-100);
-  --sidebar-active-bg: var(--color-primary-50);
-  --sidebar-active-text: var(--color-primary-700);
-  --sidebar-active-border: var(--color-primary-500);
-  --sidebar-icon: var(--color-neutral-500);
-  --sidebar-hover-icon: var(--color-primary-600);
-  --sidebar-active-icon: var(--color-primary-600);
-  --sidebar-header-bg: var(--color-white);
-  --sidebar-footer-bg: var(--color-white);
-  --sidebar-divider: var(--color-neutral-200);
+  --sidebar-border: var(--color-secondary-200);
+  --sidebar-hover-bg: var(--color-secondary-100);
+  --sidebar-active-bg: var(--color-secondary-200);
+  --sidebar-active-text: var(--color-secondary-800);
+  --sidebar-active-border: var(--color-secondary-500);
+  --sidebar-icon: var(--color-neutral-600);
+  --sidebar-hover-icon: var(--color-secondary-600);
+  --sidebar-active-icon: var(--color-secondary-700);
+  --sidebar-header-bg: var(--color-secondary-100);
+  --sidebar-footer-bg: var(--color-secondary-100);
+  --sidebar-divider: var(--color-secondary-200);
   
-  /* Enhanced Gradients */
-  --sidebar-gradient-start: rgba(255, 255, 255, 0.95);
-  --sidebar-gradient-end: rgba(248, 250, 252, 0.98);
+  /* Enhanced Gradients - Green Theme */
+  --sidebar-gradient-start: rgba(240, 253, 244, 0.95); /* Light green start */
+  --sidebar-gradient-end: rgba(220, 252, 231, 0.98); /* Light green end */
   --sidebar-gradient: linear-gradient(135deg, var(--sidebar-gradient-start) 0%, var(--sidebar-gradient-end) 100%);
-  --sidebar-item-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
-  --sidebar-active-gradient: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-primary-100) 100%);
+  --sidebar-item-gradient: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+  --sidebar-active-gradient: linear-gradient(135deg, var(--color-secondary-100) 0%, var(--color-secondary-200) 100%);
   
   /* Enhanced Shadows */
   --sidebar-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);

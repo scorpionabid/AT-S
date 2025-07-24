@@ -12,15 +12,7 @@
   justify-content: center;
 }
 
-.modal-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-}
+/* Modal styles are defined in unified-components.css */
 
 .modal-content {
   background: white;
@@ -366,26 +358,7 @@
   cursor: not-allowed;
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.btn-secondary {
-  background: white;
-  border-color: #e2e8f0;
-  color: #4a5568;
-}
-
-.btn-secondary:hover:not(:disabled) {
-  border-color: #cbd5e0;
-  background: #f7fafc;
-}
+/* Button styles are defined in unified-components.css */
 
 .btn-danger {
   background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);

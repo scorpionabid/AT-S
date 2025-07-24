@@ -37,27 +37,30 @@
   align-items: center;
 }
 
-/* Add User Button */
+/* Using unified button system - Primary button with icon */
 .add-user-button {
+  /* Extends .btn-base .btn-primary from unified system */
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-5);
+  background-color: var(--color-primary-500);
   color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
+  border: 1px solid var(--color-primary-500);
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+  transition: all var(--transition-duration-200) var(--transition-timing-in-out);
+  box-shadow: var(--shadow-md);
+  min-height: 44px;
 }
 
 .add-user-button:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  background-color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: var(--shadow-lg);
 }
 
 .add-user-button:active {
@@ -894,48 +897,9 @@
   cursor: pointer;
 }
 
-/* Button Styles */
-.btn-primary {
-  padding: 0.75rem 1.5rem;
-  background: var(--gradient-primary);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.btn-primary:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.btn-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.btn-secondary {
-  padding: 0.75rem 1.5rem;
-  background: white;
-  color: #718096;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.btn-secondary:hover {
-  background: var(--color-neutral-50);
-  border-color: #cbd5e0;
-  color: #1a202c;
-}
+/* Remove duplicate button definitions - use unified system */
+/* All button styles are now defined in unified-components.css */
+/* Use .btn-base with appropriate variant classes: .btn-primary, .btn-secondary, etc. */
 
 /* Mobile Responsive for Modal */
 @media (max-width: 768px) {
@@ -1106,77 +1070,5 @@
   color: #742a2a;
 }
 
-/* Danger Button */
-.btn-danger {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.btn-danger:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(229, 62, 62, 0.4);
-}
-
-.btn-danger:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Success Button */
-.btn-success {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.btn-success:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(56, 161, 105, 0.4);
-}
-
-.btn-success:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* Warning Button */
-.btn-warning {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #d69e2e 0%, #b7791f 100%);
-  color: white;
-  border: none;
-  border-radius: 0.5rem;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  font-size: 0.9rem;
-}
-
-.btn-warning:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(214, 158, 46, 0.4);
-}
-
-.btn-warning:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
+/* Remove duplicate button definitions - use unified system */
+/* Button variants (.btn-danger, .btn-success, .btn-warning) are defined in unified-components.css */

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { dashboardService, SuperAdminAnalytics, SystemStatusDetailed } from '../../services/dashboardService';
+import { dashboardServiceUnified, SuperAdminAnalytics, SystemStatusDetailed } from '../../services';
 import '../../styles/superadmin-dashboard.css';
 
 const SuperAdminDashboard: React.FC = () => {
@@ -71,8 +71,8 @@ const SuperAdminDashboard: React.FC = () => {
       setError(null);
       
       const [analyticsData, statusData] = await Promise.all([
-        dashboardService.getSuperAdminAnalytics(),
-        dashboardService.getSystemStatus()
+        dashboardServiceUnified.getSuperAdminAnalytics(),
+        dashboardServiceUnified.getSystemStatus()
       ]);
       
       setAnalytics(analyticsData);
@@ -87,7 +87,7 @@ const SuperAdminDashboard: React.FC = () => {
 
   const fetchSystemStatus = async () => {
     try {
-      const statusData = await dashboardService.getSystemStatus();
+      const statusData = await dashboardServiceUnified.getSystemStatus();
       setSystemStatus(statusData);
     } catch (error) {
       console.error('System status refresh error:', error);

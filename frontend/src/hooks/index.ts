@@ -7,6 +7,10 @@
 export { useForm, validationRules } from './useForm';
 export type { UseFormOptions, UseFormReturn } from './useForm';
 
+// CRUD hooks
+export { useCRUD } from './useCRUD';
+export type { UseCRUDOptions, UseCRUDReturn, PaginatedResponse } from './useCRUD';
+
 // Modal state hooks
 export { useModalState, useMultiModalState } from './useModalState';
 export type { 

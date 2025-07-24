@@ -70,23 +70,23 @@ const StandardPageLayout: React.FC<StandardPageLayoutProps> = ({
     }
   }, [location.pathname, customBreadcrumbs, showBreadcrumbs]);
 
-  // Get variant classes
+  // Get variant classes - Mobile First
   const getVariantClasses = () => {
     const variants = {
       default: 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8',
-      wide: 'max-w-[90%] mx-auto px-4 sm:px-6',
-      narrow: 'max-w-screen-lg mx-auto px-4 sm:px-6',
+      wide: 'max-w-[95%] md:max-w-[90%] mx-auto px-3 sm:px-6',
+      narrow: 'max-w-screen-md lg:max-w-screen-lg mx-auto px-4 sm:px-6',
       fullscreen: 'w-full px-0'
     };
     return variants[variant];
   };
 
-  // Get spacing classes
+  // Get spacing classes - Mobile First
   const getSpacingClasses = () => {
     const spacings = {
-      default: 'py-6 space-y-6',
-      compact: 'py-4 space-y-4',
-      loose: 'py-8 space-y-8'
+      default: 'py-4 space-y-4 md:py-6 md:space-y-6',
+      compact: 'py-3 space-y-3 md:py-4 md:space-y-4',
+      loose: 'py-6 space-y-6 md:py-8 md:space-y-8'
     };
     return spacings[spacing];
   };
@@ -122,13 +122,13 @@ const StandardPageLayout: React.FC<StandardPageLayoutProps> = ({
   const headerWrapperClasses = cn(
     'standard-page-header-wrapper',
     'bg-white border-b border-gray-200',
-    'sticky top-0 z-10'
+    'sticky top-16 md:top-20 z-10'
   );
 
   const headerContentClasses = cn(
     'standard-page-header-content',
     getVariantClasses(),
-    'py-4',
+    'py-3 md:py-4',
     headerClassName
   );
 

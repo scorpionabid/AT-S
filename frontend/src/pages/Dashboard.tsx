@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { dashboardService } from '../services/dashboardService';
-import type { DashboardStats } from '../services/dashboardService';
+import { dashboardServiceUnified } from '../services';
+import type { DashboardStats } from '../services';
 import SuperAdminDashboard from '../components/admin/SuperAdminDashboard';
 import { RegionAdminDashboard } from '../components/regionadmin/dashboard';
 import RegionOperatorDashboard from '../components/rolespecific/RegionOperatorDashboard';

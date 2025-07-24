@@ -9,10 +9,10 @@
   left: 0;
   height: 100vh;
   
-  /* Enhanced background for better readability */
-  background: rgba(255, 255, 255, 0.98);
+  /* Enhanced green background for better readability */
+  background: var(--sidebar-bg);
   backdrop-filter: blur(16px) saturate(180%);
-  border-right: 1px solid rgba(226, 232, 240, 0.8);
+  border-right: 1px solid var(--sidebar-border);
   box-shadow: 
     0 10px 25px rgba(0, 0, 0, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.05);
@@ -469,12 +469,14 @@
 .sidebar-item-base:nth-child(10) { animation-delay: 500ms; }
 
 /* ===== ACCESSIBILITY ===== */
+/* Note: Global accessibility styles are defined in unified-components.css */
+/* Sidebar-specific focus styles */
 .sidebar-item-base:focus-visible {
   outline: none;
   box-shadow: var(--sidebar-focus-glow-strong);
 }
 
-/* Reduce motion for accessibility */
+/* Sidebar-specific reduced motion overrides */
 @media (prefers-reduced-motion: reduce) {
   .sidebar-item-base,
   .sidebar-item-icon,

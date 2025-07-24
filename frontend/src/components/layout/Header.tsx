@@ -48,11 +48,7 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="app-header fixed top-0 z-[1001] bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200" style={{
-        left: 'var(--sidebar-width)',
-        width: 'calc(100% - var(--sidebar-width))',
-        marginLeft: 0
-      }}>
+      <header className="app-header fixed top-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200 lg:left-[var(--sidebar-width)] lg:w-[calc(100%-var(--sidebar-width))]">
         <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center h-16 md:h-20">
             {/* Sol hissə: menyu və başlıq */}

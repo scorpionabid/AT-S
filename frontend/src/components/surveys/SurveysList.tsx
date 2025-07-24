@@ -781,7 +781,7 @@ const SurveysList: React.FC<SurveysListProps> = ({
         </span>
       </div>
 
-      <div className={`surveys-grid ${viewMode}`}>
+      <div className={`surveys-grid surveys-grid--${viewMode}`}>
         {surveys.map((survey) => (
           <div 
             key={survey.id} 

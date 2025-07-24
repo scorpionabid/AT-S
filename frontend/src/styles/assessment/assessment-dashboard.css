@@ -15,13 +15,8 @@
   @apply flex flex-wrap gap-3;
 }
 
-.btn-primary {
-  @apply bg-blue-600 hover:bg-blue-700 text-white border-blue-600 hover:border-blue-700;
-}
-
-.btn-secondary {
-  @apply bg-green-600 hover:bg-green-700 text-white border-green-600 hover:border-green-700;
-}
+/* Button styles are defined in unified-components.css */
+/* Use standard .btn-base .btn-primary and .btn-base .btn-secondary classes */
 
 /* Tab Navigation */
 .tab-navigation {

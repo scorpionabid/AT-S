@@ -18,107 +18,111 @@
   --breakpoint-desktop: 1200px;
 }
 
-/* Header Styles for Fixed Layout */
+/* Header Styles - Mobile First Approach */
 .app-header {
-  margin-left: 280px;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 50; /* Below sidebar but above content */
+  /* Mobile-first: full width by default */
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 1001;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Collapsed state header */
-.dashboard.sidebar-collapsed .app-header {
-  margin-left: 80px;
-}
-
-@media (max-width: 1024px) {
+/* Desktop: adjust for sidebar */
+@media (min-width: 1025px) {
   .app-header {
-    margin-left: 0;
-    left: 0;
-    width: 100%;
+    left: var(--sidebar-width);
+    width: calc(100% - var(--sidebar-width));
+  }
+  
+  .dashboard.sidebar-collapsed .app-header {
+    left: var(--sidebar-width-collapsed);
+    width: calc(100% - var(--sidebar-width-collapsed));
   }
 }
 
-/* Dashboard Layout */
-
+/* Dashboard Layout - Mobile First */
 .dashboard {
-  display: grid;
-  grid-template-columns: var(--sidebar-width) 1fr;
-  grid-template-rows: var(--header-height) 1fr;
-  grid-template-areas: 
-    "sidebar header"
-    "sidebar main";
+  /* Mobile-first: single column layout */
+  display: flex;
+  flex-direction: column;
   min-height: 100vh;
   background-color: var(--color-neutral-50);
   width: 100vw;
   max-width: 100vw;
   overflow-x: hidden;
   position: relative;
-  transition: var(--sidebar-transition);
 }
 
-/* Responsive Grid Templates */
-.dashboard-mobile {
-  grid-template-columns: 1fr;
-  grid-template-rows: var(--header-height) 1fr;
-  grid-template-areas: 
-    "header"
-    "main";
-}
-
-.dashboard-tablet {
-  grid-template-columns: 1fr;
-  grid-template-rows: var(--header-height) 1fr;
-  grid-template-areas: 
-    "header"
-    "main";
-}
-
-.dashboard-desktop.sidebar-collapsed {
-  grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+/* Desktop: grid layout with sidebar */
+@media (min-width: 1025px) {
+  .dashboard {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) 1fr;
+    grid-template-rows: var(--header-height) 1fr;
+    grid-template-areas: 
+      "sidebar header"
+      "sidebar main";
+  }
+  
+  .dashboard.sidebar-collapsed {
+    grid-template-columns: var(--sidebar-width-collapsed) 1fr;
+  }
 }
 
 .dashboard-main {
-  grid-area: main;
+  /* Mobile-first: flex container */
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
-  min-height: 0;
   overflow-x: hidden;
   position: relative;
 }
 
-/* Grid areas for Header and Sidebar */
-.app-header {
-  grid-area: header;
-  position: relative;
-  z-index: var(--z-header);
+/* Desktop: use grid area */
+@media (min-width: 1025px) {
+  .dashboard-main {
+    grid-area: main;
+    min-height: 0;
+  }
 }
 
-.app-sidebar {
-  grid-area: sidebar;
-  position: relative;
-  z-index: var(--z-sidebar);
+/* Grid areas for Header and Sidebar - Desktop only */
+@media (min-width: 1025px) {
+  .app-header {
+    grid-area: header;
+    position: relative;
+    z-index: var(--z-header);
+  }
+
+  .app-sidebar {
+    grid-area: sidebar;
+    position: relative;
+    z-index: var(--z-sidebar);
+  }
 }
 
-/* Mobile specific - sidebar overlay */
-.dashboard-mobile .app-sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  width: 100vw;
-  z-index: var(--z-sidebar);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-out;
-}
-
-.dashboard-mobile.mobile-open .app-sidebar {
-  transform: translateX(0);
+/* Mobile sidebar - overlay */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    z-index: var(--z-sidebar);
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-out;
+  }
+  
+  .dashboard.mobile-open .app-sidebar {
+    transform: translateX(0);
+  }
 }
 
 .dashboard-content {
   flex: 1;
-  padding: 1.5rem;
   overflow-y: auto;
   overflow-x: hidden;
   width: 100%;
@@ -127,111 +131,59 @@
   background-color: var(--color-neutral-50);
   container-type: inline-size;
   container-name: dashboard-content;
+  
+  /* Mobile-first padding */
+  padding: 1rem;
 }
 
-/* Container Queries for Dashboard Content */
-@container dashboard-content (max-width: 768px) {
+/* Responsive padding - Mobile First */
+@media (min-width: 640px) {
   .dashboard-content {
-    padding: 1rem;
+    padding: 1.25rem;
   }
 }
 
-@container dashboard-content (min-width: 1200px) {
+@media (min-width: 768px) {
   .dashboard-content {
-    padding: 2rem;
+    padding: 1.5rem;
   }
 }
 
-/* ====================
- * RESPONSIVE ADJUSTMENTS
- * ==================== */
-
-/* Large desktop screens */
-@media (min-width: 1440px) {
-  .dashboard-content {
-    padding: 2rem 2.5rem;
-  }
-}
-
-/* Standard desktop */
-@media (max-width: 1439px) {
+@media (min-width: 1024px) {
   .dashboard-content {
     padding: 1.75rem 2rem;
   }
 }
 
-/* Small desktop / large tablet */
-@media (max-width: 1200px) {
+@media (min-width: 1200px) {
   .dashboard-content {
-    padding: 1.5rem 1.75rem;
+    padding: 2rem 2.5rem;
   }
 }
 
-/* Tablet */
-@media (max-width: 992px) {
+@media (min-width: 1440px) {
   .dashboard-content {
-    padding: 1.25rem 1.5rem;
+    padding: 2rem 3rem;
   }
 }
 
-/* Tablet specific */
-@media (max-width: 1024px) and (min-width: 769px) {
-  :root {
-    --sidebar-width: 0px; /* No margin on tablet when closed */
-    --sidebar-width-collapsed: 0px;
-  }
-  
-  .dashboard-main {
-    margin-left: 0;
-    width: 100vw;
-    max-width: 100vw;
-  }
-  
-  .dashboard-main.collapsed {
-    margin-left: 0;
-    width: 100vw;
-    max-width: 100vw;
-  }
+/* Mobile overlay styles */
+.mobile-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: calc(var(--z-sidebar) - 1);
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease-out;
 }
 
-/* Mobile and below */
-@media (max-width: 768px) {
-  :root {
-    --sidebar-width: 0px; /* No margin on mobile when closed */
-    --sidebar-width-collapsed: 0px;
-  }
-  
-  .dashboard {
-    padding-left: 0;
-    width: 100vw;
-    max-width: 100vw;
-  }
-  
-  .dashboard-main {
-    margin-left: 0;
-    width: 100vw;
-    max-width: 100vw;
-    padding-left: 0;
-  }
-  
-  .dashboard-main.collapsed {
-    margin-left: 0;
-    width: 100vw;
-    max-width: 100vw;
-  }
-  
-  .dashboard-content {
-    padding: 1.25rem;
-    width: 100%;
-    max-width: 100%;
-  }
-}
-
-/* Small mobile */
-@media (max-width: 480px) {
-  .dashboard-content {
-    padding: 1rem;
-  }
+.mobile-sidebar-overlay.visible {
+  opacity: 1;
+  visibility: visible;
 }
 
 /* Header Styles */
