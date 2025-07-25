@@ -107,24 +107,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
   // Online status detection
   const isOnline = useOnlineStatus();
 
-  // Sync CSS variables with sidebar state (including hover state)
-  useEffect(() => {
-    const root = document.documentElement;
-    if (screenSize === 'mobile') {
-      root.style.setProperty('--sidebar-width', isMobileOpen ? '100vw' : '0px');
-      root.style.setProperty('--sidebar-width-current', isMobileOpen ? '100vw' : '0px');
-    } else {
-      // Use computed sidebarWidth which accounts for hover state
-      root.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
-      root.style.setProperty('--sidebar-width-current', `${sidebarWidth}px`);
-      
-      // Set individual state variables for more precise control
-      root.style.setProperty('--sidebar-width-collapsed', '80px');
-      root.style.setProperty('--sidebar-width-expanded', '280px');
-      root.style.setProperty('--is-sidebar-collapsed', isCollapsed ? '1' : '0');
-      root.style.setProperty('--is-sidebar-hovered', isHovered ? '1' : '0');
-    }
-  }, [sidebarWidth, isMobileOpen, screenSize, isCollapsed, isHovered]);
+  // Note: CSS variables sync is now handled by LayoutContext to avoid duplication
   
   // Refs for touch gestures
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -146,42 +129,65 @@ const Sidebar: React.FC<SidebarProps> = memo(({
     toggleExpanded(itemId);
   }, [toggleExpanded]);
 
-  // Touch gesture handlers for mobile
+  // Enhanced touch gesture handlers for mobile and tablet
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    if (screenSize !== 'mobile') return;
+    if (screenSize === 'desktop') return;
     
     const touch = e.touches[0];
     touchStartX.current = touch.clientX;
     touchStartY.current = touch.clientY;
     isDragging.current = false;
+    
+    // Add haptic feedback for touch devices
+    if ('vibrate' in navigator) {
+      navigator.vibrate(10);
+    }
   }, [screenSize]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (screenSize !== 'mobile') return;
+    if (screenSize === 'desktop') return;
     
     const touch = e.touches[0];
     const deltaX = touch.clientX - touchStartX.current;
     const deltaY = touch.clientY - touchStartY.current;
     
     // Check if this is a horizontal swipe (more horizontal than vertical)
-    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 10) {
+    // Improved threshold for better touch experience
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 15) {
       isDragging.current = true;
       e.preventDefault(); // Prevent scrolling
+      
+      // Visual feedback during drag
+      if (e.currentTarget instanceof HTMLElement) {
+        e.currentTarget.style.opacity = '0.9';
+      }
     }
   }, [screenSize]);
 
   const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (screenSize !== 'mobile' || !isDragging.current) return;
+    if (screenSize === 'desktop' || !isDragging.current) return;
     
     const touch = e.changedTouches[0];
     const deltaX = touch.clientX - touchStartX.current;
-    const threshold = 50; // Minimum swipe distance
+    const threshold = 80; // Increased threshold for better UX
+    
+    // Reset visual feedback
+    if (e.currentTarget instanceof HTMLElement) {
+      e.currentTarget.style.opacity = '1';
+    }
     
     // Swipe left to close (when sidebar is open)
     if (deltaX < -threshold && isMobileOpen) {
       closeMobile();
+      // Haptic feedback for successful action
+      if ('vibrate' in navigator) {
+        navigator.vibrate(50);
+      }
     }
-    // Swipe right to open (when sidebar is closed) - handled by overlay or main content
+    // Swipe right to open (when sidebar is closed) - handled by main content area
+    else if (deltaX > threshold && !isMobileOpen) {
+      // This would be handled by main content area touch handler
+    }
     
     isDragging.current = false;
   }, [screenSize, isMobileOpen, closeMobile]);
@@ -252,7 +258,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
         onTouchEnd={handleTouchEnd}
         style={{ 
           width: `${sidebarWidth}px`,
-          zIndex: isHovered && isCollapsed ? 'var(--z-dropdown)' : 'var(--z-sidebar)'
+          zIndex: isHovered && isCollapsed ? 'var(--z-sidebar-hover)' : 'var(--z-sidebar)'
         }}
       >
         {/* Always render header first */}

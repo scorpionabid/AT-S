@@ -115,6 +115,35 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
     return isCollapsed ? 80 : 280;
   }, [screenSize, isCollapsed, isMobileOpen, isHovered]);
+
+  // CSS Variables sync with real-time updates
+  React.useEffect(() => {
+    const root = document.documentElement;
+    const currentWidth = screenSize === 'mobile' || screenSize === 'tablet' 
+      ? (isMobileOpen ? 280 : 0)
+      : (isCollapsed && !isHovered ? 80 : 280);
+    
+    // Primary layout variables
+    root.style.setProperty('--sidebar-width-current', `${currentWidth}px`);
+    root.style.setProperty('--sidebar-width-collapsed', '80px');
+    root.style.setProperty('--sidebar-width-expanded', '280px');
+    
+    // State variables for conditional CSS
+    root.style.setProperty('--is-sidebar-collapsed', isCollapsed ? '1' : '0');
+    root.style.setProperty('--is-sidebar-hovered', isHovered ? '1' : '0');
+    root.style.setProperty('--is-mobile-open', isMobileOpen ? '1' : '0');
+    root.style.setProperty('--screen-size', screenSize);
+    
+    // Transform calculations for animations
+    const translateValue = screenSize === 'mobile' ? 
+      (isMobileOpen ? '0px' : '-100%') : '0px';
+    root.style.setProperty('--sidebar-translate', translateValue);
+    
+    // Content offset for main area
+    const contentOffset = screenSize === 'mobile' ? '0px' : `${currentWidth}px`;
+    root.style.setProperty('--content-offset', contentOffset);
+    
+  }, [screenSize, isCollapsed, isHovered, isMobileOpen]);
   
   // Desktop collapse functionality
   const toggleCollapse = useCallback(() => {

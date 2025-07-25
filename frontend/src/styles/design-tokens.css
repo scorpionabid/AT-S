@@ -44,6 +44,16 @@
   --color-neutral-900: #0f172a;
   --color-neutral-950: #020617;
 
+  /* ===== Z-INDEX HIERARCHY ===== */
+  --z-base: 0;
+  --z-sidebar: 1000;
+  --z-sidebar-hover: 1005; /* Above content, below header */
+  --z-page-header: 1008; /* Below app header, above content */
+  --z-header: 1010; /* Above sidebar and page headers */
+  --z-dropdown: 1020; /* Above header */
+  --z-modal: 1030; /* Above dropdowns */
+  --z-toast: 1040; /* Highest priority */
+
   /* Semantic Colors */
   --color-success-50: #f0fdf4;
   --color-success-500: #22c55e;

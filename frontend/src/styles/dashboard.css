@@ -1,14 +1,24 @@
 /* CSS Variables for Layout System */
 :root {
-  --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --header-height: 80px; /* Increased from 70px to match component */
+  /* Animations */
+  --sidebar-transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --layout-duration: 0.3s;
+  --layout-easing: cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Layout dimensions */
+  --header-height: 80px;
   --sidebar-width: 280px;
   --sidebar-width-collapsed: 80px;
   --sidebar-width-mobile: 100vw;
-  --z-sidebar: 1000;
-  --z-header: 1001; /* Header should be above sidebar */
+  
+  /* Z-Index from design tokens */
+  --z-sidebar: var(--z-sidebar);
+  --z-header: var(--z-header);
+  --z-page-header: var(--z-page-header);
   --z-overlay: 999;
-  --z-dropdown: 1002; /* Above header */
+  --z-dropdown: var(--z-dropdown);
+  
+  /* Base styling */
   --border-radius-base: 0.75rem;
   --spacing-base: 1rem;
   
@@ -59,17 +69,20 @@
   min-width: 0;
   overflow-x: hidden;
   position: relative;
-  /* Dynamic margins using CSS variables */
-  margin-left: var(--sidebar-width-current, 0px);
+  /* Transform-based positioning for better performance */
+  transform: translateX(var(--content-offset, 0px));
   margin-top: var(--header-height);
-  transition: var(--sidebar-transition);
+  transition: transform var(--layout-duration) var(--layout-easing);
   min-height: calc(100vh - var(--header-height));
+  /* Performance optimizations */
+  contain: layout;
+  will-change: transform;
 }
 
-/* Mobile: reset margins */
+/* Mobile: reset transforms */
 @media (max-width: 1024px) {
   .dashboard-main {
-    margin-left: 0;
+    transform: translateX(0);
   }
 }
 
@@ -83,10 +96,15 @@
     width: var(--sidebar-width-current, 80px);
     z-index: var(--z-sidebar);
     transition: var(--sidebar-transition);
+    /* Performance optimizations */
+    contain: layout style paint;
+    will-change: transform, width;
+    transform: translateX(var(--sidebar-translate, 0));
   }
   
   .app-sidebar.hovered {
-    z-index: var(--z-dropdown);
+    z-index: var(--z-sidebar-hover);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   }
 }
 
@@ -151,6 +169,72 @@
 @media (min-width: 1440px) {
   .dashboard-content {
     padding: 2rem 3rem;
+  }
+}
+
+/* Touch Accessibility & Mobile Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch-friendly button sizes */
+  .app-sidebar nav a,
+  .app-sidebar button {
+    min-height: 44px; /* iOS recommended touch target size */
+    min-width: 44px;
+  }
+  
+  /* Better tap highlighting */
+  .app-sidebar nav a {
+    -webkit-tap-highlight-color: rgba(8, 114, 232, 0.1);
+    tap-highlight-color: rgba(8, 114, 232, 0.1);
+  }
+  
+  /* Hover states disabled on touch devices */
+  .app-sidebar nav a:hover {
+    transform: none;
+    background: inherit;
+  }
+  
+  /* Touch-friendly spacing */
+  .app-sidebar nav {
+    padding: 1rem;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .app-sidebar,
+  .dashboard-main,
+  .app-header {
+    transition: none;
+    animation: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .app-sidebar {
+    border-right: 2px solid;
+  }
+  
+  .app-header {
+    border-bottom: 2px solid;
+  }
+}
+
+/* Page Header Styles */
+.standard-page-layout .sticky {
+  /* Ensure page header is properly positioned below app header */
+  position: sticky;
+  top: var(--header-height, 80px);
+  z-index: var(--z-page-header);
+  /* Add shadow when sticky */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile page header adjustments */
+@media (max-width: 1024px) {
+  .standard-page-layout .sticky {
+    /* On mobile, account for potential mobile header differences */
+    top: var(--header-height, 80px);
   }
 }
 
