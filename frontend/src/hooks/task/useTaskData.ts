@@ -86,8 +86,23 @@ export const useTaskData = (options: UseTaskDataOptions = {}): UseTaskDataReturn
       const statsData = await taskService.getTaskStats(filters);
       setStats(statsData);
     } catch (err) {
-      console.error('Load stats error:', err);
-      // Don't set error for stats, as it's not critical
+      console.warn('Task statistics loading failed, using fallback data:', err);
+      // TaskServiceCore should already provide mock data, so this catch should rarely trigger
+      // If it does, we'll use a basic fallback
+      setStats({
+        total_tasks: 0,
+        pending_tasks: 0,
+        in_progress_tasks: 0,
+        completed_tasks: 0,
+        cancelled_tasks: 0,
+        overdue_tasks: 0,
+        urgent_tasks: 0,
+        by_priority: { low: 0, medium: 0, high: 0, urgent: 0 },
+        by_type: {},
+        by_status: {},
+        completion_rate: 0,
+        average_completion_time: null
+      });
     } finally {
       setStatsLoading(false);
     }
