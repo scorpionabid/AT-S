@@ -1,0 +1,144 @@
+/* ====================
+ * ATİS Global Styles
+ * Entry point for all stylesheets
+ * ==================== */
+
+/* Design Tokens - MUST BE FIRST */
+@import './styles/tokens/design-tokens.css';
+
+/* Tailwind CSS - AFTER design tokens */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Global Reset and Base */
+@layer base {
+  html {
+    font-family: var(--font-family-base);
+    line-height: var(--line-height-base);
+  }
+  
+  body {
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    min-height: 100vh;
+  }
+}
+
+/* Component Styles */
+@layer components {
+  /* Responsive sidebar with fallbacks */
+  .app-sidebar {
+    width: var(--sidebar-width, 280px); /* Fallback value */
+    transition: var(--sidebar-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+  }
+  
+  .app-sidebar.collapsed {
+    width: var(--sidebar-width-collapsed, 80px); /* Fallback value */
+  }
+  
+  /* Responsive header with proper z-index */
+  .app-header {
+    position: fixed;
+    top: 0;
+    left: var(--sidebar-width, 280px); /* Fallback value */
+    width: calc(100% - var(--sidebar-width, 280px)); /* Fallback value */
+    height: var(--header-height, 80px); /* Fallback value */
+    z-index: 1001; /* Above sidebar */
+    transition: var(--header-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+  }
+  
+  .app-header.sidebar-collapsed {
+    left: var(--sidebar-width-collapsed, 80px); /* Fallback value */
+    width: calc(100% - var(--sidebar-width-collapsed, 80px)); /* Fallback value */
+  }
+  
+  /* Responsive main content with fallbacks */
+  .app-main {
+    margin-left: var(--sidebar-width, 280px); /* Fallback value */
+    margin-top: var(--header-height, 80px); /* Space for fixed header */
+    transition: var(--layout-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+    min-width: 0; /* Prevent overflow */
+    flex: 1;
+  }
+  
+  .app-main.sidebar-collapsed {
+    margin-left: var(--sidebar-width-collapsed, 80px); /* Fallback value */
+  }
+  
+  /* Mobile responsive overrides */
+  @media (max-width: 768px) {
+    .app-main {
+      margin-left: 0;
+      width: 100%;
+      margin-top: var(--header-height, 80px); /* Space for fixed header */
+    }
+    
+    .app-main.sidebar-collapsed {
+      margin-left: 0;
+    }
+    
+    .app-sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      z-index: 1000;
+      width: var(--sidebar-width-mobile, 100vw);
+      max-width: 320px; /* Prevent too wide on large phones */
+    }
+    
+    .app-header {
+      left: 0;
+      width: 100%;
+      z-index: 1001; /* Above sidebar on mobile */
+    }
+    
+    .app-header.sidebar-collapsed {
+      left: 0;
+      width: 100%;
+    }
+  }
+}
+
+/* Utility Classes */
+@layer utilities {
+  /* Touch-friendly interactive elements */
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+  }
+  
+  .touch-target-comfortable {
+    min-height: var(--touch-target-comfortable);
+    min-width: var(--touch-target-comfortable);
+  }
+  
+  .touch-target-large {
+    min-height: var(--touch-target-large);
+    min-width: var(--touch-target-large);
+  }
+  
+  /* Touch-friendly spacing on mobile */
+  @media (max-width: 768px) {
+    .btn, button, [type="button"], [type="submit"], [type="reset"] {
+      min-height: var(--touch-target-min);
+      padding: 0.75rem 1rem;
+    }
+    
+    input, select, textarea {
+      min-height: var(--touch-target-min);
+      font-size: 16px; /* Prevent zoom on iOS */
+    }
+    
+    a {
+      min-height: var(--touch-target-min);
+      display: inline-flex;
+      align-items: center;
+    }
+  }
+  
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+}

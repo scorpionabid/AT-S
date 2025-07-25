@@ -1,0 +1,596 @@
+// ====================
+// ATİS Design System - Unified Design Tokens
+// Generated: 2025-07-11
+// ====================
+
+@use 'sass:math';
+
+// ====================
+// CONFIGURATION
+// ====================
+
+// Feature flags for different outputs
+$enable-css-custom-properties: true !default;
+$enable-semantic-tokens: true !default;
+$enable-dark-mode: true !default;
+
+// ====================
+// BASE COLOR PALETTE
+// ====================
+
+// Primary Color Palette - Azerbaijani Flag Inspired
+$color-primary-50: #f0f7ff;
+$color-primary-100: #e0efff;
+$color-primary-200: #b9ddff;
+$color-primary-300: #7cbeff;
+$color-primary-400: #3b9eff;
+$color-primary-500: #0872e8;  // Main brand color
+$color-primary-600: #0056c7;
+$color-primary-700: #0043a1;
+$color-primary-800: #053984;
+$color-primary-900: #0a306e;
+$color-primary-950: #071f47;
+
+// Secondary Color Palette - Green accents
+$color-secondary-50: #f0fdf4;
+$color-secondary-100: #dcfce7;
+$color-secondary-200: #bbf7d0;
+$color-secondary-300: #86efac;
+$color-secondary-400: #4ade80;
+$color-secondary-500: #22c55e;
+$color-secondary-600: #16a34a;
+$color-secondary-700: #15803d;
+$color-secondary-800: #166534;
+$color-secondary-900: #14532d;
+
+// Neutral Color Palette
+$color-neutral-50: #f8fafc;
+$color-neutral-100: #f1f5f9;
+$color-neutral-200: #e2e8f0;
+$color-neutral-300: #cbd5e1;
+$color-neutral-400: #94a3b8;
+$color-neutral-500: #64748b;
+$color-neutral-600: #475569;
+$color-neutral-700: #334155;
+$color-neutral-800: #1e293b;
+$color-neutral-900: #0f172a;
+$color-neutral-950: #020617;
+
+// Semantic Colors
+$color-success-50: #f0fdf4;
+$color-success-500: #22c55e;
+$color-success-600: #16a34a;
+$color-success-700: #15803d;
+
+$color-warning-50: #fffbeb;
+$color-warning-500: #f59e0b;
+$color-warning-600: #d97706;
+$color-warning-700: #b45309;
+
+$color-error-50: #fef2f2;
+$color-error-500: #ef4444;
+$color-error-600: #dc2626;
+$color-error-700: #b91c1c;
+
+$color-info-50: #eff6ff;
+$color-info-500: #3b82f6;
+$color-info-600: #2563eb;
+$color-info-700: #1d4ed8;
+
+// Base Colors
+$color-white: #ffffff;
+$color-black: #000000;
+
+// ====================
+// TYPOGRAPHY TOKENS
+// ====================
+
+// Font Families
+$font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+$font-family-serif: 'Georgia', 'Times New Roman', serif;
+$font-family-mono: 'Fira Code', 'Monaco', 'Consolas', monospace;
+
+// Base font family (default)
+$font-family-base: $font-family-sans;
+
+// Font Sizes
+$font-size-xs: 0.75rem;     // 12px
+$font-size-sm: 0.875rem;    // 14px
+$font-size-base: 1rem;      // 16px
+$font-size-lg: 1.125rem;    // 18px
+$font-size-xl: 1.25rem;     // 20px
+$font-size-2xl: 1.5rem;     // 24px
+$font-size-3xl: 1.875rem;   // 30px
+$font-size-4xl: 2.25rem;    // 36px
+$font-size-5xl: 3rem;       // 48px
+$font-size-6xl: 3.75rem;    // 60px
+
+// Legacy font size aliases (for compatibility)
+$text-xs: $font-size-xs;
+$text-sm: $font-size-sm;
+$text-base: $font-size-base;
+$text-lg: $font-size-lg;
+$text-xl: $font-size-xl;
+$text-2xl: $font-size-2xl;
+$text-3xl: $font-size-3xl;
+$text-4xl: $font-size-4xl;
+
+// Font Weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+
+// Line Heights
+$line-height-tight: 1.25;
+$line-height-snug: 1.375;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.625;
+$line-height-loose: 2;
+
+// Additional line heights for compatibility
+$line-height-tighter: 1.1;
+
+// Letter Spacing
+$letter-spacing-tighter: -0.05em;
+$letter-spacing-tight: -0.025em;
+$letter-spacing-normal: 0em;
+$letter-spacing-wide: 0.025em;
+$letter-spacing-wider: 0.05em;
+$letter-spacing-widest: 0.1em;
+
+// ====================
+// SPACING TOKENS
+// ====================
+
+$space-0: 0;
+$space-px: 1px;
+$space-0_5: 0.125rem;    // 2px
+$space-1: 0.25rem;       // 4px
+$space-1_5: 0.375rem;    // 6px
+$space-2: 0.5rem;        // 8px
+$space-2_5: 0.625rem;    // 10px
+$space-3: 0.75rem;       // 12px
+$space-3_5: 0.875rem;    // 14px
+$space-4: 1rem;          // 16px
+$space-5: 1.25rem;       // 20px
+$space-6: 1.5rem;        // 24px
+$space-7: 1.75rem;       // 28px
+$space-8: 2rem;          // 32px
+$space-9: 2.25rem;       // 36px
+$space-10: 2.5rem;       // 40px
+$space-11: 2.75rem;      // 44px
+$space-12: 3rem;         // 48px
+$space-14: 3.5rem;       // 56px
+$space-16: 4rem;         // 64px
+$space-20: 5rem;         // 80px
+$space-24: 6rem;         // 96px
+$space-28: 7rem;         // 112px
+$space-32: 8rem;         // 128px
+
+// Legacy spacing aliases (for compatibility)
+$spacing-0: $space-0;
+$spacing-px: $space-px;
+$spacing-0_5: $space-0_5;
+$spacing-1: $space-1;
+$spacing-1_5: $space-1_5;
+$spacing-2: $space-2;
+$spacing-2_5: $space-2_5;
+$spacing-3: $space-3;
+$spacing-3_5: $space-3_5;
+$spacing-4: $space-4;
+$spacing-5: $space-5;
+$spacing-6: $space-6;
+$spacing-7: $space-7;
+$spacing-8: $space-8;
+$spacing-9: $space-9;
+$spacing-10: $space-10;
+$spacing-11: $space-11;
+$spacing-12: $space-12;
+$spacing-14: $space-14;
+$spacing-16: $space-16;
+$spacing-20: $space-20;
+$spacing-24: $space-24;
+$spacing-28: $space-28;
+$spacing-32: $space-32;
+
+// ====================
+// SHADOW TOKENS
+// ====================
+
+// Light mode shadows
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Dark mode shadows
+$shadow-sm-dark: 0 1px 2px 0 rgba(0, 0, 0, 0.25);
+$shadow-dark: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+$shadow-md-dark: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+$shadow-lg-dark: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+$shadow-xl-dark: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.15);
+
+// ====================
+// BORDER & RADIUS TOKENS
+// ====================
+
+// Border Widths
+$border-width-0: 0;
+$border-width-default: 1px;
+$border-width-2: 2px;
+$border-width-4: 4px;
+$border-width-8: 8px;
+
+// Border Radius
+$radius-none: 0;
+$radius-sm: 0.25rem;      // 4px
+$radius-default: 0.375rem; // 6px
+$radius-md: 0.5rem;       // 8px
+$radius-lg: 0.75rem;      // 12px
+$radius-xl: 1rem;         // 16px
+$radius-2xl: 1.5rem;      // 24px
+$radius-3xl: 2rem;        // 32px
+$radius-full: 9999px;
+
+// Legacy border radius aliases
+$border-radius-sm: $radius-sm;
+$border-radius-default: $radius-default;
+$border-radius-md: $radius-md;
+$border-radius-lg: $radius-lg;
+$border-radius-xl: $radius-xl;
+$border-radius-full: $radius-full;
+
+// ====================
+// SHADOW TOKENS
+// ====================
+
+$shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+$shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+$shadow-default: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+$shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+$shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+$shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+$shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+$shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+
+// Colored Shadows
+$shadow-primary: 0 10px 15px -3px rgb(8 114 232 / 0.1), 0 4px 6px -4px rgb(8 114 232 / 0.1);
+$shadow-success: 0 10px 15px -3px rgb(34 197 94 / 0.1), 0 4px 6px -4px rgb(34 197 94 / 0.1);
+$shadow-warning: 0 10px 15px -3px rgb(245 158 11 / 0.1), 0 4px 6px -4px rgb(245 158 11 / 0.1);
+$shadow-error: 0 10px 15px -3px rgb(239 68 68 / 0.1), 0 4px 6px -4px rgb(239 68 68 / 0.1);
+
+// ====================
+// Z-INDEX TOKENS
+// ====================
+
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-offcanvas: 1050;
+$z-index-modal: 1060;
+$z-index-popover: 1070;
+$z-index-tooltip: 1080;
+$z-index-toast: 1090;
+
+// ====================
+// BREAKPOINT TOKENS
+// ====================
+
+$breakpoint-xs: 475px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// ====================
+// ANIMATION TOKENS
+// ====================
+
+// Transition Durations
+$duration-75: 75ms;
+$duration-100: 100ms;
+$duration-150: 150ms;
+$duration-200: 200ms;
+$duration-300: 300ms;
+$duration-500: 500ms;
+$duration-700: 700ms;
+$duration-1000: 1000ms;
+
+// Transition Timing Functions
+$ease-linear: linear;
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+// Custom Easings
+$ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+$ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+// ====================
+// LAYOUT TOKENS
+// ====================
+
+// Layout Dimensions
+$sidebar-width: 260px;
+$sidebar-width-collapsed: 70px;
+$header-height: 70px;
+$footer-height: 60px;
+$content-padding: 2rem;
+$content-max-width: 1440px;
+
+// Grid System
+$grid-gutter-width: 1.5rem;
+$grid-columns: 12;
+$grid-gutter-compensation: -(math.div($grid-gutter-width, 2));
+
+// Container Widths
+$container-sm: 100%;
+$container-md: 720px;
+$container-lg: 960px;
+$container-xl: 1140px;
+$container-xxl: 1320px;
+
+// ====================
+// SEMANTIC TOKEN MAPS
+// ====================
+
+// Color Maps for easier access
+$colors: (
+  'primary': (
+    50: $color-primary-50,
+    100: $color-primary-100,
+    200: $color-primary-200,
+    300: $color-primary-300,
+    400: $color-primary-400,
+    500: $color-primary-500,
+    600: $color-primary-600,
+    700: $color-primary-700,
+    800: $color-primary-800,
+    900: $color-primary-900,
+    950: $color-primary-950,
+  ),
+  'secondary': (
+    50: $color-secondary-50,
+    100: $color-secondary-100,
+    200: $color-secondary-200,
+    300: $color-secondary-300,
+    400: $color-secondary-400,
+    500: $color-secondary-500,
+    600: $color-secondary-600,
+    700: $color-secondary-700,
+    800: $color-secondary-800,
+    900: $color-secondary-900,
+  ),
+  'neutral': (
+    50: $color-neutral-50,
+    100: $color-neutral-100,
+    200: $color-neutral-200,
+    300: $color-neutral-300,
+    400: $color-neutral-400,
+    500: $color-neutral-500,
+    600: $color-neutral-600,
+    700: $color-neutral-700,
+    800: $color-neutral-800,
+    900: $color-neutral-900,
+    950: $color-neutral-950,
+  ),
+  'success': (
+    50: $color-success-50,
+    500: $color-success-500,
+    600: $color-success-600,
+    700: $color-success-700,
+  ),
+  'warning': (
+    50: $color-warning-50,
+    500: $color-warning-500,
+    600: $color-warning-600,
+    700: $color-warning-700,
+  ),
+  'error': (
+    50: $color-error-50,
+    500: $color-error-500,
+    600: $color-error-600,
+    700: $color-error-700,
+  ),
+  'info': (
+    50: $color-info-50,
+    500: $color-info-500,
+    600: $color-info-600,
+    700: $color-info-700,
+  ),
+);
+
+// Spacing Map
+$spacing: (
+  0: $space-0,
+  px: $space-px,
+  0.5: $space-0_5,
+  1: $space-1,
+  1.5: $space-1_5,
+  2: $space-2,
+  2.5: $space-2_5,
+  3: $space-3,
+  3.5: $space-3_5,
+  4: $space-4,
+  5: $space-5,
+  6: $space-6,
+  7: $space-7,
+  8: $space-8,
+  9: $space-9,
+  10: $space-10,
+  11: $space-11,
+  12: $space-12,
+  14: $space-14,
+  16: $space-16,
+  20: $space-20,
+  24: $space-24,
+  28: $space-28,
+  32: $space-32,
+);
+
+// Font Size Map
+$font-sizes: (
+  xs: $font-size-xs,
+  sm: $font-size-sm,
+  base: $font-size-base,
+  lg: $font-size-lg,
+  xl: $font-size-xl,
+  2xl: $font-size-2xl,
+  3xl: $font-size-3xl,
+  4xl: $font-size-4xl,
+  5xl: $font-size-5xl,
+  6xl: $font-size-6xl,
+);
+
+// Breakpoint Map
+$breakpoints: (
+  xs: $breakpoint-xs,
+  sm: $breakpoint-sm,
+  md: $breakpoint-md,
+  lg: $breakpoint-lg,
+  xl: $breakpoint-xl,
+  2xl: $breakpoint-2xl,
+);
+
+// ====================
+// SEMANTIC TOKENS
+// ====================
+
+// Background Colors
+$bg-primary: $color-neutral-50;
+$bg-secondary: $color-neutral-100;
+$bg-tertiary: $color-neutral-200;
+$bg-surface: $color-white;
+$bg-overlay: rgb(0 0 0 / 0.5);
+
+// Additional background colors
+$color-background-elevated: $color-white;
+
+// Text Colors
+$text-primary: $color-neutral-900;
+$text-secondary: $color-neutral-600;
+$text-tertiary: $color-neutral-500;
+$text-placeholder: $color-neutral-400;
+$text-disabled: $color-neutral-300;
+$text-inverse: $color-white;
+
+// Border Colors
+$border-primary: $color-neutral-200;
+$border-secondary: $color-neutral-300;
+$border-focus: $color-primary-500;
+$border-error: $color-error-500;
+$border-success: $color-success-500;
+
+// Interactive Colors
+$interactive-primary: $color-primary-500;
+$interactive-primary-hover: $color-primary-600;
+$interactive-primary-active: $color-primary-700;
+$interactive-secondary: $color-neutral-100;
+$interactive-secondary-hover: $color-neutral-200;
+$interactive-secondary-active: $color-neutral-300;
+
+// Legacy color aliases (for compatibility)
+$color-primary: $color-primary-500;
+$color-primary-light: $color-primary-300;
+$color-primary-dark: $color-primary-700;
+$color-secondary: $color-secondary-500;
+$color-secondary-light: $color-secondary-300;
+$color-secondary-dark: $color-secondary-700;
+$color-background: $bg-primary;
+$color-text: $text-primary;
+$color-text-primary: $text-primary;
+$color-text-secondary: $text-secondary;
+$color-border: $border-primary;
+
+// Status colors
+$color-error: $color-error-500;
+$color-success: $color-success-500;
+$color-warning: $color-warning-500;
+$color-info: $color-info-500;
+
+// Additional text colors
+$color-text-muted: $text-tertiary;
+
+// Additional background colors
+$color-bg-elevated: $color-background-elevated;
+
+// Additional border colors
+$color-border-light: $color-neutral-100;
+
+// Gray color aliases
+$color-gray-50: $color-neutral-50;
+$color-gray-100: $color-neutral-100;
+$color-gray-200: $color-neutral-200;
+$color-gray-300: $color-neutral-300;
+$color-gray-400: $color-neutral-400;
+$color-gray-500: $color-neutral-500;
+$color-gray-600: $color-neutral-600;
+$color-gray-700: $color-neutral-700;
+$color-gray-800: $color-neutral-800;
+$color-gray-900: $color-neutral-900;
+
+// ====================
+// DARK MODE SEMANTIC TOKENS
+// ====================
+
+// Dark mode overrides
+$bg-primary-dark: $color-neutral-900;
+$bg-secondary-dark: $color-neutral-800;
+$bg-tertiary-dark: $color-neutral-700;
+$bg-surface-dark: $color-neutral-800;
+
+$text-primary-dark: $color-neutral-50;
+$text-secondary-dark: $color-neutral-300;
+$text-tertiary-dark: $color-neutral-400;
+$text-placeholder-dark: $color-neutral-500;
+$text-disabled-dark: $color-neutral-600;
+
+$border-primary-dark: $color-neutral-700;
+$border-secondary-dark: $color-neutral-600;
+
+$interactive-secondary-dark: $color-neutral-700;
+$interactive-secondary-hover-dark: $color-neutral-600;
+$interactive-secondary-active-dark: $color-neutral-500;
+
+// ====================
+// ANIMATION & TRANSITION TOKENS
+// ====================
+
+// Durations
+$duration-75: 75ms;
+$duration-100: 100ms;
+$duration-150: 150ms;
+$duration-200: 200ms;
+$duration-300: 300ms;
+$duration-500: 500ms;
+$duration-700: 700ms;
+$duration-1000: 1000ms;
+
+// Timing Functions
+$ease-linear: linear;
+$ease-in: cubic-bezier(0.4, 0, 1, 1);
+$ease-out: cubic-bezier(0, 0, 0.2, 1);
+$ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+$ease-smooth: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+$ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+// Legacy transition aliases
+$transition-duration: $duration-300;
+$transition-timing: $ease-in-out;
+$transition-default: all $duration-300 $ease-in-out;
+
+// ====================
+// TRANSITION PRESETS
+// ====================
+
+$transition-all: all $duration-300 $ease-in-out;
+$transition-fast: all $duration-150 $ease-in-out;
+$transition-slow: all $duration-500 $ease-in-out;
+$transition-bounce: all $duration-300 $ease-bounce;
+$transition-smooth: all $duration-200 $ease-smooth;

@@ -1,0 +1,312 @@
+// ====================
+// ATİS Layout Mixins - Performance Optimized
+// ====================
+
+@use 'sass:map';
+@use 'sass:math';
+@use 'enhanced-tokens' as tokens;
+@use 'mixins' as base;
+
+// ====================
+// LAYOUT MIXINS
+// ====================
+
+/// Enhanced flex center mixin with options
+/// @param {String} $direction - Flex direction
+/// @param {String} $justify - Justify content
+/// @param {String} $align - Align items
+@mixin flex-enhanced($direction: row, $justify: center, $align: center) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+}
+
+/// Responsive sidebar mixin
+/// @param {String} $variant - Sidebar variant (expanded, collapsed, mobile)
+@mixin responsive-sidebar($variant: expanded) {
+  $width-map: (
+    'expanded': tokens.sidebar('width-expanded'),
+    'collapsed': tokens.sidebar('width-collapsed'),
+    'mobile': tokens.sidebar('width-mobile')
+  );
+  
+  width: map-get($width-map, $variant);
+  transition: width tokens.sidebar('transition-duration') tokens.sidebar('transition-easing');
+  
+  @if $variant == 'expanded' {
+    @include base.media-down('md') {
+      width: tokens.sidebar('width-mobile');
+      transform: translateX(-100%);
+      
+      &.open {
+        transform: translateX(0);
+      }
+    }
+  }
+}
+
+/// Smooth transitions mixin
+/// @param {List} $properties - Properties to animate
+/// @param {String} $duration - Animation duration
+/// @param {String} $easing - Animation easing
+@mixin smooth-transitions($properties: all, $duration: normal, $easing: ease-in-out) {
+  $duration-value: tokens.animation-layout('duration', $duration);
+  $easing-value: tokens.animation-layout('easing', $easing);
+  
+  @if type-of($properties) == 'list' {
+    $transitions: ();
+    @each $property in $properties {
+      $transitions: append($transitions, #{$property} #{$duration-value} #{$easing-value}, comma);
+    }
+    transition: $transitions;
+  } @else {
+    transition: $properties $duration-value $easing-value;
+  }
+}
+
+/// Enhanced focus ring mixin
+/// @param {Color} $color - Focus color
+/// @param {Length} $width - Focus ring width
+/// @param {Length} $offset - Focus ring offset
+@mixin focus-ring-enhanced($color: tokens.color-layout('interactive', 'primary'), $width: 2px, $offset: 2px) {
+  outline: $width solid $color;
+  outline-offset: $offset;
+  border-radius: inherit;
+}
+
+/// Typography mixin using enhanced tokens
+/// @param {String} $scale - Typography scale
+/// @param {String} $weight - Font weight
+/// @param {String} $family - Font family
+@mixin typography-enhanced($scale: base, $weight: normal, $family: inherit) {
+  font-size: tokens.typography-layout($scale, 'font-size');
+  line-height: tokens.typography-layout($scale, 'line-height');
+  letter-spacing: tokens.typography-layout($scale, 'letter-spacing');
+  font-weight: $weight;
+  font-family: $family;
+}
+
+/// Enhanced button reset mixin
+@mixin button-reset-enhanced {
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  text-align: inherit;
+  text-decoration: none;
+  
+  &:focus {
+    outline: none;
+  }
+  
+  &:focus-visible {
+    @include focus-ring-enhanced;
+  }
+}
+
+/// Enhanced ghost button mixin
+/// @param {Color} $color - Button color
+/// @param {Color} $hover-bg - Hover background
+@mixin button-ghost-enhanced($color: tokens.color-layout('text', 'secondary'), $hover-bg: tokens.color-layout('interactive', 'secondary-hover')) {
+  @include button-reset-enhanced;
+  @include flex-enhanced(row, center, center);
+  color: $color;
+  background: transparent;
+  border-radius: tokens.spacing-layout('2');
+  padding: tokens.spacing-layout('2');
+  @include smooth-transitions((background-color, color, transform));
+  
+  &:hover {
+    background-color: $hover-bg;
+    color: tokens.color-layout('text', 'primary');
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+/// Surface elevation mixin
+/// @param {String} $level - Elevation level (sm, md, lg)
+/// @param {Boolean} $dark - Dark mode flag
+@mixin surface-elevation($level: md, $dark: false) {
+  $shadows: tokens.sidebar('shadow');
+  box-shadow: map-get($shadows, $level);
+  
+  @if $dark {
+    background: tokens.color-layout('surface', 'elevated', true);
+    border: 1px solid tokens.color-layout('border', 'default', true);
+  } @else {
+    background: tokens.color-layout('surface', 'elevated');
+    border: 1px solid tokens.color-layout('border', 'default');
+  }
+}
+
+/// Responsive grid mixin
+/// @param {Number} $columns - Number of columns
+/// @param {Length} $gap - Grid gap
+/// @param {Length} $min-width - Minimum column width
+@mixin responsive-grid($columns: auto-fit, $gap: tokens.spacing-layout('4'), $min-width: 280px) {
+  display: grid;
+  grid-template-columns: repeat($columns, minmax($min-width, 1fr));
+  gap: $gap;
+}
+
+/// Truncate text mixin with options
+/// @param {Number} $lines - Number of lines (1 for single line)
+@mixin truncate-text($lines: 1) {
+  @if $lines == 1 {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+    max-height: calc(1.4em * #{$lines});
+  }
+}
+
+/// Visually hidden mixin (for accessibility)
+@mixin visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/// Skip link mixin
+@mixin skip-link {
+  @include visually-hidden;
+  
+  &:focus {
+    position: fixed !important;
+    top: tokens.spacing-layout('4') !important;
+    left: tokens.spacing-layout('4') !important;
+    width: auto !important;
+    height: auto !important;
+    padding: tokens.spacing-layout('3') tokens.spacing-layout('4') !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    clip: auto !important;
+    white-space: normal !important;
+    z-index: tokens.z-layout('skipLink') !important;
+    background: tokens.color-layout('surface', 'primary') !important;
+    color: tokens.color-layout('text', 'primary') !important;
+    border: 2px solid tokens.color-layout('interactive', 'primary') !important;
+    border-radius: tokens.spacing-layout('2') !important;
+    text-decoration: none !important;
+    font-weight: 600 !important;
+  }
+}
+
+/// Enhanced container mixin
+/// @param {Length} $max-width - Maximum container width
+/// @param {Length} $padding - Container padding
+@mixin container-enhanced($max-width: tokens.breakpoint-layout('content-wide'), $padding: tokens.spacing-layout('4')) {
+  width: 100%;
+  max-width: $max-width;
+  margin: 0 auto;
+  padding: 0 $padding;
+  
+  @include base.media-up('lg') {
+    padding: 0 tokens.spacing-layout('6');
+  }
+  
+  @include base.media-up('xl') {
+    padding: 0 tokens.spacing-layout('8');
+  }
+}
+
+/// Loading shimmer effect
+/// @param {Color} $base-color - Base shimmer color
+/// @param {Color} $highlight-color - Highlight shimmer color
+@mixin loading-shimmer($base-color: tokens.color-layout('surface', 'secondary'), $highlight-color: tokens.color-layout('surface', 'tertiary')) {
+  background: linear-gradient(90deg, $base-color 25%, $highlight-color 50%, $base-color 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}
+
+/// Enhanced backdrop blur mixin
+/// @param {Length} $blur - Blur amount
+/// @param {Color} $overlay - Overlay color
+@mixin backdrop-blur-enhanced($blur: 8px, $overlay: rgba(255, 255, 255, 0.1)) {
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+  
+  @supports not (backdrop-filter: blur($blur)) {
+    background: $overlay;
+  }
+}
+
+/// Dark mode mixin
+/// @content Styles for dark mode
+@mixin dark-mode {
+  @at-root {
+    :global([data-theme='dark']) #{&} {
+      @content;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      :global([data-theme='auto']) #{&} {
+        @content;
+      }
+    }
+  }
+}
+
+/// High contrast mode mixin
+/// @content Styles for high contrast mode
+@mixin high-contrast {
+  @at-root {
+    @media (prefers-contrast: high) {
+      #{&} {
+        @content;
+      }
+    }
+  }
+}
+
+/// Reduced motion mixin
+/// @content Styles for reduced motion
+@mixin reduced-motion {
+  @at-root {
+    @media (prefers-reduced-motion: reduce) {
+      #{&} {
+        @content;
+      }
+    }
+  }
+}
+
+/// Print styles mixin
+/// @content Styles for print
+@mixin print-styles {
+  @at-root {
+    @media print {
+      #{&} {
+        @content;
+      }
+    }
+  }
+}

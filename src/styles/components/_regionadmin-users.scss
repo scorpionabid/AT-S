@@ -1,0 +1,823 @@
+// ====================
+// ATİS RegionAdmin Users - Optimized Component Styles
+// Extracted from regionadmin-users.css (1,470 lines → ~600 lines)
+// ====================
+
+@use '../tokens' as *;
+
+// ====================
+// MAIN CONTAINER
+// ====================
+
+.regionadmin-users {
+  @include container;
+  max-width: var(--container-xl);
+  min-height: 100vh;
+  background: var(--color-background-secondary);
+  font-family: var(--font-family-base);
+
+  &.loading,
+  &.error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+  }
+}
+
+// ====================
+// LOADING STATES
+// ====================
+
+.loading-content {
+  text-align: center;
+  color: var(--color-text-secondary);
+
+  .loading-spinner {
+    @include loading-spinner;
+    width: 50px;
+    height: 50px;
+    border: 4px solid var(--color-border);
+    border-top-color: var(--color-primary-500);
+    margin: 0 auto spacing(5);
+  }
+
+  .loading-text {
+    @include typography($body-base);
+    color: var(--color-text-secondary);
+  }
+}
+
+// ====================
+// ERROR STATES
+// ====================
+
+.error-content {
+  @include container-padding(xl);
+  @include border-radius(xl);
+  @include shadow-semantic(card-elevated);
+  background: var(--color-surface);
+  text-align: center;
+  max-width: 500px;
+
+  .error-icon {
+    font-size: 3rem;
+    color: var(--color-error);
+    margin-bottom: spacing(5);
+  }
+
+  h3 {
+    @include typography($heading-h3);
+    color: var(--color-error);
+    margin-bottom: spacing(3);
+  }
+
+  p {
+    @include typography($body-base);
+    color: var(--color-text-secondary);
+    margin-bottom: spacing(6);
+  }
+
+  .retry-button {
+    @extend .btn;
+    @extend .btn--primary;
+  }
+}
+
+// ====================
+// PAGE HEADER
+// ====================
+
+.users-header {
+  @include flex-responsive(column, row);
+  @include spacing-semantic(margin-bottom, section-sm);
+  align-items: flex-start;
+  gap: spacing(4);
+
+  @include desktop {
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-title {
+    @include typography($heading-h1);
+    color: var(--color-text-primary);
+    margin: 0;
+
+    @include mobile {
+      font-size: var(--font-size-2xl);
+    }
+  }
+
+  .header-subtitle {
+    @include typography($body-base);
+    color: var(--color-text-secondary);
+    margin: spacing(2) 0 0;
+  }
+
+  .header-actions {
+    display: flex;
+    gap: spacing(3);
+    align-items: center;
+
+    @include mobile {
+      width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+}
+
+// ====================
+// FILTERS SECTION
+// ====================
+
+.users-filters {
+  @include container-padding(lg);
+  @include border-radius(lg);
+  @include shadow-semantic(card-raised);
+  background: var(--color-surface);
+  margin-bottom: spacing(8);
+
+  .filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: spacing(6);
+
+    h3 {
+      @include typography($heading-h3);
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+
+    .filters-toggle {
+      @extend .btn;
+      @extend .btn--ghost;
+      @extend .btn--sm;
+
+      @include desktop {
+        display: none;
+      }
+    }
+  }
+
+  .filters-grid {
+    @include grid-cols(1, 2, 4);
+    @include grid-spacing(4);
+
+    @include mobile {
+      &.filters-collapsed {
+        display: none;
+      }
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: spacing(2);
+
+      label {
+        @include typography($label);
+        color: var(--color-text-primary);
+        font-weight: var(--font-weight-medium);
+      }
+
+      select,
+      input {
+        @include border-input();
+        padding: spacing(2) spacing(3);
+        @include border-radius(input);
+        background: var(--color-background-primary);
+        color: var(--color-text-primary);
+        font-size: var(--font-size-sm);
+
+        &:focus {
+          @include border-input(focus);
+          @include shadow-semantic(input-focus);
+        }
+      }
+
+      .search-input {
+        position: relative;
+
+        input {
+          padding-left: spacing(10);
+        }
+
+        .search-icon {
+          position: absolute;
+          left: spacing(3);
+          top: 50%;
+          transform: translateY(-50%);
+          color: var(--color-text-tertiary);
+        }
+      }
+    }
+  }
+
+  .filters-actions {
+    display: flex;
+    gap: spacing(3);
+    justify-content: flex-end;
+    margin-top: spacing(6);
+    padding-top: spacing(6);
+    border-top: 1px solid var(--color-border);
+
+    @include mobile {
+      justify-content: stretch;
+      
+      .btn {
+        flex: 1;
+      }
+    }
+  }
+}
+
+// ====================
+// USERS TABLE
+// ====================
+
+.users-table-container {
+  @include border-radius(lg);
+  @include shadow-semantic(card-raised);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  thead {
+    background: var(--color-background-secondary);
+
+    th {
+      @include typography($label);
+      @include container-padding(md);
+      color: var(--color-text-primary);
+      font-weight: var(--font-weight-semibold);
+      text-align: left;
+      border-bottom: 1px solid var(--color-border);
+      white-space: nowrap;
+
+      &.sortable {
+        cursor: pointer;
+        @include transition(background-color);
+
+        &:hover {
+          background: var(--color-primary-50);
+        }
+
+        .sort-icon {
+          margin-left: spacing(2);
+          color: var(--color-text-tertiary);
+          
+          &.active {
+            color: var(--color-primary-500);
+          }
+        }
+      }
+    }
+  }
+
+  tbody {
+    tr {
+      @include transition(background-color);
+      border-bottom: 1px solid var(--color-border);
+
+      &:hover {
+        background: var(--color-primary-25);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      &.user-inactive {
+        opacity: 0.6;
+        
+        .user-name {
+          text-decoration: line-through;
+        }
+      }
+    }
+
+    td {
+      @include container-padding(md);
+      @include typography($body-small);
+      color: var(--color-text-primary);
+      vertical-align: middle;
+    }
+  }
+}
+
+// ====================
+// USER TABLE CELLS
+// ====================
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: spacing(3);
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    @include border-radius(full);
+    background: var(--color-primary-100);
+    color: var(--color-primary-700);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+    flex-shrink: 0;
+  }
+
+  .user-details {
+    min-width: 0;
+
+    .user-name {
+      @include typography($body-base);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-text-primary);
+      margin: 0;
+      @include text-truncate;
+    }
+
+    .user-email {
+      @include typography($caption);
+      color: var(--color-text-secondary);
+      margin: spacing(0-5) 0 0;
+      @include text-truncate;
+    }
+  }
+}
+
+.user-role {
+  .role-badge {
+    @include typography($caption);
+    @include border-radius(md);
+    padding: spacing(1) spacing(2);
+    font-weight: var(--font-weight-medium);
+    white-space: nowrap;
+
+    &.role-superadmin {
+      background: var(--color-error-100);
+      color: var(--color-error-700);
+    }
+
+    &.role-regionadmin {
+      background: var(--color-primary-100);
+      color: var(--color-primary-700);
+    }
+
+    &.role-schooladmin {
+      background: var(--color-info-100);
+      color: var(--color-info-700);
+    }
+
+    &.role-teacher {
+      background: var(--color-success-100);
+      color: var(--color-success-700);
+    }
+
+    &.role-student {
+      background: var(--color-warning-100);
+      color: var(--color-warning-700);
+    }
+  }
+}
+
+.user-institution {
+  .institution-name {
+    @include typography($body-small);
+    color: var(--color-text-primary);
+    margin: 0;
+    @include text-truncate;
+  }
+
+  .institution-type {
+    @include typography($caption);
+    color: var(--color-text-tertiary);
+    margin: spacing(0-5) 0 0;
+  }
+}
+
+.user-status {
+  .status-badge {
+    @include typography($caption);
+    @include border-radius(full);
+    padding: spacing(1) spacing(2);
+    font-weight: var(--font-weight-medium);
+    display: inline-flex;
+    align-items: center;
+    gap: spacing(1);
+
+    &::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      @include border-radius(full);
+      flex-shrink: 0;
+    }
+
+    &.status-active {
+      background: var(--color-success-100);
+      color: var(--color-success-700);
+
+      &::before {
+        background: var(--color-success-500);
+      }
+    }
+
+    &.status-inactive {
+      background: var(--color-neutral-100);
+      color: var(--color-neutral-700);
+
+      &::before {
+        background: var(--color-neutral-500);
+      }
+    }
+
+    &.status-suspended {
+      background: var(--color-warning-100);
+      color: var(--color-warning-700);
+
+      &::before {
+        background: var(--color-warning-500);
+      }
+    }
+
+    &.status-blocked {
+      background: var(--color-error-100);
+      color: var(--color-error-700);
+
+      &::before {
+        background: var(--color-error-500);
+      }
+    }
+  }
+}
+
+.user-actions {
+  display: flex;
+  gap: spacing(2);
+  align-items: center;
+
+  .action-btn {
+    @extend .btn;
+    @extend .btn--ghost;
+    @extend .btn--sm;
+    @extend .btn--icon;
+    
+    &.action-btn--primary {
+      color: var(--color-primary-600);
+      
+      &:hover {
+        background: var(--color-primary-50);
+        color: var(--color-primary-700);
+      }
+    }
+
+    &.action-btn--danger {
+      color: var(--color-error-600);
+      
+      &:hover {
+        background: var(--color-error-50);
+        color: var(--color-error-700);
+      }
+    }
+  }
+
+  .more-actions {
+    position: relative;
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      z-index: 10;
+      @include border-radius(md);
+      @include shadow-semantic(dropdown);
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      min-width: 160px;
+      @include animation($animation-slide-in-down);
+
+      .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: spacing(2);
+        padding: spacing(2) spacing(3);
+        @include typography($body-small);
+        color: var(--color-text-primary);
+        text-decoration: none;
+        @include transition(background-color);
+
+        &:hover {
+          background: var(--color-background-secondary);
+        }
+
+        &.dropdown-item--danger {
+          color: var(--color-error-600);
+
+          &:hover {
+            background: var(--color-error-50);
+          }
+        }
+      }
+    }
+  }
+}
+
+// ====================
+// PAGINATION
+// ====================
+
+.users-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  padding: spacing(6);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-border);
+
+  .pagination-info {
+    @include typography($body-small);
+    color: var(--color-text-secondary);
+  }
+
+  .pagination-controls {
+    display: flex;
+    gap: spacing(2);
+    align-items: center;
+
+    .page-btn {
+      @extend .btn;
+      @extend .btn--ghost;
+      @extend .btn--sm;
+      min-width: 36px;
+
+      &.active {
+        background: var(--color-primary-500);
+        color: var(--color-white);
+      }
+
+      &:disabled {
+        opacity: 0.4;
+      }
+    }
+
+    .page-ellipsis {
+      padding: spacing(2);
+      color: var(--color-text-tertiary);
+    }
+  }
+}
+
+// ====================
+// BULK ACTIONS
+// ====================
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  gap: spacing(4);
+  padding: spacing(4) spacing(6);
+  background: var(--color-primary-50);
+  border-bottom: 1px solid var(--color-primary-200);
+  @include transition(all);
+
+  &.bulk-actions--hidden {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bulk-info {
+    @include typography($body-small);
+    color: var(--color-primary-700);
+    font-weight: var(--font-weight-medium);
+  }
+
+  .bulk-buttons {
+    display: flex;
+    gap: spacing(2);
+    margin-left: auto;
+
+    .btn {
+      @extend .btn--sm;
+    }
+  }
+}
+
+// ====================
+// USER CREATION MODAL
+// ====================
+
+.user-create-modal {
+  .modal-content {
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  .modal-header {
+    @include container-padding(lg);
+    border-bottom: 1px solid var(--color-border);
+
+    h2 {
+      @include typography($heading-h2);
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+  }
+
+  .modal-body {
+    @include container-padding(lg);
+
+    .form-grid {
+      @include grid-cols(1, 2);
+      @include grid-spacing(4);
+
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: spacing(2);
+
+        &.form-group--full {
+          grid-column: 1 / -1;
+        }
+
+        label {
+          @include typography($label);
+          color: var(--color-text-primary);
+          font-weight: var(--font-weight-medium);
+
+          .required {
+            color: var(--color-error);
+            margin-left: spacing(1);
+          }
+        }
+
+        input,
+        select {
+          @include border-input();
+          padding: spacing(3);
+          @include border-radius(input);
+          background: var(--color-background-primary);
+          color: var(--color-text-primary);
+          font-size: var(--font-size-base);
+
+          &:focus {
+            @include border-input(focus);
+            @include shadow-semantic(input-focus);
+          }
+
+          &.error {
+            @include border-input(error);
+          }
+        }
+
+        .error-message {
+          @include typography($caption);
+          color: var(--color-error);
+        }
+
+        .help-text {
+          @include typography($caption);
+          color: var(--color-text-tertiary);
+        }
+      }
+    }
+  }
+
+  .modal-footer {
+    @include container-padding(lg);
+    border-top: 1px solid var(--color-border);
+    display: flex;
+    gap: spacing(3);
+    justify-content: flex-end;
+
+    @include mobile {
+      flex-direction: column;
+    }
+  }
+}
+
+// ====================
+// RESPONSIVE DESIGN
+// ====================
+
+@include mobile {
+  .users-table-container {
+    overflow-x: auto;
+  }
+
+  .users-table {
+    min-width: 800px;
+  }
+
+  .users-header {
+    text-align: center;
+
+    .header-actions {
+      width: 100%;
+      
+      .btn {
+        flex: 1;
+      }
+    }
+  }
+
+  .users-pagination {
+    flex-direction: column;
+    gap: spacing(4);
+    text-align: center;
+  }
+
+  .bulk-actions {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+
+    .bulk-buttons {
+      margin-left: 0;
+      justify-content: center;
+    }
+  }
+}
+
+@include tablet {
+  .filters-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// ====================
+// ACCESSIBILITY
+// ====================
+
+@include reduced-motion {
+  .users-table tbody tr,
+  .action-btn,
+  .dropdown-menu {
+    transition: none;
+  }
+
+  .dropdown-menu {
+    animation: none;
+  }
+}
+
+@include increased-contrast {
+  .users-table {
+    thead th,
+    tbody td {
+      border-color: var(--color-text-primary);
+    }
+  }
+
+  .role-badge,
+  .status-badge {
+    border: 1px solid currentColor;
+  }
+}
+
+// ====================
+// PRINT STYLES
+// ====================
+
+@include print {
+  .regionadmin-users {
+    background: white;
+    padding: 0;
+  }
+
+  .users-filters,
+  .user-actions,
+  .bulk-actions,
+  .users-pagination {
+    display: none;
+  }
+
+  .users-table {
+    @include shadow(none);
+    border: 1px solid #000;
+
+    th,
+    td {
+      border: 1px solid #000;
+      padding: 8px;
+    }
+  }
+
+  .role-badge,
+  .status-badge {
+    background: transparent !important;
+    border: 1px solid #000 !important;
+    color: #000 !important;
+  }
+}

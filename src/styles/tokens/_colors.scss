@@ -1,0 +1,291 @@
+// ====================
+// ATİS Design System - Color Tokens
+// Consolidated from multiple sources
+// ====================
+
+@use 'sass:map';
+
+// ====================
+// BASE COLOR PALETTE
+// ====================
+
+// Primary Color Palette - Azerbaijani Flag Inspired
+$color-primary-50: #f0f7ff;
+$color-primary-100: #e0efff;
+$color-primary-200: #b9ddff;
+$color-primary-300: #7cbeff;
+$color-primary-400: #3b9eff;
+$color-primary-500: #0872e8;  // Main brand color
+$color-primary-600: #0056c7;
+$color-primary-700: #0043a1;
+$color-primary-800: #053984;
+$color-primary-900: #0a306e;
+$color-primary-950: #071f47;
+
+// Secondary Color Palette - Green accents
+$color-secondary-50: #f0fdf4;
+$color-secondary-100: #dcfce7;
+$color-secondary-200: #bbf7d0;
+$color-secondary-300: #86efac;
+$color-secondary-400: #4ade80;
+$color-secondary-500: #22c55e;
+$color-secondary-600: #16a34a;
+$color-secondary-700: #15803d;
+$color-secondary-800: #166534;
+$color-secondary-900: #14532d;
+
+// Neutral Color Palette
+$color-neutral-50: #f8fafc;
+$color-neutral-100: #f1f5f9;
+$color-neutral-200: #e2e8f0;
+$color-neutral-300: #cbd5e1;
+$color-neutral-400: #94a3b8;
+$color-neutral-500: #64748b;
+$color-neutral-600: #475569;
+$color-neutral-700: #334155;
+$color-neutral-800: #1e293b;
+$color-neutral-900: #0f172a;
+$color-neutral-950: #020617;
+
+// ====================
+// SEMANTIC COLORS
+// ====================
+
+$color-success-50: #f0fdf4;
+$color-success-100: #dcfce7;
+$color-success-500: #22c55e;
+$color-success-600: #16a34a;
+$color-success-700: #15803d;
+$color-success-900: #14532d;
+
+$color-warning-50: #fffbeb;
+$color-warning-100: #fef3c7;
+$color-warning-500: #f59e0b;
+$color-warning-600: #d97706;
+$color-warning-700: #b45309;
+$color-warning-900: #78350f;
+
+$color-error-50: #fef2f2;
+$color-error-100: #fee2e2;
+$color-error-500: #ef4444;
+$color-error-600: #dc2626;
+$color-error-700: #b91c1c;
+$color-error-900: #7f1d1d;
+
+$color-info-50: #eff6ff;
+$color-info-100: #dbeafe;
+$color-info-500: #3b82f6;
+$color-info-600: #2563eb;
+$color-info-700: #1d4ed8;
+$color-info-900: #1e3a8a;
+
+// Base Colors
+$color-white: #ffffff;
+$color-black: #000000;
+$color-transparent: transparent;
+
+// ====================
+// COLOR MAPS
+// ====================
+
+$color-primary-map: (
+  50: $color-primary-50,
+  100: $color-primary-100,
+  200: $color-primary-200,
+  300: $color-primary-300,
+  400: $color-primary-400,
+  500: $color-primary-500,
+  600: $color-primary-600,
+  700: $color-primary-700,
+  800: $color-primary-800,
+  900: $color-primary-900,
+  950: $color-primary-950
+);
+
+$color-neutral-map: (
+  50: $color-neutral-50,
+  100: $color-neutral-100,
+  200: $color-neutral-200,
+  300: $color-neutral-300,
+  400: $color-neutral-400,
+  500: $color-neutral-500,
+  600: $color-neutral-600,
+  700: $color-neutral-700,
+  800: $color-neutral-800,
+  900: $color-neutral-900,
+  950: $color-neutral-950
+);
+
+$color-semantic-map: (
+  success: $color-success-500,
+  warning: $color-warning-500,
+  error: $color-error-500,
+  info: $color-info-500
+);
+
+// ====================
+// THEME-AWARE COLORS
+// ====================
+
+// Light theme semantic colors
+$color-text-primary-light: $color-neutral-900;
+$color-text-secondary-light: $color-neutral-600;
+$color-text-tertiary-light: $color-neutral-500;
+$color-background-primary-light: $color-white;
+$color-background-secondary-light: $color-neutral-50;
+$color-surface-light: $color-white;
+$color-border-light: $color-neutral-200;
+
+// Dark theme semantic colors
+$color-text-primary-dark: $color-neutral-50;
+$color-text-secondary-dark: $color-neutral-300;
+$color-text-tertiary-dark: $color-neutral-400;
+$color-background-primary-dark: $color-neutral-950;
+$color-background-secondary-dark: $color-neutral-900;
+$color-surface-dark: $color-neutral-800;
+$color-border-dark: $color-neutral-700;
+
+// ====================
+// UTILITY FUNCTIONS
+// ====================
+
+// Get color from map
+@function color($color-name, $shade: 500) {
+  @if $color-name == 'primary' {
+    @return map.get($color-primary-map, $shade);
+  } @else if $color-name == 'neutral' {
+    @return map.get($color-neutral-map, $shade);
+  } @else if $color-name == 'semantic' {
+    @return map.get($color-semantic-map, $shade);
+  }
+  @warn 'Unknown color: #{$color-name}';
+  @return null;
+}
+
+// Generate alpha variant
+@function alpha($color, $opacity) {
+  @return rgba($color, $opacity);
+}
+
+// ====================
+// MIXINS
+// ====================
+
+// Generate theme-aware color properties
+@mixin theme-colors($property, $light-color, $dark-color) {
+  #{$property}: $light-color;
+  
+  .dark & {
+    #{$property}: $dark-color;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .auto & {
+      #{$property}: $dark-color;
+    }
+  }
+}
+
+// Color contrast checking
+@mixin ensure-contrast($background, $text-color: null) {
+  @if $text-color {
+    background-color: $background;
+    color: $text-color;
+  } @else {
+    background-color: $background;
+    // Auto-calculate appropriate text color
+    @if lightness($background) > 50% {
+      color: $color-text-primary-light;
+    } @else {
+      color: $color-text-primary-dark;
+    }
+  }
+}
+
+// ====================
+// CSS CUSTOM PROPERTIES
+// ====================
+
+:root {
+  // Primary colors
+  --color-primary-50: #{$color-primary-50};
+  --color-primary-100: #{$color-primary-100};
+  --color-primary-200: #{$color-primary-200};
+  --color-primary-300: #{$color-primary-300};
+  --color-primary-400: #{$color-primary-400};
+  --color-primary-500: #{$color-primary-500};
+  --color-primary-600: #{$color-primary-600};
+  --color-primary-700: #{$color-primary-700};
+  --color-primary-800: #{$color-primary-800};
+  --color-primary-900: #{$color-primary-900};
+  --color-primary-950: #{$color-primary-950};
+
+  // Secondary colors
+  --color-secondary-50: #{$color-secondary-50};
+  --color-secondary-100: #{$color-secondary-100};
+  --color-secondary-200: #{$color-secondary-200};
+  --color-secondary-300: #{$color-secondary-300};
+  --color-secondary-400: #{$color-secondary-400};
+  --color-secondary-500: #{$color-secondary-500};
+  --color-secondary-600: #{$color-secondary-600};
+  --color-secondary-700: #{$color-secondary-700};
+  --color-secondary-800: #{$color-secondary-800};
+  --color-secondary-900: #{$color-secondary-900};
+
+  // Neutral colors
+  --color-neutral-50: #{$color-neutral-50};
+  --color-neutral-100: #{$color-neutral-100};
+  --color-neutral-200: #{$color-neutral-200};
+  --color-neutral-300: #{$color-neutral-300};
+  --color-neutral-400: #{$color-neutral-400};
+  --color-neutral-500: #{$color-neutral-500};
+  --color-neutral-600: #{$color-neutral-600};
+  --color-neutral-700: #{$color-neutral-700};
+  --color-neutral-800: #{$color-neutral-800};
+  --color-neutral-900: #{$color-neutral-900};
+  --color-neutral-950: #{$color-neutral-950};
+
+  // Semantic colors
+  --color-success: #{$color-success-500};
+  --color-warning: #{$color-warning-500};
+  --color-error: #{$color-error-500};
+  --color-info: #{$color-info-500};
+
+  // Theme-aware semantic tokens
+  --color-text-primary: #{$color-text-primary-light};
+  --color-text-secondary: #{$color-text-secondary-light};
+  --color-text-tertiary: #{$color-text-tertiary-light};
+  --color-background-primary: #{$color-background-primary-light};
+  --color-background-secondary: #{$color-background-secondary-light};
+  --color-surface: #{$color-surface-light};
+  --color-border: #{$color-border-light};
+
+  // Base colors
+  --color-white: #{$color-white};
+  --color-black: #{$color-black};
+  --color-transparent: #{$color-transparent};
+}
+
+// Dark theme overrides
+.dark {
+  --color-text-primary: #{$color-text-primary-dark};
+  --color-text-secondary: #{$color-text-secondary-dark};
+  --color-text-tertiary: #{$color-text-tertiary-dark};
+  --color-background-primary: #{$color-background-primary-dark};
+  --color-background-secondary: #{$color-background-secondary-dark};
+  --color-surface: #{$color-surface-dark};
+  --color-border: #{$color-border-dark};
+}
+
+// Auto dark mode based on system preference
+@media (prefers-color-scheme: dark) {
+  .auto {
+    --color-text-primary: #{$color-text-primary-dark};
+    --color-text-secondary: #{$color-text-secondary-dark};
+    --color-text-tertiary: #{$color-text-tertiary-dark};
+    --color-background-primary: #{$color-background-primary-dark};
+    --color-background-secondary: #{$color-background-secondary-dark};
+    --color-surface: #{$color-surface-dark};
+    --color-border: #{$color-border-dark};
+  }
+}

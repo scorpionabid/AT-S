@@ -1,0 +1,154 @@
+// Global Styles
+// =============
+// This file contains global styles that are applied across the entire application.
+// It should only contain base element styles and global layout utilities.
+
+// Import design tokens and mixins
+@use './abstracts/tokens' as *;
+@use './abstracts/functions' as *;
+@use './abstracts/mixins' as *;
+
+// Base element styles
+:root {
+  font-family: $font-family-base;
+  line-height: $line-height-normal;
+  font-weight: $font-weight-normal;
+  color-scheme: light dark;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Links
+a {
+  font-weight: $font-weight-medium;
+  color: $color-primary;
+  text-decoration: none;
+  transition: color $transition-duration $transition-timing;
+  
+  &:hover {
+    color: $color-primary-dark;
+  }
+  
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Base body styles
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: $color-background;
+  color: $color-text;
+  transition: $transition-default;
+}
+
+// Typography
+h1, h2, h3, h4, h5, h6 {
+  margin: 0 0 $spacing-4;
+  line-height: $line-height-tight;
+  font-weight: $font-weight-bold;
+  color: $color-text-primary;
+}
+
+h1 { 
+  font-size: $font-size-4xl;  // 2.25rem / 36px
+  line-height: $line-height-tighter;
+}
+
+h2 { 
+  font-size: $font-size-3xl;  // 1.875rem / 30px
+  line-height: $line-height-tight;
+}
+
+h3 { 
+  font-size: $font-size-2xl;  // 1.5rem / 24px
+  line-height: $line-height-snug;
+}
+
+h4 { 
+  font-size: $text-xl;
+  line-height: $line-height-normal;
+}
+
+h5 { 
+  font-size: $text-lg;
+  line-height: $line-height-normal;
+}
+
+h6 { 
+  font-size: $text-base;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-normal;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+p {
+  margin: 0 0 $spacing-4;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Lists
+ul, ol {
+  margin: 0 0 $spacing-4;
+  padding-left: $spacing-6;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  ul, ol {
+    margin-bottom: 0;
+  }
+}
+
+// Images
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// Buttons
+button {
+  @include button-reset;
+  @include focus-ring;
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// Forms
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+// Utility classes
+.sr-only {
+  @include sr-only;
+}
+
+// Dark mode overrides
+[data-theme='dark'] {
+  // Add any dark mode specific overrides here
+}
+
+// Print styles
+@media print {
+  // Add print-specific styles here
+  .no-print {
+    display: none !important;
+  }
+}

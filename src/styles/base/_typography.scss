@@ -1,0 +1,191 @@
+// ====================
+// ATİS Design System - Typography Base
+// Global typography styles and utilities
+// ====================
+
+@use '../tokens' as *;
+
+// ====================
+// HEADINGS
+// ====================
+
+h1 {
+  @include typography($heading-h1);
+}
+
+h2 {
+  @include typography($heading-h2);
+}
+
+h3 {
+  @include typography($heading-h3);
+}
+
+h4 {
+  @include typography($heading-h4);
+}
+
+h5 {
+  @include typography($heading-h5);
+}
+
+h6 {
+  @include typography($heading-h6);
+}
+
+// ====================
+// BODY TEXT
+// ====================
+
+.text-large {
+  @include typography($body-large);
+}
+
+.text-base {
+  @include typography($body-base);
+}
+
+.text-small {
+  @include typography($body-small);
+}
+
+.text-caption {
+  @include typography($caption);
+}
+
+.text-label {
+  @include typography($label);
+}
+
+// ====================
+// TEXT UTILITIES
+// ====================
+
+// Font weights
+.font-thin { font-weight: font-weight(thin); }
+.font-light { font-weight: font-weight(light); }
+.font-normal { font-weight: font-weight(normal); }
+.font-medium { font-weight: font-weight(medium); }
+.font-semibold { font-weight: font-weight(semibold); }
+.font-bold { font-weight: font-weight(bold); }
+.font-black { font-weight: font-weight(black); }
+
+// Font families
+.font-sans { font-family: var(--font-family-sans); }
+.font-serif { font-family: var(--font-family-serif); }
+.font-mono { font-family: var(--font-family-mono); }
+
+// Text alignment
+.text-left { text-align: left; }
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-justify { text-align: justify; }
+
+// Text decoration
+.underline { text-decoration: underline; }
+.line-through { text-decoration: line-through; }
+.no-underline { text-decoration: none; }
+
+// Text transform
+.uppercase { text-transform: uppercase; }
+.lowercase { text-transform: lowercase; }
+.capitalize { text-transform: capitalize; }
+.normal-case { text-transform: none; }
+
+// Text overflow
+.truncate {
+  @include text-truncate;
+}
+
+.text-truncate-2 {
+  @include text-truncate-lines(2);
+}
+
+.text-truncate-3 {
+  @include text-truncate-lines(3);
+}
+
+// Line height
+.leading-none { line-height: line-height(none); }
+.leading-tight { line-height: line-height(tight); }
+.leading-snug { line-height: line-height(snug); }
+.leading-normal { line-height: line-height(normal); }
+.leading-relaxed { line-height: line-height(relaxed); }
+.leading-loose { line-height: line-height(loose); }
+
+// Letter spacing
+.tracking-tighter { letter-spacing: $letter-spacing-tighter; }
+.tracking-tight { letter-spacing: $letter-spacing-tight; }
+.tracking-normal { letter-spacing: $letter-spacing-normal; }
+.tracking-wide { letter-spacing: $letter-spacing-wide; }
+.tracking-wider { letter-spacing: $letter-spacing-wider; }
+.tracking-widest { letter-spacing: $letter-spacing-widest; }
+
+// ====================
+// RESPONSIVE TYPOGRAPHY
+// ====================
+
+// Tablet and up
+@include media-up(md) {
+  .md\:text-xs { font-size: font-size(xs); }
+  .md\:text-sm { font-size: font-size(sm); }
+  .md\:text-base { font-size: font-size(base); }
+  .md\:text-lg { font-size: font-size(lg); }
+  .md\:text-xl { font-size: font-size(xl); }
+  .md\:text-2xl { font-size: font-size(2xl); }
+  .md\:text-3xl { font-size: font-size(3xl); }
+  
+  .md\:text-left { text-align: left; }
+  .md\:text-center { text-align: center; }
+  .md\:text-right { text-align: right; }
+}
+
+// Desktop and up
+@include media-up(lg) {
+  .lg\:text-xs { font-size: font-size(xs); }
+  .lg\:text-sm { font-size: font-size(sm); }
+  .lg\:text-base { font-size: font-size(base); }
+  .lg\:text-lg { font-size: font-size(lg); }
+  .lg\:text-xl { font-size: font-size(xl); }
+  .lg\:text-2xl { font-size: font-size(2xl); }
+  .lg\:text-3xl { font-size: font-size(3xl); }
+  .lg\:text-4xl { font-size: font-size(4xl); }
+  
+  .lg\:text-left { text-align: left; }
+  .lg\:text-center { text-align: center; }
+  .lg\:text-right { text-align: right; }
+}
+
+// ====================
+// SEMANTIC TEXT COLORS
+// ====================
+
+.text-primary { color: var(--color-text-primary); }
+.text-secondary { color: var(--color-text-secondary); }
+.text-tertiary { color: var(--color-text-tertiary); }
+.text-success { color: var(--color-success); }
+.text-warning { color: var(--color-warning); }
+.text-error { color: var(--color-error); }
+.text-info { color: var(--color-info); }
+.text-brand { color: var(--color-primary-600); }
+
+// ====================
+// ACCESSIBILITY
+// ====================
+
+@include increased-contrast {
+  // Ensure sufficient contrast in high contrast mode
+  .text-secondary,
+  .text-tertiary {
+    color: var(--color-text-primary);
+  }
+  
+  // Increase font weight for better readability
+  body {
+    font-weight: var(--font-weight-medium);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: var(--font-weight-bold);
+  }
+}

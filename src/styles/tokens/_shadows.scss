@@ -1,0 +1,291 @@
+// ====================
+// ATİS Design System - Shadow Tokens
+// Consistent shadow system for depth and elevation
+// ====================
+
+@use 'sass:map';
+
+// ====================
+// SHADOW VALUES
+// ====================
+
+// Base shadow configurations
+$shadow-color-light: rgba(0, 0, 0, 0.1);
+$shadow-color-medium: rgba(0, 0, 0, 0.15);
+$shadow-color-dark: rgba(0, 0, 0, 0.25);
+$shadow-color-darker: rgba(0, 0, 0, 0.35);
+
+// Elevation scale (0-24)
+$shadow-none: none;
+$shadow-xs: 0 1px 2px 0 $shadow-color-light;
+$shadow-sm: 0 1px 3px 0 $shadow-color-light, 0 1px 2px -1px $shadow-color-light;
+$shadow-md: 0 4px 6px -1px $shadow-color-light, 0 2px 4px -2px $shadow-color-light;
+$shadow-lg: 0 10px 15px -3px $shadow-color-light, 0 4px 6px -4px $shadow-color-light;
+$shadow-xl: 0 20px 25px -5px $shadow-color-light, 0 8px 10px -6px $shadow-color-light;
+$shadow-2xl: 0 25px 50px -12px $shadow-color-medium;
+$shadow-3xl: 0 35px 60px -12px $shadow-color-dark;
+
+// Inner shadows
+$shadow-inner-sm: inset 0 1px 2px 0 $shadow-color-light;
+$shadow-inner-md: inset 0 2px 4px 0 $shadow-color-light;
+$shadow-inner-lg: inset 0 4px 8px 0 $shadow-color-medium;
+
+// ====================
+// SEMANTIC SHADOWS
+// ====================
+
+// Card shadows
+$shadow-card-flat: $shadow-none;
+$shadow-card-raised: $shadow-sm;
+$shadow-card-elevated: $shadow-md;
+$shadow-card-floating: $shadow-lg;
+
+// Button shadows
+$shadow-button-flat: $shadow-none;
+$shadow-button-raised: $shadow-xs;
+$shadow-button-pressed: $shadow-inner-sm;
+
+// Modal and overlay shadows
+$shadow-modal: $shadow-2xl;
+$shadow-dropdown: $shadow-lg;
+$shadow-tooltip: $shadow-md;
+$shadow-popover: $shadow-xl;
+
+// Navigation shadows
+$shadow-header: $shadow-sm;
+$shadow-sidebar: $shadow-lg;
+$shadow-tab: $shadow-xs;
+
+// Form element shadows
+$shadow-input-default: $shadow-none;
+$shadow-input-focus: 0 0 0 3px rgba(59, 130, 246, 0.1);
+$shadow-input-error: 0 0 0 3px rgba(239, 68, 68, 0.1);
+$shadow-input-success: 0 0 0 3px rgba(34, 197, 94, 0.1);
+
+// ====================
+// THEMED SHADOWS
+// ====================
+
+// Light theme shadows (default)
+$shadow-light-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-light-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1);
+$shadow-light-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+$shadow-light-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+
+// Dark theme shadows
+$shadow-dark-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+$shadow-dark-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.4), 0 1px 2px -1px rgba(0, 0, 0, 0.4);
+$shadow-dark-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+$shadow-dark-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+
+// ====================
+// SHADOW MAPS
+// ====================
+
+$shadow-map: (
+  none: $shadow-none,
+  xs: $shadow-xs,
+  sm: $shadow-sm,
+  md: $shadow-md,
+  lg: $shadow-lg,
+  xl: $shadow-xl,
+  2xl: $shadow-2xl,
+  3xl: $shadow-3xl,
+  inner-sm: $shadow-inner-sm,
+  inner-md: $shadow-inner-md,
+  inner-lg: $shadow-inner-lg
+);
+
+$shadow-semantic-map: (
+  card-flat: $shadow-card-flat,
+  card-raised: $shadow-card-raised,
+  card-elevated: $shadow-card-elevated,
+  card-floating: $shadow-card-floating,
+  button-flat: $shadow-button-flat,
+  button-raised: $shadow-button-raised,
+  button-pressed: $shadow-button-pressed,
+  modal: $shadow-modal,
+  dropdown: $shadow-dropdown,
+  tooltip: $shadow-tooltip,
+  popover: $shadow-popover,
+  header: $shadow-header,
+  sidebar: $shadow-sidebar,
+  tab: $shadow-tab,
+  input-default: $shadow-input-default,
+  input-focus: $shadow-input-focus,
+  input-error: $shadow-input-error,
+  input-success: $shadow-input-success
+);
+
+// ====================
+// UTILITY FUNCTIONS
+// ====================
+
+// Get shadow from map
+@function shadow($key) {
+  @return map.get($shadow-map, $key);
+}
+
+// Get semantic shadow
+@function shadow-semantic($key) {
+  @return map.get($shadow-semantic-map, $key);
+}
+
+// Generate colored shadow
+@function colored-shadow($shadow, $color, $opacity: 0.1) {
+  $color-value: rgba($color, $opacity);
+  // Replace the shadow color with the new color
+  // This is a simplified version - in practice, you'd need more complex parsing
+  @return $shadow;
+}
+
+// ====================
+// MIXINS
+// ====================
+
+// Apply shadow
+@mixin shadow($level: 'md') {
+  box-shadow: shadow($level);
+}
+
+// Apply semantic shadow
+@mixin shadow-semantic($semantic-key) {
+  box-shadow: shadow-semantic($semantic-key);
+}
+
+// Theme-aware shadow
+@mixin shadow-themed($light-shadow, $dark-shadow) {
+  box-shadow: $light-shadow;
+  
+  .dark & {
+    box-shadow: $dark-shadow;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .auto & {
+      box-shadow: $dark-shadow;
+    }
+  }
+}
+
+// Hover shadow transition
+@mixin shadow-hover($default-shadow, $hover-shadow, $duration: 0.2s) {
+  box-shadow: $default-shadow;
+  transition: box-shadow $duration ease;
+  
+  &:hover {
+    box-shadow: $hover-shadow;
+  }
+}
+
+// Focus shadow
+@mixin shadow-focus($color: #3b82f6, $opacity: 0.1) {
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba($color, $opacity);
+  }
+}
+
+// Elevation levels (Material Design inspired)
+@mixin elevation($level: 1) {
+  @if $level == 0 {
+    box-shadow: $shadow-none;
+  } @else if $level == 1 {
+    box-shadow: $shadow-xs;
+  } @else if $level == 2 {
+    box-shadow: $shadow-sm;
+  } @else if $level == 3 {
+    box-shadow: $shadow-md;
+  } @else if $level == 4 {
+    box-shadow: $shadow-lg;
+  } @else if $level == 5 {
+    box-shadow: $shadow-xl;
+  } @else if $level == 6 {
+    box-shadow: $shadow-2xl;
+  }
+}
+
+// Animated shadow (for loading states)
+@mixin shadow-pulse($color: #e5e7eb) {
+  animation: shadow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  
+  @keyframes shadow-pulse {
+    0%, 100% {
+      box-shadow: 0 0 0 1px rgba($color, 0.1);
+    }
+    50% {
+      box-shadow: 0 0 0 5px rgba($color, 0.1);
+    }
+  }
+}
+
+// ====================
+// CSS CUSTOM PROPERTIES
+// ====================
+
+:root {
+  // Basic shadows
+  --shadow-none: #{$shadow-none};
+  --shadow-xs: #{$shadow-xs};
+  --shadow-sm: #{$shadow-sm};
+  --shadow-md: #{$shadow-md};
+  --shadow-lg: #{$shadow-lg};
+  --shadow-xl: #{$shadow-xl};
+  --shadow-2xl: #{$shadow-2xl};
+  --shadow-3xl: #{$shadow-3xl};
+
+  // Inner shadows
+  --shadow-inner-sm: #{$shadow-inner-sm};
+  --shadow-inner-md: #{$shadow-inner-md};
+  --shadow-inner-lg: #{$shadow-inner-lg};
+
+  // Semantic shadows
+  --shadow-card-flat: #{$shadow-card-flat};
+  --shadow-card-raised: #{$shadow-card-raised};
+  --shadow-card-elevated: #{$shadow-card-elevated};
+  --shadow-card-floating: #{$shadow-card-floating};
+
+  --shadow-button-flat: #{$shadow-button-flat};
+  --shadow-button-raised: #{$shadow-button-raised};
+  --shadow-button-pressed: #{$shadow-button-pressed};
+
+  --shadow-modal: #{$shadow-modal};
+  --shadow-dropdown: #{$shadow-dropdown};
+  --shadow-tooltip: #{$shadow-tooltip};
+  --shadow-popover: #{$shadow-popover};
+
+  --shadow-header: #{$shadow-header};
+  --shadow-sidebar: #{$shadow-sidebar};
+  --shadow-tab: #{$shadow-tab};
+
+  --shadow-input-default: #{$shadow-input-default};
+  --shadow-input-focus: #{$shadow-input-focus};
+  --shadow-input-error: #{$shadow-input-error};
+  --shadow-input-success: #{$shadow-input-success};
+
+  // Light theme specific shadows
+  --shadow-light-xs: #{$shadow-light-xs};
+  --shadow-light-sm: #{$shadow-light-sm};
+  --shadow-light-md: #{$shadow-light-md};
+  --shadow-light-lg: #{$shadow-light-lg};
+
+  // Dark theme specific shadows  
+  --shadow-dark-xs: #{$shadow-dark-xs};
+  --shadow-dark-sm: #{$shadow-dark-sm};
+  --shadow-dark-md: #{$shadow-dark-md};
+  --shadow-dark-lg: #{$shadow-dark-lg};
+
+  // Shadow colors
+  --shadow-color-light: #{$shadow-color-light};
+  --shadow-color-medium: #{$shadow-color-medium};
+  --shadow-color-dark: #{$shadow-color-dark};
+  --shadow-color-darker: #{$shadow-color-darker};
+}
+
+// Dark theme shadow overrides
+.dark {
+  --shadow-xs: #{$shadow-dark-xs};
+  --shadow-sm: #{$shadow-dark-sm};
+  --shadow-md: #{$shadow-dark-md};
+  --shadow-lg: #{$shadow-dark-lg};
+}

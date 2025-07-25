@@ -1,0 +1,346 @@
+// ====================
+// ATİS Design System - Typography Tokens
+// Consolidated typography system
+// ====================
+
+@use 'sass:map';
+@use 'sass:math';
+
+// ====================
+// FONT FAMILIES
+// ====================
+
+// Primary font family - Inter for professional UI
+$font-family-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
+
+// Secondary font family - System serif for content
+$font-family-serif: 'Georgia', 'Times New Roman', 'Times', serif;
+
+// Monospace for code
+$font-family-mono: 'Fira Code', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+
+// Base font family (default)
+$font-family-base: $font-family-sans;
+
+// ====================
+// FONT SIZES
+// ====================
+
+// Base configuration
+$font-size-base: 1rem;      // 16px default
+$font-size-root: 16px;      // Root font size
+
+// Font size scale (Major Third - 1.25 ratio)
+$font-size-xs: 0.75rem;     // 12px
+$font-size-sm: 0.875rem;    // 14px
+$font-size-base: 1rem;      // 16px
+$font-size-lg: 1.125rem;    // 18px
+$font-size-xl: 1.25rem;     // 20px
+$font-size-2xl: 1.5rem;     // 24px
+$font-size-3xl: 1.875rem;   // 30px
+$font-size-4xl: 2.25rem;    // 36px
+$font-size-5xl: 3rem;       // 48px
+$font-size-6xl: 3.75rem;    // 60px
+$font-size-7xl: 4.5rem;     // 72px
+
+// ====================
+// FONT WEIGHTS
+// ====================
+
+$font-weight-thin: 100;
+$font-weight-extralight: 200;
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+$font-weight-black: 900;
+
+// Semantic weights
+$font-weight-base: $font-weight-normal;
+$font-weight-heading: $font-weight-semibold;
+$font-weight-emphasis: $font-weight-medium;
+
+// ====================
+// LINE HEIGHTS
+// ====================
+
+$line-height-none: 1;
+$line-height-tight: 1.25;
+$line-height-snug: 1.375;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.625;
+$line-height-loose: 2;
+
+// Base line height
+$line-height-base: $line-height-normal;
+
+// ====================
+// LETTER SPACING
+// ====================
+
+$letter-spacing-tighter: -0.05em;
+$letter-spacing-tight: -0.025em;
+$letter-spacing-normal: 0;
+$letter-spacing-wide: 0.025em;
+$letter-spacing-wider: 0.05em;
+$letter-spacing-widest: 0.1em;
+
+// ====================
+// TEXT STYLING
+// ====================
+
+// Text decorations
+$text-decoration-none: none;
+$text-decoration-underline: underline;
+$text-decoration-line-through: line-through;
+
+// Text transforms
+$text-transform-none: none;
+$text-transform-uppercase: uppercase;
+$text-transform-lowercase: lowercase;
+$text-transform-capitalize: capitalize;
+
+// ====================
+// TYPOGRAPHY MAPS
+// ====================
+
+$font-sizes: (
+  xs: $font-size-xs,
+  sm: $font-size-sm,
+  base: $font-size-base,
+  lg: $font-size-lg,
+  xl: $font-size-xl,
+  2xl: $font-size-2xl,
+  3xl: $font-size-3xl,
+  4xl: $font-size-4xl,
+  5xl: $font-size-5xl,
+  6xl: $font-size-6xl,
+  7xl: $font-size-7xl
+);
+
+$font-weights: (
+  thin: $font-weight-thin,
+  extralight: $font-weight-extralight,
+  light: $font-weight-light,
+  normal: $font-weight-normal,
+  medium: $font-weight-medium,
+  semibold: $font-weight-semibold,
+  bold: $font-weight-bold,
+  extrabold: $font-weight-extrabold,
+  black: $font-weight-black
+);
+
+$line-heights: (
+  none: $line-height-none,
+  tight: $line-height-tight,
+  snug: $line-height-snug,
+  normal: $line-height-normal,
+  relaxed: $line-height-relaxed,
+  loose: $line-height-loose
+);
+
+// ====================
+// TYPOGRAPHY PRESETS
+// ====================
+
+// Heading presets
+$heading-h1: (
+  font-size: $font-size-4xl,
+  font-weight: $font-weight-bold,
+  line-height: $line-height-tight,
+  letter-spacing: $letter-spacing-tight,
+  margin-bottom: 1.5rem
+);
+
+$heading-h2: (
+  font-size: $font-size-3xl,
+  font-weight: $font-weight-semibold,
+  line-height: $line-height-tight,
+  letter-spacing: $letter-spacing-tight,
+  margin-bottom: 1.25rem
+);
+
+$heading-h3: (
+  font-size: $font-size-2xl,
+  font-weight: $font-weight-semibold,
+  line-height: $line-height-snug,
+  letter-spacing: $letter-spacing-normal,
+  margin-bottom: 1rem
+);
+
+$heading-h4: (
+  font-size: $font-size-xl,
+  font-weight: $font-weight-medium,
+  line-height: $line-height-snug,
+  letter-spacing: $letter-spacing-normal,
+  margin-bottom: 0.75rem
+);
+
+$heading-h5: (
+  font-size: $font-size-lg,
+  font-weight: $font-weight-medium,
+  line-height: $line-height-normal,
+  letter-spacing: $letter-spacing-normal,
+  margin-bottom: 0.5rem
+);
+
+$heading-h6: (
+  font-size: $font-size-base,
+  font-weight: $font-weight-medium,
+  line-height: $line-height-normal,
+  letter-spacing: $letter-spacing-wide,
+  margin-bottom: 0.5rem
+);
+
+// Body text presets
+$body-large: (
+  font-size: $font-size-lg,
+  font-weight: $font-weight-normal,
+  line-height: $line-height-relaxed,
+  letter-spacing: $letter-spacing-normal
+);
+
+$body-base: (
+  font-size: $font-size-base,
+  font-weight: $font-weight-normal,
+  line-height: $line-height-normal,
+  letter-spacing: $letter-spacing-normal
+);
+
+$body-small: (
+  font-size: $font-size-sm,
+  font-weight: $font-weight-normal,
+  line-height: $line-height-normal,
+  letter-spacing: $letter-spacing-normal
+);
+
+// Caption and label presets
+$caption: (
+  font-size: $font-size-xs,
+  font-weight: $font-weight-normal,
+  line-height: $line-height-tight,
+  letter-spacing: $letter-spacing-wide
+);
+
+$label: (
+  font-size: $font-size-sm,
+  font-weight: $font-weight-medium,
+  line-height: $line-height-tight,
+  letter-spacing: $letter-spacing-normal
+);
+
+// ====================
+// UTILITY FUNCTIONS
+// ====================
+
+// Get font size from map
+@function font-size($size) {
+  @return map.get($font-sizes, $size);
+}
+
+// Get font weight from map
+@function font-weight($weight) {
+  @return map.get($font-weights, $weight);
+}
+
+// Get line height from map
+@function line-height($height) {
+  @return map.get($line-heights, $height);
+}
+
+// Convert px to rem
+@function rem($px, $base: $font-size-root) {
+  @return math.div($px, $base) * 1rem;
+}
+
+// ====================
+// MIXINS
+// ====================
+
+// Apply typography preset
+@mixin typography($preset) {
+  @each $property, $value in $preset {
+    #{$property}: $value;
+  }
+}
+
+// Responsive typography
+@mixin responsive-text($mobile-size, $desktop-size: null) {
+  font-size: $mobile-size;
+  
+  @if $desktop-size {
+    @media (min-width: 768px) {
+      font-size: $desktop-size;
+    }
+  }
+}
+
+// Truncate text
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+// Multi-line truncate
+@mixin text-truncate-lines($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+}
+
+// Font smoothing
+@mixin font-smoothing {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// ====================
+// CSS CUSTOM PROPERTIES
+// ====================
+
+:root {
+  // Font families
+  --font-family-sans: #{$font-family-sans};
+  --font-family-serif: #{$font-family-serif};
+  --font-family-mono: #{$font-family-mono};
+  --font-family-base: #{$font-family-base};
+
+  // Font sizes
+  --font-size-xs: #{$font-size-xs};
+  --font-size-sm: #{$font-size-sm};
+  --font-size-base: #{$font-size-base};
+  --font-size-lg: #{$font-size-lg};
+  --font-size-xl: #{$font-size-xl};
+  --font-size-2xl: #{$font-size-2xl};
+  --font-size-3xl: #{$font-size-3xl};
+  --font-size-4xl: #{$font-size-4xl};
+  --font-size-5xl: #{$font-size-5xl};
+  --font-size-6xl: #{$font-size-6xl};
+  --font-size-7xl: #{$font-size-7xl};
+
+  // Font weights
+  --font-weight-thin: #{$font-weight-thin};
+  --font-weight-light: #{$font-weight-light};
+  --font-weight-normal: #{$font-weight-normal};
+  --font-weight-medium: #{$font-weight-medium};
+  --font-weight-semibold: #{$font-weight-semibold};
+  --font-weight-bold: #{$font-weight-bold};
+  --font-weight-black: #{$font-weight-black};
+
+  // Line heights
+  --line-height-tight: #{$line-height-tight};
+  --line-height-snug: #{$line-height-snug};
+  --line-height-normal: #{$line-height-normal};
+  --line-height-relaxed: #{$line-height-relaxed};
+  --line-height-loose: #{$line-height-loose};
+
+  // Letter spacing
+  --letter-spacing-tight: #{$letter-spacing-tight};
+  --letter-spacing-normal: #{$letter-spacing-normal};
+  --letter-spacing-wide: #{$letter-spacing-wide};
+  --letter-spacing-wider: #{$letter-spacing-wider};
+}
