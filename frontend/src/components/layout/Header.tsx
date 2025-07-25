@@ -5,7 +5,7 @@ import { useLanguage } from '../../contexts/LanguageContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import MenuToggle from './MenuToggle';
 import HeaderActions from './HeaderActions';
-import SessionStatus from '../auth/SessionStatus';
+
 import NotificationDropdown from '../dropdown/NotificationDropdown';
 import ProfileDropdown from '../dropdown/ProfileDropdown';
 import GlobalSearch from '../navigation/GlobalSearch';
@@ -135,8 +135,7 @@ const Header: React.FC<HeaderProps> = ({
         </div>
       </header>
 
-      {/* Sessiya statusu */}
-      <SessionStatus />
+
       
       {/* Global Search Modal */}
       <GlobalSearch 
