@@ -112,11 +112,19 @@ const Sidebar: React.FC<SidebarProps> = memo(({
     const root = document.documentElement;
     if (screenSize === 'mobile') {
       root.style.setProperty('--sidebar-width', isMobileOpen ? '100vw' : '0px');
+      root.style.setProperty('--sidebar-width-current', isMobileOpen ? '100vw' : '0px');
     } else {
       // Use computed sidebarWidth which accounts for hover state
       root.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
+      root.style.setProperty('--sidebar-width-current', `${sidebarWidth}px`);
+      
+      // Set individual state variables for more precise control
+      root.style.setProperty('--sidebar-width-collapsed', '80px');
+      root.style.setProperty('--sidebar-width-expanded', '280px');
+      root.style.setProperty('--is-sidebar-collapsed', isCollapsed ? '1' : '0');
+      root.style.setProperty('--is-sidebar-hovered', isHovered ? '1' : '0');
     }
-  }, [sidebarWidth, isMobileOpen, screenSize]);
+  }, [sidebarWidth, isMobileOpen, screenSize, isCollapsed, isHovered]);
   
   // Refs for touch gestures
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -197,7 +205,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
   // Sidebar classes
   const sidebarClasses = cn(
     'app-sidebar',
-    'flex flex-col h-screen fixed left-0 top-0 z-[1000]',
+    'flex flex-col h-screen fixed left-0 top-0',
     'transition-all duration-300 ease-in-out',
     isCollapsed ? 'collapsed' : '',
     isHovered && isCollapsed ? 'hovered' : '',
@@ -243,7 +251,8 @@ const Sidebar: React.FC<SidebarProps> = memo(({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{ 
-          width: `${sidebarWidth}px`
+          width: `${sidebarWidth}px`,
+          zIndex: isHovered && isCollapsed ? 'var(--z-dropdown)' : 'var(--z-sidebar)'
         }}
       >
         {/* Always render header first */}

@@ -1,14 +1,14 @@
 /* CSS Variables for Layout System */
 :root {
   --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  --header-height: 70px;
+  --header-height: 80px; /* Increased from 70px to match component */
   --sidebar-width: 280px;
   --sidebar-width-collapsed: 80px;
   --sidebar-width-mobile: 100vw;
   --z-sidebar: 1000;
-  --z-header: 50;
+  --z-header: 1001; /* Header should be above sidebar */
   --z-overlay: 999;
-  --z-dropdown: 1001;
+  --z-dropdown: 1002; /* Above header */
   --border-radius-base: 0.75rem;
   --spacing-base: 1rem;
   
@@ -18,14 +18,24 @@
   --breakpoint-desktop: 1200px;
 }
 
-/* Header Styles - Full Width Approach */
+/* Header Styles - Dynamic with Sidebar Sync */
 .app-header {
-  /* Always full width */
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: 1001;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Dynamic positioning based on sidebar state */
+  position: fixed;
+  top: 0;
+  left: var(--sidebar-width-current, 80px);
+  width: calc(100% - var(--sidebar-width-current, 80px));
+  height: var(--header-height);
+  z-index: var(--z-header);
+  transition: var(--sidebar-transition);
+}
+
+/* Mobile header - full width */
+@media (max-width: 1024px) {
+  .app-header {
+    left: 0;
+    width: 100%;
+  }
 }
 
 /* Dashboard Layout - Simplified Flex Layout */
@@ -49,16 +59,17 @@
   min-width: 0;
   overflow-x: hidden;
   position: relative;
-  /* Add left margin to account for sidebar on desktop */
-  margin-left: 0;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Dynamic margins using CSS variables */
+  margin-left: var(--sidebar-width-current, 0px);
+  margin-top: var(--header-height);
+  transition: var(--sidebar-transition);
+  min-height: calc(100vh - var(--header-height));
 }
 
-/* Desktop: add left margin for sidebar */
-@media (min-width: 1025px) {
+/* Mobile: reset margins */
+@media (max-width: 1024px) {
   .dashboard-main {
-    margin-left: var(--sidebar-width, 80px);
-    min-height: calc(100vh - var(--header-height));
+    margin-left: 0;
   }
 }
 
@@ -69,8 +80,13 @@
     top: 0;
     left: 0;
     height: 100vh;
+    width: var(--sidebar-width-current, 80px);
     z-index: var(--z-sidebar);
-    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: var(--sidebar-transition);
+  }
+  
+  .app-sidebar.hovered {
+    z-index: var(--z-dropdown);
   }
 }
 
@@ -103,45 +119,38 @@
   container-type: inline-size;
   container-name: dashboard-content;
   
-  /* Mobile-first padding */
+  /* Mobile-first padding - no need for header padding since main has margin-top */
   padding: 1rem;
-  /* Account for fixed header */
-  padding-top: calc(var(--header-height) + 1rem);
 }
 
 /* Responsive padding - Mobile First */
 @media (min-width: 640px) {
   .dashboard-content {
     padding: 1.25rem;
-    padding-top: calc(var(--header-height) + 1.25rem);
   }
 }
 
 @media (min-width: 768px) {
   .dashboard-content {
     padding: 1.5rem;
-    padding-top: calc(var(--header-height) + 1.5rem);
   }
 }
 
 @media (min-width: 1024px) {
   .dashboard-content {
     padding: 1.75rem 2rem;
-    padding-top: calc(var(--header-height) + 1.75rem);
   }
 }
 
 @media (min-width: 1200px) {
   .dashboard-content {
     padding: 2rem 2.5rem;
-    padding-top: calc(var(--header-height) + 2rem);
   }
 }
 
 @media (min-width: 1440px) {
   .dashboard-content {
     padding: 2rem 3rem;
-    padding-top: calc(var(--header-height) + 2rem);
   }
 }
 

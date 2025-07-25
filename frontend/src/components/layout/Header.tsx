@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { FiSearch, FiZap } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useLayout } from '../../contexts/LayoutContext';
 import MenuToggle from './MenuToggle';
 import HeaderActions from './HeaderActions';
 import SessionStatus from '../auth/SessionStatus';
@@ -23,8 +24,17 @@ const Header: React.FC<HeaderProps> = ({
 }) => {
   const { user } = useAuth();
   const { t } = useLanguage();
+  const { screenSize, sidebarWidth } = useLayout();
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+
+  // Dynamic header styles for sidebar synchronization
+  const headerStyles = React.useMemo(() => ({
+    left: screenSize === 'mobile' ? 0 : `var(--sidebar-width-current, 80px)`,
+    width: screenSize === 'mobile' ? '100%' : `calc(100% - var(--sidebar-width-current, 80px))`,
+    zIndex: 'var(--z-header)',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+  }), [screenSize]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -48,8 +58,11 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="app-header fixed top-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200">
-        <div className="w-full px-3 sm:px-4 md:px-6 lg:pl-[calc(var(--sidebar-width,80px)+2rem)] lg:pr-8">
+      <header 
+        className="app-header fixed top-0 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm"
+        style={headerStyles}
+      >
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
           <div className="flex items-center h-16 md:h-20">
             {/* Sol hissə: menyu və başlıq */}
             <div className="flex-shrink-0 flex items-center">

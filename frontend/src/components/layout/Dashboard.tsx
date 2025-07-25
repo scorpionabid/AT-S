@@ -27,6 +27,12 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
     `main-${screenSize}`
   ].filter(Boolean).join(' ');
 
+  // Dynamic styles using CSS variables
+  const mainStyles = {
+    marginLeft: screenSize === 'mobile' ? 0 : 'var(--sidebar-width-current, 80px)',
+    paddingTop: 'var(--header-height, 80px)'
+  };
+
   return (
     <div className={dashboardClasses}>
       {/* Mobile/Tablet overlay */}
@@ -45,7 +51,7 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
       <Sidebar variant="modern" />
       
       {/* Main Content */}
-      <main className={mainClasses}>
+      <main className={mainClasses} style={mainStyles}>
         <div className="dashboard-content">
           {children}
         </div>
