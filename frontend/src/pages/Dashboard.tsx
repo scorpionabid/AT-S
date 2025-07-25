@@ -79,7 +79,7 @@ const DashboardHome: React.FC = () => {
       setStats(prev => ({ ...prev, loading: true, error: null }));
       
       console.log('Dashboard: Fetching stats...');
-      const data = await dashboardService.getStats();
+      const data = await dashboardServiceUnified.getStats();
       
       console.log('Dashboard: Stats received', data);
       setStats({

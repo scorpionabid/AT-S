@@ -3,11 +3,11 @@ import { useLocation } from 'react-router-dom';
 import { useLayout } from '../contexts/LayoutContext';
 
 /**
- * Hook to automatically collapse sidebar on mobile/tablet after navigation
+ * Hook to automatically collapse sidebar after navigation and reset hover state
  */
 export const useAutoCollapse = () => {
   const location = useLocation();
-  const { screenSize, isMobileOpen, closeMobile } = useLayout();
+  const { screenSize, isMobileOpen, isCollapsed, closeMobile, setHovered } = useLayout();
 
   useEffect(() => {
     // Auto-collapse on route change for mobile and tablet
@@ -19,7 +19,12 @@ export const useAutoCollapse = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [location.pathname, screenSize, isMobileOpen, closeMobile]);
+    
+    // Reset hover state on desktop after navigation
+    if (screenSize === 'desktop') {
+      setHovered(false);
+    }
+  }, [location.pathname, screenSize, isMobileOpen, closeMobile, setHovered]);
 
   // Click outside to close on mobile/tablet
   useEffect(() => {

@@ -18,9 +18,9 @@
   --breakpoint-desktop: 1200px;
 }
 
-/* Header Styles - Mobile First Approach */
+/* Header Styles - Full Width Approach */
 .app-header {
-  /* Mobile-first: full width by default */
+  /* Always full width */
   left: 0;
   right: 0;
   width: 100%;
@@ -28,22 +28,9 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Desktop: adjust for sidebar */
-@media (min-width: 1025px) {
-  .app-header {
-    left: var(--sidebar-width);
-    width: calc(100% - var(--sidebar-width));
-  }
-  
-  .dashboard.sidebar-collapsed .app-header {
-    left: var(--sidebar-width-collapsed);
-    width: calc(100% - var(--sidebar-width-collapsed));
-  }
-}
-
-/* Dashboard Layout - Mobile First */
+/* Dashboard Layout - Simplified Flex Layout */
 .dashboard {
-  /* Mobile-first: single column layout */
+  /* Flex layout for all screen sizes */
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -54,52 +41,36 @@
   position: relative;
 }
 
-/* Desktop: grid layout with sidebar */
-@media (min-width: 1025px) {
-  .dashboard {
-    display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
-    grid-template-rows: var(--header-height) 1fr;
-    grid-template-areas: 
-      "sidebar header"
-      "sidebar main";
-  }
-  
-  .dashboard.sidebar-collapsed {
-    grid-template-columns: var(--sidebar-width-collapsed) 1fr;
-  }
-}
-
 .dashboard-main {
-  /* Mobile-first: flex container */
+  /* Flex container for all screen sizes */
   display: flex;
   flex-direction: column;
   flex: 1;
   min-width: 0;
   overflow-x: hidden;
   position: relative;
+  /* Add left margin to account for sidebar on desktop */
+  margin-left: 0;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Desktop: use grid area */
+/* Desktop: add left margin for sidebar */
 @media (min-width: 1025px) {
   .dashboard-main {
-    grid-area: main;
-    min-height: 0;
+    margin-left: var(--sidebar-width, 80px);
+    min-height: calc(100vh - var(--header-height));
   }
 }
 
-/* Grid areas for Header and Sidebar - Desktop only */
+/* Sidebar positioning - Desktop only */
 @media (min-width: 1025px) {
-  .app-header {
-    grid-area: header;
-    position: relative;
-    z-index: var(--z-header);
-  }
-
   .app-sidebar {
-    grid-area: sidebar;
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
     z-index: var(--z-sidebar);
+    transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
@@ -134,36 +105,43 @@
   
   /* Mobile-first padding */
   padding: 1rem;
+  /* Account for fixed header */
+  padding-top: calc(var(--header-height) + 1rem);
 }
 
 /* Responsive padding - Mobile First */
 @media (min-width: 640px) {
   .dashboard-content {
     padding: 1.25rem;
+    padding-top: calc(var(--header-height) + 1.25rem);
   }
 }
 
 @media (min-width: 768px) {
   .dashboard-content {
     padding: 1.5rem;
+    padding-top: calc(var(--header-height) + 1.5rem);
   }
 }
 
 @media (min-width: 1024px) {
   .dashboard-content {
     padding: 1.75rem 2rem;
+    padding-top: calc(var(--header-height) + 1.75rem);
   }
 }
 
 @media (min-width: 1200px) {
   .dashboard-content {
     padding: 2rem 2.5rem;
+    padding-top: calc(var(--header-height) + 2rem);
   }
 }
 
 @media (min-width: 1440px) {
   .dashboard-content {
     padding: 2rem 3rem;
+    padding-top: calc(var(--header-height) + 2rem);
   }
 }
 

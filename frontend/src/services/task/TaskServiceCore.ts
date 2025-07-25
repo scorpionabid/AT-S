@@ -187,41 +187,68 @@ export class TaskServiceCore extends GenericCrudService<TaskWithRelations, Creat
   }
 
   /**
-   * Get task statistics with filtering
+   * Get task statistics with filtering - Always returns data, never throws errors
    */
   async getTaskStats(filters?: Omit<TaskFilters, 'page' | 'per_page'>): Promise<TaskStats> {
     try {
-      const response = await api.get<{
-        status?: string;
-        data?: TaskStats;
-      } | TaskStats>(`${this.endpoint}/statistics`, { params: filters });
+      console.log('TaskStats: Making API request to /tasks/statistics with filters:', filters);
       
-      console.log('TaskStats API Response:', response.data);
+      const response = await api.get<any>(`${this.endpoint}/statistics`, { params: filters });
       
-      // Handle different response formats
-      if (response.data) {
-        // If response has status and data properties (ATİS format)
-        if ('status' in response.data && 'data' in response.data) {
-          if (response.data.status === 'success' && response.data.data) {
-            return response.data.data;
-          }
-        }
-        // If response is direct TaskStats object
-        else if ('total_tasks' in response.data) {
-          return response.data as TaskStats;
-        }
-        // If response exists but doesn't match expected format, try to use mock data
-        console.warn('Unexpected task statistics response format, using mock data');
+      console.log('TaskStats: API Response received:', {
+        status: response.status,
+        data: response.data,
+        dataType: typeof response.data,
+        hasData: !!response.data
+      });
+      
+      // Check if we have any response data at all
+      if (!response.data) {
+        console.warn('TaskStats: No response data, using mock statistics');
         return this.getMockTaskStats();
       }
       
-      console.warn('Statistikalar yüklənə bilmədi - boş cavab, mock data istifadə edilir');
-      return this.getMockTaskStats();
-    } catch (error: any) {
-      console.error('TaskStats error details:', error);
+      // Handle ATİS format: { status: "success", data: {...} }
+      if (typeof response.data === 'object' && 
+          'status' in response.data && 
+          'data' in response.data) {
+        console.log('TaskStats: Detected ATİS format response');
+        
+        if (response.data.status === 'success' && response.data.data) {
+          console.log('TaskStats: Successfully extracted data from ATİS format');
+          return response.data.data as TaskStats;
+        } else {
+          console.warn('TaskStats: ATİS format but status not success, using mock data');
+          return this.getMockTaskStats();
+        }
+      }
       
-      // Always return mock data instead of throwing errors to keep UI functional
-      console.warn('Task statistics API error, using mock data to maintain functionality');
+      // Handle direct TaskStats format: { total_tasks: X, pending_tasks: Y, ... }
+      if (typeof response.data === 'object' && 'total_tasks' in response.data) {
+        console.log('TaskStats: Detected direct TaskStats format');
+        return response.data as TaskStats;
+      }
+      
+      // Handle array responses (might be empty array)
+      if (Array.isArray(response.data)) {
+        console.warn('TaskStats: Received array response, using mock data');
+        return this.getMockTaskStats();
+      }
+      
+      // Any other format - use mock data
+      console.warn('TaskStats: Unrecognized response format, using mock data. Response:', response.data);
+      return this.getMockTaskStats();
+      
+    } catch (error: any) {
+      console.error('TaskStats: API request failed:', {
+        message: error.message,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data
+      });
+      
+      // NEVER throw errors - always return mock data for UI stability
+      console.warn('TaskStats: Using mock data due to API error');
       return this.getMockTaskStats();
     }
   }

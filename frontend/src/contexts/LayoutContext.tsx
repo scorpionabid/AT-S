@@ -5,7 +5,9 @@ type Theme = 'light' | 'dark' | 'system';
 interface LayoutContextType {
   // Desktop sidebar states
   isCollapsed: boolean;
+  isHovered: boolean;
   toggleCollapse: () => void;
+  setHovered: (hovered: boolean) => void;
   
   // Mobile sidebar states  
   isMobileOpen: boolean;
@@ -31,7 +33,8 @@ interface LayoutContextType {
 const LayoutContext = createContext<LayoutContextType | undefined>(undefined);
 
 export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(true); // Default to collapsed
+  const [isHovered, setIsHovered] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [screenSize, setScreenSize] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
   const [theme, setTheme] = useState<Theme>('system');
@@ -101,13 +104,17 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => window.removeEventListener('resize', checkScreenSize);
   }, []);
   
-  // Computed sidebar width
+  // Computed sidebar width (including hover state for collapsed sidebar)
   const sidebarWidth = React.useMemo(() => {
     if (screenSize === 'mobile' || screenSize === 'tablet') {
       return isMobileOpen ? 280 : 0;
     }
+    // On desktop: if collapsed but hovered, expand; otherwise use collapsed/expanded state
+    if (isCollapsed && isHovered) {
+      return 280; // Expanded on hover
+    }
     return isCollapsed ? 80 : 280;
-  }, [screenSize, isCollapsed, isMobileOpen]);
+  }, [screenSize, isCollapsed, isMobileOpen, isHovered]);
   
   // Desktop collapse functionality
   const toggleCollapse = useCallback(() => {
@@ -137,6 +144,13 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsMobileOpen(false);
     }
   };
+
+  // Hover functionality for desktop sidebar
+  const setHover = useCallback((hovered: boolean) => {
+    if (screenSize === 'desktop') {
+      setIsHovered(hovered);
+    }
+  }, [screenSize]);
   
   // Legacy support functions (for backward compatibility)
   const toggleSidebar = () => {
@@ -160,6 +174,7 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <LayoutContext.Provider value={{
       // Current state
       isCollapsed,
+      isHovered,
       isMobileOpen,
       screenSize,
       sidebarWidth,
@@ -172,6 +187,7 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       
       // Actions
       toggleCollapse,
+      setHovered: setHover,
       toggleMobile,
       closeMobile,
       

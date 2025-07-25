@@ -48,8 +48,8 @@ const Header: React.FC<HeaderProps> = ({
 
   return (
     <>
-      <header className="app-header fixed top-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200 lg:left-[var(--sidebar-width)] lg:w-[calc(100%-var(--sidebar-width))]">
-        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
+      <header className="app-header fixed top-0 left-0 right-0 z-[1001] bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm transition-all duration-200">
+        <div className="w-full px-3 sm:px-4 md:px-6 lg:pl-[calc(var(--sidebar-width,80px)+2rem)] lg:pr-8">
           <div className="flex items-center h-16 md:h-20">
             {/* Sol hissə: menyu və başlıq */}
             <div className="flex-shrink-0 flex items-center">
@@ -121,9 +121,6 @@ const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </header>
-
-      {/* Header üçün boşluq */}
-      <div className="h-16 md:h-20" />
 
       {/* Sessiya statusu */}
       <SessionStatus />

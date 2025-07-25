@@ -68,10 +68,13 @@ const Sidebar: React.FC<SidebarProps> = memo(({
 }) => {
   const { 
     isCollapsed, 
+    isHovered,
     toggleCollapse, 
+    setHovered,
     isMobileOpen, 
     closeMobile, 
-    screenSize = 'desktop'
+    screenSize = 'desktop',
+    sidebarWidth
   } = useLayout();
   
   const { 
@@ -104,15 +107,16 @@ const Sidebar: React.FC<SidebarProps> = memo(({
   // Online status detection
   const isOnline = useOnlineStatus();
 
-  // Sync CSS variables with sidebar state
+  // Sync CSS variables with sidebar state (including hover state)
   useEffect(() => {
     const root = document.documentElement;
     if (screenSize === 'mobile') {
       root.style.setProperty('--sidebar-width', isMobileOpen ? '100vw' : '0px');
     } else {
-      root.style.setProperty('--sidebar-width', isCollapsed ? '80px' : '280px');
+      // Use computed sidebarWidth which accounts for hover state
+      root.style.setProperty('--sidebar-width', `${sidebarWidth}px`);
     }
-  }, [isCollapsed, isMobileOpen, screenSize]);
+  }, [sidebarWidth, isMobileOpen, screenSize]);
   
   // Refs for touch gestures
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -174,11 +178,29 @@ const Sidebar: React.FC<SidebarProps> = memo(({
     isDragging.current = false;
   }, [screenSize, isMobileOpen, closeMobile]);
 
+  // Hover handlers for desktop sidebar expansion
+  const handleMouseEnter = useCallback(() => {
+    if (screenSize === 'desktop' && isCollapsed) {
+      setHovered(true);
+    }
+  }, [screenSize, isCollapsed, setHovered]);
+
+  const handleMouseLeave = useCallback(() => {
+    if (screenSize === 'desktop') {
+      setHovered(false);
+    }
+  }, [screenSize, setHovered]);
+
+  // Determine effective sidebar state (collapsed but show expanded on hover)
+  const isEffectivelyExpanded = !isCollapsed || (isCollapsed && isHovered);
+
   // Sidebar classes
   const sidebarClasses = cn(
     'app-sidebar',
-    'flex flex-col h-screen fixed left-0 top-0',
+    'flex flex-col h-screen fixed left-0 top-0 z-[1000]',
+    'transition-all duration-300 ease-in-out',
     isCollapsed ? 'collapsed' : '',
+    isHovered && isCollapsed ? 'hovered' : '',
     className,
     variant === 'modern' && 'sidebar-glass-effect',
     // Mobile transitions
@@ -215,11 +237,13 @@ const Sidebar: React.FC<SidebarProps> = memo(({
         role="navigation"
         aria-label="Main navigation"
         tabIndex={-1}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{ 
-          width: isCollapsed ? '4rem' : '16rem'
+          width: `${sidebarWidth}px`
         }}
       >
         {/* Always render header first */}
@@ -260,16 +284,16 @@ const Sidebar: React.FC<SidebarProps> = memo(({
                         ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300' 
                         : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'
                     }`}
-                    title={isCollapsed ? item.label : undefined}
+                    title={isCollapsed && !isHovered ? item.label : undefined}
                   >
                     <IconComponent className="w-5 h-5 mr-3 flex-shrink-0" />
-                    {!isCollapsed && <span className="flex-1">{item.label}</span>}
-                    {!isCollapsed && badges && badges[item.id] > 0 && (
+                    {isEffectivelyExpanded && <span className="flex-1">{item.label}</span>}
+                    {isEffectivelyExpanded && badges && badges[item.id] > 0 && (
                       <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2 py-1 min-w-[1.25rem] text-center">
                         {badges[item.id]}
                       </span>
                     )}
-                    {isCollapsed && badges && badges[item.id] > 0 && (
+                    {!isEffectivelyExpanded && badges && badges[item.id] > 0 && (
                       <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                     )}
                   </a>
@@ -285,7 +309,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
               {userProfile?.username?.charAt(0)?.toUpperCase() || 'U'}
             </div>
-            {!isCollapsed && (
+            {isEffectivelyExpanded && (
               <div className="ml-3">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   {userProfile?.username || 'User'}
