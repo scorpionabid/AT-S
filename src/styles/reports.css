@@ -8,6 +8,8 @@
 }
 
 .page-header {
+  position: relative;
+  z-index: var(--z-page-header, 1008);
   margin-bottom: 2rem;
   text-align: center;
 }

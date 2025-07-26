@@ -6,7 +6,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 1000;
+  z-index: var(--z-modal, 1030);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,7 +22,7 @@
   width: 90%;
   max-height: 80vh;
   overflow: hidden;
-  z-index: 1001;
+  z-index: var(--z-modal-content, 1031);
   position: relative;
 }
 

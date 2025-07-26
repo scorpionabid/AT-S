@@ -6,6 +6,8 @@
 
 /* Page Header Styles */
 .page-header {
+  position: relative;
+  z-index: var(--z-page-header, 1008);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -730,7 +732,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: var(--z-modal, 1030);
   padding: 1rem;
 }
 

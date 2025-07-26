@@ -8,7 +8,7 @@
   height: 100% !important;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
-  z-index: 10001 !important;
+  z-index: var(--z-modal, 1030) !important;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -23,7 +23,7 @@
   border-radius: 16px;
   overflow: hidden;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  z-index: 10002 !important;
+  z-index: var(--z-modal-content, 1031) !important;
   position: relative;
 }
 

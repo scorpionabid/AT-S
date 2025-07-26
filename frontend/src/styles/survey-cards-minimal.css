@@ -133,7 +133,7 @@
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 10;
+  z-index: var(--z-dropdown, 1020);
   min-width: 120px;
   overflow: hidden;
 }

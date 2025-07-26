@@ -7,6 +7,8 @@
 
 /* Enhanced Page Header */
 .page-header {
+  position: relative;
+  z-index: var(--z-page-header, 1008);
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -15,7 +17,6 @@
   background: var(--gradient-primary);
   border-radius: 1rem;
   color: white;
-  position: relative;
   overflow: hidden;
 }
 
