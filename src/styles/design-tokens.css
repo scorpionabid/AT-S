@@ -182,15 +182,26 @@
 
   /* ===== Z-INDEX SYSTEM ===== */
   
-  --z-index-dropdown: 1000;
-  --z-index-sticky: 1020;
-  --z-index-fixed: 1030;
-  --z-index-modal-backdrop: 1040;
-  --z-index-offcanvas: 1050;
-  --z-index-modal: 1060;
-  --z-index-popover: 1070;
-  --z-index-tooltip: 1080;
-  --z-index-toast: 1090;
+  /* Base Layout Components */
+  --z-index-base: 1;
+  --z-index-sidebar: 1000;
+  --z-index-header: 1010;
+  --z-index-page-header: 1005;
+  --z-index-navigation: 1015;
+  
+  /* Interactive Elements */
+  --z-index-dropdown: 1020;
+  --z-index-sticky: 1030;
+  --z-index-fixed: 1040;
+  
+  /* Overlays */
+  --z-index-overlay: 1050;
+  --z-index-modal-backdrop: 1060;
+  --z-index-offcanvas: 1070;
+  --z-index-modal: 1080;
+  --z-index-popover: 1090;
+  --z-index-tooltip: 1100;
+  --z-index-toast: 1110;
 
   /* ===== BREAKPOINTS ===== */
   

@@ -106,7 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({
   // Tailwind CSS classes based on state
   const sidebarClasses = [
     // Base sidebar styles with proper contrast
-    'fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 shadow-lg transition-transform duration-300 ease-in-out z-30 overflow-y-auto border-r border-gray-200 dark:border-gray-700',
+    'fixed top-0 left-0 h-screen bg-white dark:bg-gray-900 shadow-lg transition-transform duration-300 ease-in-out overflow-y-auto border-r border-gray-200 dark:border-gray-700',
     
     // Width based on screen size and collapsed state
     screenSize === 'mobile' ? 'w-72' : (isCollapsed ? 'w-20' : 'w-72'),
@@ -219,7 +219,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 
   // Mobile overlay classes
   const overlayClasses = [
-    'fixed inset-0 bg-black bg-opacity-50 z-20 transition-opacity duration-300',
+    'fixed inset-0 bg-black bg-opacity-50 transition-opacity duration-300',
     screenSize === 'mobile' ? 'block' : 'hidden',
     isMobileOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
   ].filter(Boolean).join(' ');
@@ -231,6 +231,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         className={overlayClasses}
         onClick={closeMobile}
         aria-hidden="true"
+        style={{ zIndex: 'var(--z-index-overlay, 1050)' }}
       />
 
       {/* Sidebar */}
@@ -240,7 +241,8 @@ const Sidebar: React.FC<SidebarProps> = ({
         style={{
           transitionProperty: 'transform',
           transitionDuration: '300ms',
-          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)'
+          transitionTimingFunction: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          zIndex: 'var(--z-index-sidebar, 1000)'
         }}
       >
         {/* Header */}

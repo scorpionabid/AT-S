@@ -9,7 +9,7 @@
 
 .page-header {
   position: relative;
-  z-index: var(--z-page-header, 1008);
+  z-index: var(--z-index-page-header, 1005);
   margin-bottom: 2rem;
   text-align: center;
 }

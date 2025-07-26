@@ -4,9 +4,7 @@
   --sidebar-width-collapsed: 80px;
   --sidebar-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --header-height: 70px;
-  --z-sidebar: 1000;
-  --z-overlay: 999;
-  --z-dropdown: 1001;
+  /* Z-index dəyərləri design-tokens.css-dən istifadə edilir */
   --border-radius-base: 0.75rem;
   --spacing-base: 1rem;
 }
@@ -173,7 +171,7 @@
   border-radius: 1.5rem;
   border: 1px solid #e2e8f0;
   position: relative;
-  z-index: var(--z-page-header, 1008);
+  z-index: var(--z-index-page-header, 1005);
 }
 
 .page-title {

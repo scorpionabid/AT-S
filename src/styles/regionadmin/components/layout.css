@@ -5,7 +5,7 @@
   padding: 20px 0;
   margin-bottom: 24px;
   position: relative;
-  z-index: var(--z-page-header, 1008);
+  z-index: var(--z-index-page-header, 1005);
 }
 
 .breadcrumb-nav {
