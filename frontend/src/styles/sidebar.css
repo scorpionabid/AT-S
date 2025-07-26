@@ -20,8 +20,8 @@
   /* Smooth transitions - Synchronized with layout */
   transition: var(--layout-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
   
-  /* Z-index management - Below header */
-  z-index: 999;
+  /* Z-index management - Use design token */
+  z-index: var(--z-sidebar, 1000);
   
   /* Enhanced visibility */
   -webkit-backdrop-filter: blur(16px) saturate(180%);
@@ -45,7 +45,7 @@
     box-shadow: 
       0 20px 40px rgba(0, 0, 0, 0.15),
       0 8px 16px rgba(0, 0, 0, 0.1);
-    z-index: 1050; /* Higher z-index when hovered to overlap content */
+    z-index: var(--z-sidebar-hover, 1005); /* Higher z-index when hovered */
   }
   
   .app-sidebar.collapsed.hovered .sidebar-item-text {

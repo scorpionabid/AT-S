@@ -46,12 +46,13 @@
 
   /* ===== Z-INDEX HIERARCHY ===== */
   --z-base: 0;
-  --z-sidebar: 1000;
-  --z-sidebar-hover: 1005; /* Above content, below header */
-  --z-page-header: 1008; /* Below app header, above content */
-  --z-header: 1010; /* Above sidebar and page headers */
-  --z-dropdown: 1020; /* Above header */
-  --z-modal: 1030; /* Above dropdowns */
+  --z-content: 100; /* Regular page content */
+  --z-page-header: 500; /* Page headers below sidebar */
+  --z-sidebar: 1000; /* Sidebar above content and page headers */
+  --z-sidebar-hover: 1005; /* Sidebar when hovered */
+  --z-header: 1010; /* App header above everything except modals */
+  --z-dropdown: 1020; /* Dropdowns above header */
+  --z-modal: 1030; /* Modals above dropdowns */
   --z-toast: 1040; /* Highest priority */
 
   /* Semantic Colors */

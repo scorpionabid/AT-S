@@ -1,13 +1,27 @@
 /* Users List Styles */
 .users-list {
-  max-width: 1400px;
+  /* Ensure content respects sidebar space */
+  padding: 24px;
+  max-width: calc(100vw - var(--sidebar-width-current, 80px) - 48px);
   margin: 0 auto;
+  box-sizing: border-box;
+  
+  /* Prevent content from going full width */
+  width: calc(100% - 2rem);
+}
+
+/* Mobile override */
+@media (max-width: 1024px) {
+  .users-list {
+    max-width: calc(100vw - 2rem);
+    width: calc(100% - 2rem);
+  }
 }
 
 /* Page Header Styles */
 .page-header {
   position: relative;
-  z-index: var(--z-page-header, 1008);
+  z-index: var(--z-page-header, 500);
   display: flex;
   justify-content: space-between;
   align-items: center;

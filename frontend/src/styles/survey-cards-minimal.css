@@ -317,6 +317,16 @@
   display: grid;
   gap: 16px;
   width: 100%;
+  /* Ensure grid respects sidebar space */
+  max-width: calc(100vw - var(--sidebar-width-current, 80px) - 48px);
+  box-sizing: border-box;
+}
+
+/* Mobile override for surveys grid */
+@media (max-width: 1024px) {
+  .surveys-grid {
+    max-width: calc(100vw - 2rem);
+  }
 }
 
 /* Mobile: Single column */
