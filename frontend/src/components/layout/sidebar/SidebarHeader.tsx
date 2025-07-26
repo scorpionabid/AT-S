@@ -49,7 +49,8 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = memo(({ isCollapsed, onToggl
       {isCollapsed && (
         <button
           onClick={handleCollapseClick}
-          className="sidebar-header-toggle absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-all duration-200 z-10"
+          className="sidebar-header-toggle absolute right-2 top-1/2 -translate-y-1/2 opacity-0 transition-all duration-200"
+          style={{ zIndex: 'var(--z-sidebar-button, 1000)' }}
           aria-label="Expand sidebar"
         >
           <FiChevronRight className="w-4 h-4 transition-transform duration-200" />

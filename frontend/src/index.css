@@ -6,6 +6,9 @@
 /* Design Tokens - MUST BE FIRST */
 @import './styles/tokens/design-tokens.css';
 
+/* Component Styles */
+@import './styles/components/page-header.css';
+
 /* Tailwind CSS - AFTER design tokens */
 @tailwind base;
 @tailwind components;

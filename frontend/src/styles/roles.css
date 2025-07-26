@@ -8,14 +8,7 @@
   width: 100%;
 }
 
-/* Header Styles */
-.page-header {
-  position: relative;
-  z-index: var(--z-page-header, 500);
-  margin-bottom: 2rem;
-  padding: 1.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
-}
+/* Header Styles - moved to components/page-header.css */
 
 .header-content {
   display: flex;

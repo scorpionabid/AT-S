@@ -30,14 +30,18 @@ const StandardPageLayout: React.FC<StandardPageLayoutProps> = ({
 }) => {
   return (
     <DashboardLayout>
-      <div className={cn('standard-page-layout min-h-full', className)}>
+      <div className={cn('standard-page-layout min-h-full', className)} style={{ position: 'relative' }}>
         {/* Page Header */}
         <div 
-          className="bg-white border-b border-gray-200 sticky"
+          className="standard-page-header-wrapper bg-white border-b border-gray-200 sticky"
           style={{ 
-            top: 'var(--header-height, 80px)', 
-            zIndex: 'var(--z-page-header)' 
+            top: '0px', 
+            zIndex: 'var(--z-page-header, 1003)',
+            position: 'sticky',
+            isolation: 'isolate'
           }}
+          data-z-index="1003"
+          data-component="page-header"
         >
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
             <PageHeader

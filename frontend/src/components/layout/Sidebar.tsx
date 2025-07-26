@@ -258,7 +258,7 @@ const Sidebar: React.FC<SidebarProps> = memo(({
         onTouchEnd={handleTouchEnd}
         style={{ 
           width: `${sidebarWidth}px`,
-          zIndex: isHovered && isCollapsed ? 'var(--z-sidebar-hover)' : 'var(--z-sidebar)'
+          zIndex: isHovered && isCollapsed ? 'var(--z-sidebar-hover, 1001)' : 'var(--z-sidebar, 1000)'
         }}
       >
         {/* Always render header first */}

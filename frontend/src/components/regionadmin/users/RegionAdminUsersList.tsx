@@ -4,7 +4,7 @@ import UserCreateForm from '../../users/UserCreateForm';
 import UserEditForm from '../../users/UserEditForm';
 import { LoadingSpinner } from '../../ui/Loading';
 import { EmptyState } from '../../common/EmptyState';
-import '../../../styles/regionadmin-consolidated.css';
+// Regionadmin styles now handled by main CSS - removed import to fix build issues
 
 // Types
 interface User {

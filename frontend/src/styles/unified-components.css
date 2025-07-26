@@ -128,18 +128,8 @@
   --shadow-dropdown: var(--shadow-xl);
   --shadow-modal: var(--shadow-2xl);
 
-  /* ===== Z-INDEX SYSTEM ===== */
-  --z-index-hide: -1;
-  --z-index-auto: auto;
-  --z-index-base: 0;
-  --z-index-docked: 10;
-  --z-index-dropdown: 1000;
-  --z-index-popover: 1010;
-  --z-index-tooltip: 1020;
-  --z-index-banner: 1030;
-  --z-index-overlay: 1040;
-  --z-index-modal: 1050;
-  --z-index-toast: 1060;
+  /* ===== Z-INDEX SYSTEM - Use design tokens ===== */
+  /* Z-index values now come from design tokens */
 
   /* ===== TRANSITION SYSTEM ===== */
   --transition-duration-75: 75ms;
@@ -604,7 +594,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: var(--z-index-modal);
+  z-index: var(--z-index-modal, 1060);
   padding: var(--space-4);
 }
 

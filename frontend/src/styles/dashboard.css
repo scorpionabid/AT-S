@@ -7,16 +7,10 @@
   
   /* Layout dimensions */
   --header-height: 80px;
-  --sidebar-width: 280px;
-  --sidebar-width-collapsed: 80px;
-  --sidebar-width-mobile: 100vw;
+  /* Sidebar dimensions moved to design-tokens.css */
   
-  /* Z-Index from design tokens */
-  --z-sidebar: var(--z-sidebar);
-  --z-header: var(--z-header);
-  --z-page-header: var(--z-page-header);
-  --z-overlay: 999;
-  --z-dropdown: var(--z-dropdown);
+  /* Z-Index - Use design tokens (removed duplicates) */
+  /* All z-index values now come from design-tokens.css */
   
   /* Base styling */
   --border-radius-base: 0.75rem;
@@ -28,31 +22,26 @@
   --breakpoint-desktop: 1200px;
 }
 
-/* Header Styles - Dynamic with Sidebar Sync */
+/* Header Styles - Grid Layout */
 .app-header {
-  /* Dynamic positioning based on sidebar state */
-  position: fixed;
-  top: 0;
-  left: var(--sidebar-width-current, 80px);
-  width: calc(100% - var(--sidebar-width-current, 80px));
+  /* Position within grid cell */
+  position: relative;
+  width: 100%;
   height: var(--header-height);
-  z-index: var(--z-header);
+  z-index: var(--z-header, 1010);
   transition: var(--sidebar-transition);
 }
 
-/* Mobile header - full width */
+/* Mobile header styling */
 @media (max-width: 1024px) {
   .app-header {
-    left: 0;
-    width: 100%;
+    /* Header is already full width in grid layout */
+    position: relative;
   }
 }
 
-/* Dashboard Layout - Simplified Flex Layout */
+/* Dashboard Layout - Grid Layout */
 .dashboard {
-  /* Flex layout for all screen sizes */
-  display: flex;
-  flex-direction: column;
   min-height: 100vh;
   background-color: var(--color-neutral-50);
   width: 100vw;
@@ -61,28 +50,72 @@
   position: relative;
 }
 
-.dashboard-main {
-  /* Flex container for all screen sizes */
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-  overflow-x: hidden;
+/* Dashboard Layout - Overlay System (not grid) */
+.dashboard-grid-container {
   position: relative;
-  /* Transform-based positioning for better performance */
-  transform: translateX(var(--content-offset, 0px));
-  margin-top: var(--header-height);
-  transition: transform var(--layout-duration) var(--layout-easing);
-  min-height: calc(100vh - var(--header-height));
-  /* Performance optimizations */
-  contain: layout;
-  will-change: transform;
+  min-height: 100vh;
+  width: 100%;
 }
 
-/* Mobile: reset transforms */
+/* Overlay Layout Areas */
+.dashboard-grid-sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  z-index: var(--z-sidebar, 1000);
+}
+
+.dashboard-grid-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: var(--z-header, 1010);
+}
+
+/* Main content - with sidebar offset */
+.dashboard-main {
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  padding-top: var(--header-height, 80px);
+  padding-left: var(--sidebar-width, 280px); /* Add left padding equal to sidebar width */
+}
+
+/* Responsive layout for mobile/tablet */
 @media (max-width: 1024px) {
+  /* Reset grid references for mobile layout */
+  .dashboard-grid-container {
+    display: block;
+  }
+  
+  /* Reset main content padding for mobile */
   .dashboard-main {
+    padding-left: 0; /* Remove sidebar padding on mobile */
+  }
+  
+  .dashboard-grid-sidebar {
+    position: fixed;
+    height: 100%;
+    left: 0;
+    top: 0;
+    transform: translateX(calc(-1 * var(--sidebar-width, 280px)));
+    transition: transform 0.3s ease;
+  }
+  
+  /* When mobile sidebar is open */
+  .mobile-open .dashboard-grid-sidebar {
     transform: translateX(0);
+  }
+  
+  /* Ensure header spans full width on mobile */
+  .dashboard-grid-header {
+    width: 100%;
+    left: 0;
   }
 }
 
@@ -188,7 +221,7 @@
   /* Ensure page header is properly positioned below app header */
   position: sticky;
   top: var(--header-height, 80px);
-  z-index: var(--z-page-header);
+  z-index: var(--z-page-header, 500);
   /* Add shadow when sticky */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
@@ -209,7 +242,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: calc(var(--z-sidebar) - 1);
+  z-index: calc(var(--z-sidebar, 1000) - 1);
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease-out;
@@ -318,8 +351,7 @@
   background: linear-gradient(135deg, var(--color-neutral-50) 0%, #ffffff 100%);
   border-radius: 1.5rem;
   border: 1px solid #e2e8f0;
-  position: relative;
-  z-index: var(--z-page-header, 500);
+  /* position and z-index inherited from global page-header.css */
 }
 
 .page-title {

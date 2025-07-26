@@ -5,10 +5,10 @@
   padding: 1rem;
 }
 
-/* Enhanced Page Header */
+/* Enhanced Page Header - Custom design for surveys */
 .page-header {
-  position: relative;
-  z-index: var(--z-page-header, 500);
+  /* position: relative; - removed to not override global sticky positioning */
+  /* z-index comes from design tokens via global page-header.css */
   display: flex;
   justify-content: space-between;
   align-items: flex-start;

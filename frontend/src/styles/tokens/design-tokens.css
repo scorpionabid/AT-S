@@ -259,9 +259,21 @@
   --shadow-error: 0 10px 15px -3px rgb(239 68 68 / 0.1), 0 4px 6px -4px rgb(239 68 68 / 0.1);
 
   /* ====================
-   * Z-INDEX TOKENS
+   * Z-INDEX TOKENS - Unified Hierarchy
    * ==================== */
-  --z-index-dropdown: 1000;
+  
+  /* Base Levels */
+  --z-base: 0;
+  --z-content: 100;
+  
+  /* Layout Levels */
+  --z-page-header: 1005;     /* Page headers above sidebar */
+  --z-sidebar: 1000;         /* Sidebar above content and page headers */
+  --z-sidebar-hover: 1005;   /* Sidebar when hovered */
+  --z-header: 1010;          /* App header above everything except modals */
+  
+  /* Component Levels - Original Design Token Values */
+  --z-index-dropdown: 1020;
   --z-index-sticky: 1020;
   --z-index-fixed: 1030;
   --z-index-modal-backdrop: 1040;

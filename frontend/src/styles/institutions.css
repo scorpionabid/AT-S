@@ -96,7 +96,7 @@
   box-sizing: border-box;
 }
 
-/* Enhanced Page Header - Surveys Style */
+/* Enhanced Page Header - Surveys Style with proper z-index inheritance */
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -106,7 +106,8 @@
   background: var(--gradient-primary);
   border-radius: 1rem;
   color: white;
-  position: relative;
+  /* position: relative; - removed to not override global sticky positioning */
+  /* z-index inherited from global page-header.css */
   overflow: hidden;
   width: 100%;
   box-sizing: border-box;

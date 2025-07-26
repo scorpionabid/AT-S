@@ -1,12 +1,4 @@
-/* Page Header Styles */
-.page-header {
-  background: #ffffff;
-  border-bottom: 1px solid #e5e7eb;
-  padding: 20px 0;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: var(--z-page-header, 500);
-}
+/* Page Header Styles - moved to components/page-header.css */
 
 .breadcrumb-nav {
   margin-bottom: 12px;

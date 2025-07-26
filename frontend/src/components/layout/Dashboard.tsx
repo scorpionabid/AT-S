@@ -27,7 +27,7 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
     `main-${screenSize}`
   ].filter(Boolean).join(' ');
 
-  // Note: Styles are now handled by CSS classes and variables for better performance
+  // Note: Overlay system uses fixed positioning instead of grid layout for better reliability
 
   return (
     <div className={dashboardClasses}>
@@ -37,21 +37,29 @@ const Dashboard: React.FC<DashboardProps> = ({ children }) => {
           className={`mobile-sidebar-overlay ${isMobileOpen ? 'visible' : ''}`}
           onClick={closeMobile}
           aria-hidden="true"
+          style={{ zIndex: 'var(--z-overlay, 999)' }}
         />
       )}
       
-      {/* Header */}
-      <Header />
-      
-      {/* Sidebar - no wrapper needed, it handles its own positioning */}
-      <Sidebar variant="modern" />
-      
-      {/* Main Content */}
-      <main className={mainClasses}>
-        <div className="dashboard-content">
-          {children}
+      {/* Overlay Layout System */}
+      <div className="dashboard-grid-container">
+        {/* Header - fixed positioning */}
+        <div className="dashboard-grid-header">
+          <Header />
         </div>
-      </main>
+        
+        {/* Sidebar - fixed positioning */}
+        <div className="dashboard-grid-sidebar">
+          <Sidebar variant="modern" />
+        </div>
+        
+        {/* Main Content - with top padding for header */}
+        <main className={mainClasses}>
+          <div className="dashboard-content">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

@@ -18,17 +18,7 @@
   }
 }
 
-/* Page Header Styles */
-.page-header {
-  position: relative;
-  z-index: var(--z-page-header, 500);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  padding: 20px 0;
-  border-bottom: 1px solid #e2e8f0;
-}
+/* Page Header Styles - moved to components/page-header.css */
 
 .header-content {
   flex: 1;
