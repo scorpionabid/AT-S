@@ -62,6 +62,7 @@ const UsersList: React.FC = () => {
   const [statusChangingUser, setStatusChangingUser] = useState<User | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
+  const [errorMessage, setError] = useState('');
 
   // Debounced search
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -288,10 +289,10 @@ const UsersList: React.FC = () => {
   return (
     <div className="users-list">
 
-      {error && (
+      {(error || errorMessage) && (
         <div className="error-message">
           <span className="error-icon">⚠️</span>
-          <span>{error}</span>
+          <span>{error || errorMessage}</span>
           <button onClick={() => setError('')} className="error-close">×</button>
         </div>
       )}

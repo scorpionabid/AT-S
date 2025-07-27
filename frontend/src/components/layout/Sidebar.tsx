@@ -1,55 +1,16 @@
-import React, { useCallback, ReactNode, memo } from 'react';
-import { 
-  Home, Users, Building, Shield, Clipboard, CheckSquare, CheckCircle, 
-  CalendarCheck, Calendar, BookOpen, School, FileText, TrendingUp, 
-  BarChart, Settings, User, AlertTriangle, Clock
-} from 'lucide-react';
+import React, { useCallback, ReactNode, memo, useState, useRef, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useLayout } from '../../contexts/LayoutContext';
-import { useNavigation } from '../../contexts/NavigationContext';
-
-// Icon mapping for navigation items
-const getNavigationIcon = (iconName: string) => {
-  const iconMap = {
-    'home': Home,
-    'users': Users,
-    'building': Building,
-    'shield': Shield,
-    'clipboard': Clipboard,
-    'check-square': CheckSquare,
-    'check-circle': CheckCircle,
-    'calendar-check': CalendarCheck,
-    'calendar': Calendar,
-    'book-open': BookOpen,
-    'school': School,
-    'file-text': FileText,
-    'trending-up': TrendingUp,
-    'bar-chart': BarChart,
-    'settings': Settings,
-    'user': User,
-    'alert-triangle': AlertTriangle,
-    'clock': Clock
-  };
-  
-  return iconMap[iconName as keyof typeof iconMap] || FileText;
-};
+import { useAuth } from '../../contexts/AuthContext';
+import { getVisibleMenuItems, isPathActive, MenuItem } from '../../utils/navigation/menuConfig';
 
 interface SidebarProps {
   className?: string;
   children?: ReactNode;
 }
 
-// Temporary navigation data
-const navigationItems = [
-  { id: '1', label: 'Dashboard', path: '/', icon: 'home' },
-  { id: '2', label: 'Users', path: '/users', icon: 'users' },
-  { id: '3', label: 'Institutions', path: '/institutions', icon: 'building' },
-  { id: '4', label: 'Departments', path: '/departments', icon: 'clipboard' },
-  { id: '5', label: 'Surveys', path: '/surveys', icon: 'check-square' },
-  { id: '6', label: 'Reports', path: '/reports', icon: 'bar-chart' },
-  { id: '7', label: 'Settings', path: '/settings', icon: 'settings' },
-];
-
-const Sidebar: React.FC<SidebarProps> = memo(({ className = '', children }) => {
+const Sidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
   const { 
     isCollapsed, 
     isHovered,
@@ -59,6 +20,13 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '', children }) => {
     closeMobile, 
     screenSize = 'desktop'
   } = useLayout();
+  
+  const { user } = useAuth();
+  const location = useLocation();
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+
+  // Get navigation items filtered by user permissions
+  const navigationItems = getVisibleMenuItems(user);
 
   // Hover handlers for desktop sidebar expansion
   const handleMouseEnter = useCallback(() => {
@@ -73,56 +41,306 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '', children }) => {
     }
   }, [screenSize, setHovered]);
 
-  // Sidebar classes
-  const sidebarClasses = [
-    'app-sidebar',
-    isCollapsed ? 'collapsed' : '',
-    isMobileOpen ? 'mobile-open' : '',
-    className
-  ].filter(Boolean).join(' ');
+  // Toggle submenu expansion
+  const toggleExpanded = useCallback((itemId: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Auto-expand active parent menu
+  useEffect(() => {
+    navigationItems.forEach(item => {
+      if (item.children) {
+        const hasActiveChild = item.children.some(child => 
+          isPathActive(location.pathname, child.path, child.exactMatch)
+        );
+        if (hasActiveChild) {
+          setExpandedItems(prev => new Set([...prev, item.id]));
+        }
+      }
+    });
+  }, [location.pathname, navigationItems]);
+
+  const isExpanded = (isCollapsed && !isHovered) ? false : true;
+
+  const renderNavigationItem = (item: MenuItem) => {
+    const IconComponent = item.icon;
+    const hasChildren = item.children && item.children.length > 0;
+    const isItemActive = isPathActive(location.pathname, item.path, item.exactMatch);
+    const isItemExpanded = expandedItems.has(item.id);
+    const shouldShowText = isExpanded;
+
+    return (
+      <div key={item.id} style={{ marginBottom: '4px' }}>
+        {hasChildren ? (
+          <button
+            onClick={() => toggleExpanded(item.id)}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 16px',
+              background: isItemActive ? '#eff6ff' : 'transparent',
+              border: 'none',
+              borderRadius: '8px',
+              color: isItemActive ? '#2563eb' : '#4b5563',
+              fontSize: '14px',
+              fontWeight: isItemActive ? '600' : '500',
+              cursor: 'pointer',
+              textAlign: 'left',
+              transition: 'all 0.2s ease',
+              position: 'relative'
+            }}
+            onMouseEnter={(e) => {
+              if (!isItemActive) e.currentTarget.style.background = '#f3f4f6';
+            }}
+            onMouseLeave={(e) => {
+              if (!isItemActive) e.currentTarget.style.background = 'transparent';
+            }}
+            title={!isExpanded ? item.title : undefined}
+          >
+            <IconComponent 
+              size={20} 
+              style={{ 
+                minWidth: '20px',
+                marginRight: isExpanded ? '12px' : '0'
+              }} 
+            />
+            {isExpanded && (
+              <>
+                <span style={{ flex: 1 }}>{item.title}</span>
+                {hasChildren && (
+                  <ChevronRight 
+                    size={16} 
+                    style={{ 
+                      transform: isItemExpanded ? 'rotate(90deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.2s ease'
+                    }} 
+                  />
+                )}
+              </>
+            )}
+          </button>
+        ) : (
+          <Link
+            to={item.path}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              padding: '12px 16px',
+              background: isItemActive ? '#eff6ff' : 'transparent',
+              borderRadius: '8px',
+              color: isItemActive ? '#2563eb' : '#4b5563',
+              fontSize: '14px',
+              fontWeight: isItemActive ? '600' : '500',
+              textDecoration: 'none',
+              transition: 'all 0.2s ease'
+            }}
+            onMouseEnter={(e) => {
+              if (!isItemActive) e.currentTarget.style.background = '#f3f4f6';
+            }}
+            onMouseLeave={(e) => {
+              if (!isItemActive) e.currentTarget.style.background = 'transparent';
+            }}
+            title={!isExpanded ? item.title : undefined}
+          >
+            <IconComponent 
+              size={20} 
+              style={{ 
+                minWidth: '20px',
+                marginRight: isExpanded ? '12px' : '0'
+              }} 
+            />
+            {isExpanded && <span>{item.title}</span>}
+            {item.badge && isExpanded && (
+              <span
+                style={{
+                  marginLeft: 'auto',
+                  padding: '2px 6px',
+                  background: item.badge.color === 'primary' ? '#dc2626' : '#6b7280',
+                  color: 'white',
+                  fontSize: '10px',
+                  borderRadius: '10px',
+                  fontWeight: '600'
+                }}
+              >
+                {item.badge.text}
+              </span>
+            )}
+          </Link>
+        )}
+
+        {/* Children/Submenu */}
+        {hasChildren && isExpanded && isItemExpanded && (
+          <div style={{ 
+            marginLeft: '20px', 
+            marginTop: '4px',
+            borderLeft: '2px solid #e5e7eb',
+            paddingLeft: '16px'
+          }}>
+            {item.children?.map((child) => {
+              const ChildIconComponent = child.icon;
+              const isChildActive = isPathActive(location.pathname, child.path, child.exactMatch);
+
+              return (
+                <Link
+                  key={child.id}
+                  to={child.path}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '8px 12px',
+                    background: isChildActive ? '#eff6ff' : 'transparent',
+                    borderRadius: '6px',
+                    color: isChildActive ? '#2563eb' : '#6b7280',
+                    fontSize: '13px',
+                    fontWeight: isChildActive ? '600' : '500',
+                    textDecoration: 'none',
+                    marginBottom: '2px',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isChildActive) e.currentTarget.style.background = '#f9fafb';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isChildActive) e.currentTarget.style.background = 'transparent';
+                  }}
+                >
+                  <ChildIconComponent size={16} style={{ marginRight: '8px' }} />
+                  <span>{child.title}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <>
       {/* Mobile overlay */}
-      {screenSize === 'mobile' && (
+      {screenSize === 'mobile' && isMobileOpen && (
         <div 
-          className={`mobile-overlay ${isMobileOpen ? 'visible' : ''}`}
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            zIndex: 999
+          }}
           onClick={closeMobile}
         />
       )}
       
       {/* Sidebar */}
       <aside 
-        className={sidebarClasses}
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: isCollapsed && !isHovered ? '80px' : '280px',
+          height: '100vh',
+          background: '#ffffff',
+          borderRight: '1px solid #e5e7eb',
+          display: 'flex',
+          flexDirection: 'column',
+          transition: 'width 0.3s ease',
+          zIndex: 1000,
+          transform: screenSize === 'mobile' && !isMobileOpen ? 'translateX(-100%)' : 'translateX(0)',
+          boxShadow: screenSize === 'mobile' ? '4px 0 8px rgba(0, 0, 0, 0.1)' : 'none'
+        }}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        className={className}
       >
         {/* Header */}
-        <div style={{ padding: '16px', borderBottom: '1px solid #e5e7eb' }}>
+        <div style={{ 
+          padding: '16px', 
+          borderBottom: '1px solid #e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between'
+        }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <div style={{ 
-              width: '32px', 
-              height: '32px', 
-              background: '#3b82f6', 
-              borderRadius: '8px', 
+              width: '36px', 
+              height: '36px', 
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', 
+              borderRadius: '10px', 
               display: 'flex', 
               alignItems: 'center', 
               justifyContent: 'center',
               color: 'white',
               fontWeight: 'bold',
-              fontSize: '16px'
+              fontSize: '18px',
+              boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)'
             }}>
               A
             </div>
-            {!isCollapsed && (
+            {isExpanded && (
               <div style={{ marginLeft: '12px' }}>
-                <h2 style={{ fontSize: '18px', fontWeight: '600', color: '#1f2937' }}>ATİS</h2>
+                <h2 style={{ 
+                  fontSize: '20px', 
+                  fontWeight: '700', 
+                  color: '#1f2937',
+                  margin: 0
+                }}>
+                  ATİS
+                </h2>
+                <p style={{ 
+                  fontSize: '11px', 
+                  color: '#6b7280', 
+                  margin: 0,
+                  fontWeight: '500'
+                }}>
+                  Təhsil İdarəetmə Sistemi
+                </p>
               </div>
             )}
+          </div>
+          
+          {screenSize === 'desktop' && (
             <button 
               onClick={toggleCollapse}
               style={{
-                marginLeft: 'auto',
+                background: 'none',
+                border: 'none',
+                padding: '8px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                color: '#6b7280',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#f3f4f6';
+                e.currentTarget.style.color = '#374151';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'none';
+                e.currentTarget.style.color = '#6b7280';
+              }}
+            >
+              {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+            </button>
+          )}
+
+          {screenSize === 'mobile' && (
+            <button 
+              onClick={closeMobile}
+              style={{
                 background: 'none',
                 border: 'none',
                 padding: '8px',
@@ -131,31 +349,19 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '', children }) => {
                 color: '#6b7280'
               }}
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m15 18-6-6 6-6"/>
-              </svg>
+              <X size={18} />
             </button>
-          </div>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav style={{ flex: 1, padding: '16px 8px' }}>
-          {navigationItems.map((item) => {
-            const IconComponent = getNavigationIcon(item.icon);
-            const isActive = window.location.pathname === item.path;
-            
-            return (
-              <a
-                key={item.id}
-                href={item.path}
-                className={`nav-item ${isActive ? 'active' : ''}`}
-                title={isCollapsed && !isHovered ? item.label : undefined}
-              >
-                <IconComponent className="nav-item-icon" />
-                <span className="nav-item-text">{item.label}</span>
-              </a>
-            );
-          })}
+        <nav style={{ 
+          flex: 1, 
+          padding: '16px 12px',
+          overflowY: 'auto',
+          overflowX: 'hidden'
+        }}>
+          {navigationItems.map(renderNavigationItem)}
         </nav>
 
         {/* User Profile */}
@@ -166,33 +372,48 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '', children }) => {
           alignItems: 'center'
         }}>
           <div style={{
-            width: '32px',
-            height: '32px',
-            background: '#10b981',
+            width: '40px',
+            height: '40px',
+            background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
             borderRadius: '50%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: 'white',
             fontWeight: 'bold',
-            fontSize: '14px'
+            fontSize: '16px',
+            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
           }}>
-            U
+            {user?.profile?.first_name?.charAt(0)?.toUpperCase() || 
+             user?.username?.charAt(0)?.toUpperCase() || 'U'}
           </div>
-          {!isCollapsed && (
-            <div style={{ marginLeft: '12px' }}>
-              <div style={{ fontSize: '14px', fontWeight: '600', color: '#1f2937' }}>
-                User
+          {isExpanded && (
+            <div style={{ marginLeft: '12px', flex: 1 }}>
+              <div style={{ 
+                fontSize: '14px', 
+                fontWeight: '600', 
+                color: '#1f2937',
+                marginBottom: '2px'
+              }}>
+                {user?.profile?.first_name && user?.profile?.last_name 
+                  ? `${user.profile.first_name} ${user.profile.last_name}`
+                  : user?.username || 'İstifadəçi'
+                }
               </div>
-              <div style={{ fontSize: '12px', color: '#6b7280' }}>
-                Admin
+              <div style={{ 
+                fontSize: '12px', 
+                color: '#6b7280',
+                fontWeight: '500'
+              }}>
+                {typeof user?.role === 'string' 
+                  ? user.role 
+                  : user?.role?.name || 'İstifadəçi'
+                }
               </div>
             </div>
           )}
         </div>
       </aside>
-      
-      {children}
     </>
   );
 });
