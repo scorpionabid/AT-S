@@ -8,7 +8,6 @@ import UserEditForm from './UserEditForm';
 import UserDeleteConfirm from './UserDeleteConfirm';
 import UserStatusConfirm from './UserStatusConfirm';
 import UserViewModal from './UserViewModal';
-import '../../styles/users.css';
 
 interface User {
   id: number;
@@ -288,21 +287,6 @@ const UsersList: React.FC = () => {
 
   return (
     <div className="users-list">
-      <div className="page-header">
-        <div className="header-content">
-          <h1 className="page-title">İstifadəçi İdarəetməsi</h1>
-          <p className="page-description">Sistem istifadəçilərini idarə edin</p>
-        </div>
-        <div className="header-actions">
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="add-user-button btn-with-icon"
-          >
-            <span className="btn-icon">➕</span>
-            Yeni İstifadəçi
-          </button>
-        </div>
-      </div>
 
       {error && (
         <div className="error-message">

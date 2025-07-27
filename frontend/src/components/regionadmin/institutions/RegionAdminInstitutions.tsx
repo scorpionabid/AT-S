@@ -13,7 +13,6 @@ import PerformanceInsights from './components/PerformanceInsights';
 import { useInstitutionStats } from './hooks/useInstitutionStats';
 
 // Styles
-import '../../../styles/regionadmin/pages/institutions.css';
 
 const RegionAdminInstitutions: React.FC = () => {
   const { user } = useAuth();

@@ -18,7 +18,6 @@ import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 import { api } from '../../services/api';
-import '../../styles/approval/approval-dashboard.css';
 
 interface ApprovalRequest {
   id: number;

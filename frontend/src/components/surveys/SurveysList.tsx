@@ -7,8 +7,6 @@ import { surveyEnhancedService } from '../../services/surveyEnhancedService';
 import SurveyCreateForm from './SurveyCreateForm';
 import SurveyEditForm from './SurveyEditForm';
 import { Icon, ActionIcon, StatusIcon } from '../common/IconSystem';
-import '../../styles/surveys.css';
-import '../../styles/survey-cards-minimal.css';
 
 interface Survey {
   id: number;

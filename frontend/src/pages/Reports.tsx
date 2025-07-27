@@ -8,7 +8,6 @@ import type {
   UserActivityReport,
   ReportFilters 
 } from '../services/reportsService';
-import '../styles/reports.css';
 
 const Reports: React.FC = () => {
   const { user } = useAuth();

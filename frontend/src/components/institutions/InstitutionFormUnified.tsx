@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useForm, validationRules } from '../../hooks';
 import { api } from '../../services/api';
-import '../../styles/institutions.css';
 
 // Types
 interface Institution {

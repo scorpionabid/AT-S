@@ -16,7 +16,6 @@ import KSQResultForm from './KSQResultForm';
 import BSQResultForm from './BSQResultForm';
 import AssessmentAnalytics from './AssessmentAnalytics';
 import { api } from '../../services/api';
-import '../../styles/assessment/assessment-dashboard.css';
 
 interface AssessmentOverview {
   ksq_analytics: {

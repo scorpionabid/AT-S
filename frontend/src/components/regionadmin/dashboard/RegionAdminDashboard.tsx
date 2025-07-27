@@ -19,7 +19,6 @@ import UsersTab from '../tabs/UsersTab';
 import { useRegionDashboard } from './hooks/useRegionDashboard';
 
 // Styles
-import '../../../styles/regionadmin/pages/dashboard.css';
 
 const RegionAdminDashboard: React.FC = () => {
   const { user } = useAuth();

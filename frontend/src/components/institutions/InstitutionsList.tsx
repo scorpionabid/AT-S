@@ -11,7 +11,6 @@ import InstitutionCardSkeleton from '../common/InstitutionCardSkeleton';
 import ErrorDisplay from '../common/ErrorDisplay';
 import { NoResultsEmptyState, ErrorEmptyState } from '../common/EmptyState';
 import { Icon, ActionIcon, StatusIcon, InstitutionTypeIcon, ICONS } from '../common/IconSystem';
-import '../../styles/institutions.css';
 
 interface Institution {
   id: number;

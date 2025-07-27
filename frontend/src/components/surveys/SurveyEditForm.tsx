@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import SurveyTargetingForm from './targeting/SurveyTargetingForm';
-import '../../styles/responsive-forms.css';
 
 interface Question {
   id: string;

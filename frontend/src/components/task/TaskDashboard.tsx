@@ -18,7 +18,6 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/Loading';
 import { ToastContainer, toast } from 'react-toastify';
-import '../../styles/task/task-dashboard.css';
 
 interface TaskData {
   id: number;

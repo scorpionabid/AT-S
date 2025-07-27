@@ -2,7 +2,6 @@ import React from 'react';
 import { useCRUD } from '../../hooks';
 import UserCreateForm from './UserCreateForm';
 import UserEditForm from './UserEditForm';
-import '../../styles/users.css';
 
 interface User {
   id: number;

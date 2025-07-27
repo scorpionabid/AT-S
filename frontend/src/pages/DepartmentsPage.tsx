@@ -7,7 +7,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
 import { useRoleBasedData, useRegionalData } from '../hooks/useRoleBasedData';
 import { Icon } from '../components/common/IconSystem';
-import '../styles/departments.css';
 import { 
   FiDollarSign, 
   FiSettings, 

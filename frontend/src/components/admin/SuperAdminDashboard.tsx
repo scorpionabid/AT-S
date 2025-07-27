@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { dashboardServiceUnified, SuperAdminAnalytics, SystemStatusDetailed } from '../../services';
-import '../../styles/superadmin-dashboard.css';
 
 const SuperAdminDashboard: React.FC = () => {
   const [analytics, setAnalytics] = useState<SuperAdminAnalytics | null>(null);

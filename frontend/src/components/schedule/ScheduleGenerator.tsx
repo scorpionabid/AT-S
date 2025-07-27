@@ -22,7 +22,6 @@ import {
   TimeSlot 
 } from './types/scheduleTypes';
 
-import '../../styles/schedule/schedule-generator.css';
 
 const ScheduleGenerator: React.FC = () => {
   console.log('ScheduleGenerator: UPDATED VERSION - NO API CALLS - TIMESTAMP: 2025-07-20 23:25');

@@ -11,7 +11,6 @@ import SubjectDistributionChart from './charts/SubjectDistributionChart';
 import TeacherPerformanceRadar from './charts/TeacherPerformanceRadar';
 
 // Import chart styles
-import '../../styles/academic/charts.css';
 
 interface WorkloadAnalyticsProps {
   teachers: TeacherInfo[];

@@ -17,7 +17,6 @@ import ConflictDetectionSystem from './ConflictDetectionSystem';
 // Import types
 import { TeacherInfo, TeachingLoad, WorkloadSummary } from './types/teachingLoadTypes';
 
-import '../../styles/academic/teaching-load-manager.css';
 
 const TeachingLoadManager: React.FC = () => {
   console.log('🔥 COMPLETELY REWRITTEN - NO API CALLS EVER - DEMO ONLY 🔥');

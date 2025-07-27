@@ -3,7 +3,6 @@ import { api } from '../../services/api';
 import DepartmentCreateForm from './DepartmentCreateForm';
 import DepartmentEditForm from './DepartmentEditForm';
 import { Icon, ActionIcon, StatusIcon } from '../common/IconSystem';
-import '../../styles/departments.css';
 
 interface Department {
   id: number;

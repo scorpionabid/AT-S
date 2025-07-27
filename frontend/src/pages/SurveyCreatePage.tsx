@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SurveyCreateForm from '../components/surveys/SurveyCreateForm';
 import { Icon } from '../components/common/IconSystem';
-import '../styles/surveys.css';
 
 const SurveyCreatePage: React.FC = () => {
   const navigate = useNavigate();

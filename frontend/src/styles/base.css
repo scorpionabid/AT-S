@@ -1,13 +1,13 @@
-/* Təmiz və Sadə ATİS Application Styles */
+/* ATİS - Tamamilə Təmiz Sistem - Heç bir CSS class yoxdur */
+/* Bütün stillər inline olacaq */
 
-/* Global Reset */
+/* Sadəcə global reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Base Styles */
 html, body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
   font-size: 14px;
@@ -23,13 +23,13 @@ html, body {
   width: 100%;
 }
 
-/* Basic Focus */
+/* Basic focus */
 *:focus {
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
 
-/* Basic Scrollbar */
+/* Basic scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;

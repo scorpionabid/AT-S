@@ -41,17 +41,16 @@
   width: var(--sidebar-width-collapsed);
 }
 
-/* CRITICAL FIX: Enhanced hover effect with proper specificity and no conflicts */
+/* WORKING HOVER FIX: Simple and effective */
 @media (min-width: 1024px) {
-  /* Pure CSS hover - this will now work without JavaScript conflicts */
-  .app-sidebar[data-collapsed="true"]:hover {
-    width: var(--sidebar-width-expanded) !important; /* Force override inline styles */
+  .app-sidebar.collapsed:hover {
+    width: 280px !important;
     box-shadow: 
       0 20px 40px rgba(0, 0, 0, 0.15),
       0 8px 16px rgba(0, 0, 0, 0.1);
-    z-index: var(--z-sidebar-hover, 1005); /* Higher z-index when hovered */
-    transform: translateX(0); /* Ensure no transform conflicts */
+    z-index: var(--z-sidebar-hover, 1005);
   }
+}
   
   /* Smooth text transitions for collapsed state */
   .app-sidebar[data-collapsed="true"]:hover .sidebar-item-text {

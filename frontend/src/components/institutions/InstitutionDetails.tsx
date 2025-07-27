@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import DepartmentManagement from '../departments/DepartmentManagement';
-import '../../styles/institutions.css';
-import '../../styles/departments.css';
 
 interface Institution {
   id: number;

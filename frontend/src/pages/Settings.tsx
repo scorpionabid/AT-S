@@ -6,7 +6,6 @@ import type {
   ScheduledReport,
   MaintenanceTask 
 } from '../services/systemConfigService';
-import '../styles/settings.css';
 
 const Settings: React.FC = () => {
   const { user } = useAuth();

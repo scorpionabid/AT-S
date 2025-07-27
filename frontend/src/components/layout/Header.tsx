@@ -1,157 +1,142 @@
-import React, { useState, useEffect } from 'react';
-import { FiSearch, FiZap } from 'react-icons/fi';
+import React, { useState } from 'react';
+import { Search, Bell, User, Menu } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useLayout } from '../../contexts/LayoutContext';
-import MenuToggle from './MenuToggle';
-import HeaderActions from './HeaderActions';
-
-import NotificationDropdown from '../dropdown/NotificationDropdown';
-import ProfileDropdown from '../dropdown/ProfileDropdown';
-import GlobalSearch from '../navigation/GlobalSearch';
-import QuickActionsPanel from '../navigation/QuickActionsPanel';
 
 interface HeaderProps {
-  themeToggle?: boolean;
-  languageSwitcher?: boolean;
-  compact?: boolean;
+  className?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({
-  themeToggle = true,
-  languageSwitcher = true,
-  compact = false,
-}) => {
+const Header: React.FC<HeaderProps> = ({ className = '' }) => {
   const { user } = useAuth();
-  const { t } = useLanguage();
-  const { screenSize, sidebarWidth } = useLayout();
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [quickActionsOpen, setQuickActionsOpen] = useState(false);
+  const { isCollapsed, screenSize, toggleMobile } = useLayout();
 
-  // Dynamic header styles for sidebar synchronization
-  const headerStyles = React.useMemo(() => ({
-    left: screenSize === 'mobile' ? 0 : `var(--sidebar-width-current, 80px)`,
-    width: screenSize === 'mobile' ? '100%' : `calc(100% - var(--sidebar-width-current, 80px))`,
-    zIndex: 'var(--z-header)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
-  }), [screenSize]);
-
-  // Global keyboard shortcuts
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Search shortcut (Cmd+K / Ctrl+K)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
-        e.preventDefault();
-        setSearchOpen(true);
-      }
-      
-      // Quick actions shortcut (Cmd+J / Ctrl+J)
-      if ((e.metaKey || e.ctrlKey) && e.key === 'j') {
-        e.preventDefault();
-        setQuickActionsOpen(true);
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  // Header classes
+  const headerClasses = [
+    'app-header',
+    isCollapsed ? 'sidebar-collapsed' : '',
+    className
+  ].filter(Boolean).join(' ');
 
   return (
-    <>
-      <header 
-        className="app-header fixed top-0 bg-white/95 backdrop-blur-md border-b border-neutral-200 shadow-sm"
-        style={headerStyles}
-      >
-        <div className="w-full px-3 sm:px-4 md:px-6 lg:px-8">
-          <div className="flex items-center h-16 md:h-20">
-            {/* Sol hissə: menyu və başlıq */}
-            <div className="flex-shrink-0 flex items-center">
-              <MenuToggle />
-              {!compact && (
-                <div className="hidden sm:block ml-3 md:ml-4">
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white leading-tight">
-                    {t('app.name')}
-                  </h1>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                    {t('app.description')}
-                  </p>
-                </div>
-              )}
-            </div>
+    <header className={headerClasses}>
+      {/* Mobile menu button */}
+      {screenSize === 'mobile' && (
+        <button 
+          onClick={toggleMobile}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            color: '#6b7280'
+          }}
+        >
+          <Menu size={20} />
+        </button>
+      )}
 
-            {/* Genişlənən boşluq (bütün fəaliyyətləri sağa itələyir) */}
-            <div className="flex-1"></div>
-
-            {/* Sağ tərəfdəki bütün fəaliyyətlər üçün konteyner (sağdan daha çox məsafə ilə) */}
-            <div className="flex items-center gap-4 mr-4">
-              {/* Search Button */}
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="hidden sm:flex items-center px-3 py-1.5 text-sm text-gray-500 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-400 rounded-lg transition-colors duration-200 min-w-[200px] justify-between"
-                title="Axtarış (⌘K)"
-              >
-                <div className="flex items-center">
-                  <FiSearch className="w-4 h-4 mr-2" />
-                  <span>Axtarış...</span>
-                </div>
-                <kbd className="px-1.5 py-0.5 text-xs bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-600 rounded">
-                  ⌘K
-                </kbd>
-              </button>
-              
-              {/* Mobile search button */}
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="sm:hidden p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
-                title="Axtarış"
-              >
-                <FiSearch className="w-5 h-5" />
-              </button>
-
-              {/* Quick Actions Button */}
-              <button
-                onClick={() => setQuickActionsOpen(true)}
-                className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
-                title="Tez Əməliyyatlar (⌘J)"
-              >
-                <FiZap className="w-5 h-5" />
-              </button>
-
-              {/* Qrup 1: Tətbiq ikonları + Bildirişlər */}
-              <div className="flex items-center gap-2">
-                <HeaderActions
-                  showThemeToggle={themeToggle}
-                  showLanguageSwitcher={languageSwitcher}
-                />
-                <NotificationDropdown />
-              </div>
-
-              {/* Qrup 2: Profil menyusu */}
-              <div className="flex items-center">
-                <ProfileDropdown />
-              </div>
-            </div>
-          </div>
+      {/* Search */}
+      <div style={{ 
+        flex: 1, 
+        maxWidth: '400px',
+        marginLeft: screenSize === 'mobile' ? '12px' : '0'
+      }}>
+        <div style={{
+          position: 'relative',
+          display: 'flex',
+          alignItems: 'center'
+        }}>
+          <Search 
+            size={16} 
+            style={{
+              position: 'absolute',
+              left: '12px',
+              color: '#9ca3af'
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search..."
+            style={{
+              width: '100%',
+              padding: '8px 12px 8px 36px',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              fontSize: '14px',
+              background: '#f9fafb'
+            }}
+          />
         </div>
-      </header>
+      </div>
 
+      {/* Right side actions */}
+      <div style={{ 
+        display: 'flex', 
+        alignItems: 'center', 
+        gap: '12px',
+        marginLeft: '24px'
+      }}>
+        {/* Notifications */}
+        <button
+          style={{
+            position: 'relative',
+            background: 'none',
+            border: 'none',
+            padding: '8px',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            color: '#6b7280'
+          }}
+        >
+          <Bell size={20} />
+          <span style={{
+            position: 'absolute',
+            top: '4px',
+            right: '4px',
+            width: '8px',
+            height: '8px',
+            background: '#ef4444',
+            borderRadius: '50%'
+          }} />
+        </button>
 
-      
-      {/* Global Search Modal */}
-      <GlobalSearch 
-        isOpen={searchOpen} 
-        onClose={() => setSearchOpen(false)} 
-      />
-      
-      {/* Quick Actions Panel */}
-      <QuickActionsPanel 
-        isOpen={quickActionsOpen} 
-        onClose={() => setQuickActionsOpen(false)} 
-      />
-    </>
+        {/* User Menu */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '8px',
+          padding: '4px 8px',
+          borderRadius: '8px',
+          cursor: 'pointer',
+          border: '1px solid #e5e7eb'
+        }}>
+          <div style={{
+            width: '28px',
+            height: '28px',
+            background: '#3b82f6',
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'white',
+            fontSize: '12px',
+            fontWeight: 'bold'
+          }}>
+            {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+          </div>
+          {screenSize !== 'mobile' && (
+            <div>
+              <div style={{ fontSize: '14px', fontWeight: '500', color: '#1f2937' }}>
+                {user?.name || 'User'}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
   );
 };
 
 export default Header;
-
-
