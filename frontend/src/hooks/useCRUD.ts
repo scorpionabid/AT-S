@@ -1,436 +1,367 @@
-// ====================
-// ATİS CRUD Hook
-// Eliminates CRUD operation duplication across list components
-// ====================
+import { useState, useCallback, useEffect } from 'react';
+import { api } from '../services/api';
 
-import { useState, useEffect, useCallback } from 'react';
-
-export interface UseCRUDOptions<T> {
-  apiEndpoint: string;
-  initialFilters?: Record<string, any>;
-  pageSize?: number;
-  onError?: (error: string) => void;
-  onSuccess?: (message: string) => void;
-}
-
-export interface PaginatedResponse<T> {
+export interface CRUDState<T> {
   data: T[];
+  loading: boolean;
+  error: string | null;
   meta: {
     current_page: number;
     last_page: number;
     per_page: number;
     total: number;
+    from: number;
+    to: number;
   };
 }
 
-export interface UseCRUDReturn<T> {
-  // Data state
-  data: T[];
-  loading: boolean;
-  error: string;
-  
-  // Pagination
-  currentPage: number;
-  totalPages: number;
-  totalCount: number;
-  
-  // Filters & Search
-  filters: Record<string, any>;
-  searchTerm: string;
-  
-  // Modal states
-  showCreateModal: boolean;
-  showEditModal: boolean;
-  showDeleteModal: boolean;
-  editingItem: T | null;
-  deletingItem: T | null;
-  
-  // Actions
-  setCurrentPage: (page: number) => void;
-  setSearchTerm: (term: string) => void;
-  setFilters: (filters: Record<string, any>) => void;
-  updateFilter: (key: string, value: any) => void;
-  clearFilters: () => void;
-  
-  // CRUD Operations
-  fetchData: (page?: number) => Promise<void>;
-  createItem: (item: Partial<T>) => Promise<void>;
-  updateItem: (id: number | string, item: Partial<T>) => Promise<void>;
-  deleteItem: (id: number | string, soft?: boolean) => Promise<void>;
-  
-  // Modal controls
-  openCreateModal: () => void;
-  openEditModal: (item: T) => void;
-  openDeleteModal: (item: T) => void;
-  closeModals: () => void;
-  
-  // Bulk operations
-  bulkDelete: (ids: (number | string)[], soft?: boolean) => Promise<void>;
-  bulkUpdate: (ids: (number | string)[], updates: Partial<T>) => Promise<void>;
-  
-  // Refresh
-  refetch: () => Promise<void>;
+export interface CRUDFilters {
+  page?: number;
+  per_page?: number;
+  search?: string;
+  sort_field?: string;
+  sort_order?: 'asc' | 'desc';
+  [key: string]: any;
 }
 
-export function useCRUD<T extends { id: number | string }>({
-  apiEndpoint,
-  initialFilters = {},
-  pageSize = 10,
-  onError,
-  onSuccess
-}: UseCRUDOptions<T>): UseCRUDReturn<T> {
+export interface CRUDOperations<T, CreateData = Partial<T>, UpdateData = Partial<T>> {
+  // State
+  state: CRUDState<T>;
   
-  // Data state
-  const [data, setData] = useState<T[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
+  // Read operations
+  fetchData: (filters?: CRUDFilters) => Promise<void>;
+  refreshData: () => Promise<void>;
   
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
+  // Create operations
+  createItem: (data: CreateData) => Promise<T>;
   
-  // Filter state
-  const [filters, setFilters] = useState<Record<string, any>>(initialFilters);
-  const [searchTerm, setSearchTerm] = useState('');
+  // Update operations
+  updateItem: (id: number, data: UpdateData) => Promise<T>;
   
-  // Modal state
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [editingItem, setEditingItem] = useState<T | null>(null);
-  const [deletingItem, setDeletingItem] = useState<T | null>(null);
+  // Delete operations
+  deleteItem: (id: number) => Promise<void>;
+  bulkDelete: (ids: number[]) => Promise<void>;
+  
+  // Search and filter
+  setFilters: (filters: CRUDFilters) => void;
+  clearFilters: () => void;
+  
+  // Pagination
+  setPage: (page: number) => void;
+  setPerPage: (perPage: number) => void;
+  
+  // Sorting
+  setSort: (field: string, order: 'asc' | 'desc') => void;
+  
+  // Utility
+  findItem: (id: number) => T | undefined;
+  getSelectedItems: (ids: number[]) => T[];
+}
 
-  // Build API parameters
-  const buildParams = useCallback((page: number = currentPage) => {
-    const params: Record<string, any> = {
-      page,
-      per_page: pageSize,
-      ...filters
-    };
-    
-    if (searchTerm.trim()) {
-      params.search = searchTerm.trim();
+export interface UseCRUDOptions {
+  endpoint: string;
+  initialFilters?: CRUDFilters;
+  autoFetch?: boolean;
+  onError?: (error: string) => void;
+  onSuccess?: (message: string) => void;
+}
+
+export function useCRUD<T extends { id: number }, CreateData = Partial<T>, UpdateData = Partial<T>>(
+  options: UseCRUDOptions
+): CRUDOperations<T, CreateData, UpdateData> {
+  const {
+    endpoint,
+    initialFilters = { page: 1, per_page: 10 },
+    autoFetch = true,
+    onError,
+    onSuccess
+  } = options;
+
+  // State management
+  const [state, setState] = useState<CRUDState<T>>({
+    data: [],
+    loading: autoFetch,
+    error: null,
+    meta: {
+      current_page: 1,
+      last_page: 1,
+      per_page: 10,
+      total: 0,
+      from: 0,
+      to: 0
     }
-    
-    return params;
-  }, [currentPage, pageSize, filters, searchTerm]);
+  });
 
-  // Fetch data from API
-  const fetchData = useCallback(async (page: number = currentPage) => {
+  const [currentFilters, setCurrentFilters] = useState<CRUDFilters>(initialFilters);
+
+  // Fetch data
+  const fetchData = useCallback(async (filters: CRUDFilters = currentFilters) => {
     try {
-      setLoading(true);
-      setError('');
+      setState(prev => ({ ...prev, loading: true, error: null }));
       
-      const params = buildParams(page);
-      const queryString = new URLSearchParams(params).toString();
-      const response = await fetch(`${apiEndpoint}?${queryString}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
+      console.log(`🔄 Fetching data from ${endpoint} with filters:`, filters);
+      
+      const response = await api.get(endpoint, { 
+        params: {
+          ...filters,
+          // Ensure pagination params are present
+          page: filters.page || 1,
+          per_page: filters.per_page || 10
+        }
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      console.log('✅ Data fetched successfully:', response.data);
+      
+      // Handle different response structures
+      let data: T[];
+      let meta;
+      
+      if (response.data.data) {
+        // Laravel pagination format
+        data = response.data.data;
+        meta = response.data.meta || response.data;
+      } else if (Array.isArray(response.data)) {
+        // Simple array format
+        data = response.data;
+        meta = {
+          current_page: 1,
+          last_page: 1,
+          per_page: data.length,
+          total: data.length,
+          from: 1,
+          to: data.length
+        };
+      } else {
+        // Custom format (institutions, users, etc.)
+        const keys = Object.keys(response.data);
+        const dataKey = keys.find(key => Array.isArray(response.data[key]));
+        
+        if (dataKey) {
+          data = response.data[dataKey];
+          meta = response.data.meta || {
+            current_page: 1,
+            last_page: 1,
+            per_page: data.length,
+            total: data.length,
+            from: 1,
+            to: data.length
+          };
+        } else {
+          throw new Error('Invalid response format');
+        }
       }
       
-      const result: PaginatedResponse<T> = await response.json();
+      setState(prev => ({
+        ...prev,
+        data,
+        meta,
+        loading: false,
+        error: null
+      }));
       
-      setData(result.data);
-      setCurrentPage(result.meta.current_page);
-      setTotalPages(result.meta.last_page);
-      setTotalCount(result.meta.total);
+      // Update current filters
+      setCurrentFilters(filters);
       
-    } catch (err: any) {
-      const errorMessage = err.message || 'Məlumatları yükləyərkən xəta baş verdi';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      console.error('❌ Error fetching data:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Məlumat yüklənərkən xəta baş verdi';
+      
+      setState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage
+      }));
+      
+      onError?.(errorMessage);
     }
-  }, [apiEndpoint, buildParams, currentPage, onError]);
+  }, [endpoint, currentFilters, onError]);
 
-  // Create new item
-  const createItem = useCallback(async (item: Partial<T>) => {
-    try {
-      setLoading(true);
-      
-      const response = await fetch(apiEndpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(item),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Yaradılma zamanı xəta baş verdi');
-      }
-      
-      await fetchData(1); // Refresh first page
-      closeModals();
-      
-      if (onSuccess) onSuccess('Məlumat uğurla yaradıldı');
-      
-    } catch (err: any) {
-      const errorMessage = err.message || 'Yaradılma zamanı xəta baş verdi';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [apiEndpoint, fetchData, onError, onSuccess]);
+  // Refresh data with current filters
+  const refreshData = useCallback(() => {
+    return fetchData(currentFilters);
+  }, [fetchData, currentFilters]);
 
-  // Update existing item
-  const updateItem = useCallback(async (id: number | string, item: Partial<T>) => {
+  // Create item
+  const createItem = useCallback(async (data: CreateData): Promise<T> => {
     try {
-      setLoading(true);
+      console.log(`🆕 Creating new item at ${endpoint}:`, data);
       
-      const response = await fetch(`${apiEndpoint}/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(item),
-      });
+      const response = await api.post(endpoint, data);
+      const newItem = response.data.data || response.data;
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Yenilənmə zamanı xəta baş verdi');
+      console.log('✅ Item created successfully:', newItem);
+      
+      // Add to current data if on first page
+      if (state.meta.current_page === 1) {
+        setState(prev => ({
+          ...prev,
+          data: [newItem, ...prev.data.slice(0, prev.meta.per_page - 1)],
+          meta: {
+            ...prev.meta,
+            total: prev.meta.total + 1
+          }
+        }));
       }
       
-      await fetchData(); // Refresh current page
-      closeModals();
+      onSuccess?.('Məlumat uğurla əlavə edildi');
+      return newItem;
       
-      if (onSuccess) onSuccess('Məlumat uğurla yeniləndi');
-      
-    } catch (err: any) {
-      const errorMessage = err.message || 'Yenilənmə zamanı xəta baş verdi';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      console.error('❌ Error creating item:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Məlumat əlavə edilərkən xəta baş verdi';
+      onError?.(errorMessage);
+      throw error;
     }
-  }, [apiEndpoint, fetchData, onError, onSuccess]);
+  }, [endpoint, state.meta, onSuccess, onError]);
+
+  // Update item
+  const updateItem = useCallback(async (id: number, data: UpdateData): Promise<T> => {
+    try {
+      console.log(`✏️ Updating item ${id} at ${endpoint}:`, data);
+      
+      const response = await api.put(`${endpoint}/${id}`, data);
+      const updatedItem = response.data.data || response.data;
+      
+      console.log('✅ Item updated successfully:', updatedItem);
+      
+      // Update in current data
+      setState(prev => ({
+        ...prev,
+        data: prev.data.map(item => 
+          item.id === id ? updatedItem : item
+        )
+      }));
+      
+      onSuccess?.('Məlumat uğurla yeniləndi');
+      return updatedItem;
+      
+    } catch (error: any) {
+      console.error('❌ Error updating item:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Məlumat yenilənərkən xəta baş verdi';
+      onError?.(errorMessage);
+      throw error;
+    }
+  }, [endpoint, onSuccess, onError]);
 
   // Delete item
-  const deleteItem = useCallback(async (id: number | string, soft: boolean = true) => {
+  const deleteItem = useCallback(async (id: number): Promise<void> => {
     try {
-      setLoading(true);
+      console.log(`🗑️ Deleting item ${id} at ${endpoint}`);
       
-      const endpoint = soft ? `${apiEndpoint}/${id}/soft-delete` : `${apiEndpoint}/${id}`;
-      const method = soft ? 'POST' : 'DELETE';
+      await api.delete(`${endpoint}/${id}`);
       
-      const response = await fetch(endpoint, {
-        method,
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      console.log('✅ Item deleted successfully');
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Silinmə zamanı xəta baş verdi');
-      }
+      // Remove from current data
+      setState(prev => ({
+        ...prev,
+        data: prev.data.filter(item => item.id !== id),
+        meta: {
+          ...prev.meta,
+          total: prev.meta.total - 1
+        }
+      }));
       
-      await fetchData(); // Refresh current page
-      closeModals();
+      onSuccess?.('Məlumat uğurla silindi');
       
-      const message = soft ? 'Məlumat uğurla arxivləndi' : 'Məlumat uğurla silindi';
-      if (onSuccess) onSuccess(message);
-      
-    } catch (err: any) {
-      const errorMessage = err.message || 'Silinmə zamanı xəta baş verdi';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      console.error('❌ Error deleting item:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Məlumat silinərkən xəta baş verdi';
+      onError?.(errorMessage);
+      throw error;
     }
-  }, [apiEndpoint, fetchData, onError, onSuccess]);
+  }, [endpoint, onSuccess, onError]);
 
   // Bulk delete
-  const bulkDelete = useCallback(async (ids: (number | string)[], soft: boolean = true) => {
+  const bulkDelete = useCallback(async (ids: number[]): Promise<void> => {
     try {
-      setLoading(true);
+      console.log(`🗑️ Bulk deleting items at ${endpoint}:`, ids);
       
-      const endpoint = soft ? `${apiEndpoint}/bulk-soft-delete` : `${apiEndpoint}/bulk-delete`;
+      await api.post(`${endpoint}/bulk-delete`, { ids });
       
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ids }),
-      });
+      console.log('✅ Items deleted successfully');
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Toplu silinmə zamanı xəta baş verdi');
-      }
+      // Remove from current data
+      setState(prev => ({
+        ...prev,
+        data: prev.data.filter(item => !ids.includes(item.id)),
+        meta: {
+          ...prev.meta,
+          total: prev.meta.total - ids.length
+        }
+      }));
       
-      await fetchData(); // Refresh current page
+      onSuccess?.(`${ids.length} məlumat uğurla silindi`);
       
-      const message = soft ? 
-        `${ids.length} məlumat uğurla arxivləndi` : 
-        `${ids.length} məlumat uğurla silindi`;
-      if (onSuccess) onSuccess(message);
-      
-    } catch (err: any) {
-      const errorMessage = err.message || 'Toplu silinmə zamanı xəta baş verdi';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setLoading(false);
+    } catch (error: any) {
+      console.error('❌ Error bulk deleting items:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Məlumatlar silinərkən xəta baş verdi';
+      onError?.(errorMessage);
+      throw error;
     }
-  }, [apiEndpoint, fetchData, onError, onSuccess]);
+  }, [endpoint, onSuccess, onError]);
 
-  // Bulk update
-  const bulkUpdate = useCallback(async (ids: (number | string)[], updates: Partial<T>) => {
-    try {
-      setLoading(true);
-      
-      const response = await fetch(`${apiEndpoint}/bulk-update`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ ids, updates }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Toplu yenilənmə zamanı xəta baş verdi');
-      }
-      
-      await fetchData(); // Refresh current page
-      
-      if (onSuccess) onSuccess(`${ids.length} məlumat uğurla yeniləndi`);
-      
-    } catch (err: any) {
-      const errorMessage = err.message || 'Toplu yenilənmə zamanı xəta baş verdi';
-      setError(errorMessage);
-      if (onError) onError(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [apiEndpoint, fetchData, onError, onSuccess]);
-
-  // Filter functions
-  const updateFilter = useCallback((key: string, value: any) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setCurrentPage(1); // Reset to first page when filtering
-  }, []);
+  // Filter management
+  const setFilters = useCallback((filters: CRUDFilters) => {
+    const newFilters = { ...currentFilters, ...filters };
+    setCurrentFilters(newFilters);
+    fetchData(newFilters);
+  }, [currentFilters, fetchData]);
 
   const clearFilters = useCallback(() => {
-    setFilters(initialFilters);
-    setSearchTerm('');
-    setCurrentPage(1);
-  }, [initialFilters]);
+    const clearedFilters = { 
+      page: 1, 
+      per_page: currentFilters.per_page || 10 
+    };
+    setCurrentFilters(clearedFilters);
+    fetchData(clearedFilters);
+  }, [currentFilters.per_page, fetchData]);
 
-  // Modal controls
-  const openCreateModal = useCallback(() => {
-    setShowCreateModal(true);
-    setError('');
-  }, []);
+  // Pagination helpers
+  const setPage = useCallback((page: number) => {
+    setFilters({ page });
+  }, [setFilters]);
 
-  const openEditModal = useCallback((item: T) => {
-    setEditingItem(item);
-    setShowEditModal(true);
-    setError('');
-  }, []);
+  const setPerPage = useCallback((per_page: number) => {
+    setFilters({ page: 1, per_page });
+  }, [setFilters]);
 
-  const openDeleteModal = useCallback((item: T) => {
-    setDeletingItem(item);
-    setShowDeleteModal(true);
-    setError('');
-  }, []);
+  // Sorting helpers
+  const setSort = useCallback((field: string, order: 'asc' | 'desc') => {
+    setFilters({ sort_field: field, sort_order: order });
+  }, [setFilters]);
 
-  const closeModals = useCallback(() => {
-    setShowCreateModal(false);
-    setShowEditModal(false);
-    setShowDeleteModal(false);
-    setEditingItem(null);
-    setDeletingItem(null);
-    setError('');
-  }, []);
+  // Utility functions
+  const findItem = useCallback((id: number): T | undefined => {
+    return state.data.find(item => item.id === id);
+  }, [state.data]);
 
-  // Pagination handlers
-  const handlePageChange = useCallback((page: number) => {
-    setCurrentPage(page);
-  }, []);
+  const getSelectedItems = useCallback((ids: number[]): T[] => {
+    return state.data.filter(item => ids.includes(item.id));
+  }, [state.data]);
 
-  const handleSearchChange = useCallback((term: string) => {
-    setSearchTerm(term);
-    setCurrentPage(1); // Reset to first page when searching
-  }, []);
-
-  const handleFiltersChange = useCallback((newFilters: Record<string, any>) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filtering
-  }, []);
-
-  // Refetch (alias for fetchData)
-  const refetch = useCallback(() => fetchData(), [fetchData]);
-
-  // Initial data fetch and dependencies
+  // Auto-fetch on mount
   useEffect(() => {
-    fetchData();
-  }, [currentPage, filters, searchTerm]);
+    if (autoFetch) {
+      fetchData(initialFilters);
+    }
+  }, []); // Only run on mount
 
   return {
-    // Data state
-    data,
-    loading,
-    error,
-    
-    // Pagination
-    currentPage,
-    totalPages,
-    totalCount,
-    
-    // Filters & Search
-    filters,
-    searchTerm,
-    
-    // Modal states
-    showCreateModal,
-    showEditModal,
-    showDeleteModal,
-    editingItem,
-    deletingItem,
-    
-    // Actions
-    setCurrentPage: handlePageChange,
-    setSearchTerm: handleSearchChange,
-    setFilters: handleFiltersChange,
-    updateFilter,
-    clearFilters,
-    
-    // CRUD Operations
+    state,
     fetchData,
+    refreshData,
     createItem,
     updateItem,
     deleteItem,
-    
-    // Modal controls
-    openCreateModal,
-    openEditModal,
-    openDeleteModal,
-    closeModals,
-    
-    // Bulk operations
     bulkDelete,
-    bulkUpdate,
-    
-    // Refresh
-    refetch
+    setFilters,
+    clearFilters,
+    setPage,
+    setPerPage,
+    setSort,
+    findItem,
+    getSelectedItems
   };
 }
 
