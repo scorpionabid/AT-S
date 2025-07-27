@@ -212,12 +212,11 @@ const Sidebar: React.FC<SidebarProps> = memo(({
   const sidebarClasses = cn(
     'app-sidebar',
     'flex flex-col h-screen fixed left-0 top-0',
-    'transition-all duration-300 ease-in-out',
     isCollapsed ? 'collapsed' : '',
     isHovered && isCollapsed ? 'hovered' : '',
     className,
     variant === 'modern' && 'sidebar-glass-effect',
-    // Mobile transitions
+    // Mobile transitions (only for mobile)
     screenSize === 'mobile' && [
       'transition-transform duration-300 ease-out',
       isMobileOpen ? 'sidebar-slide-in' : 'sidebar-slide-out'
@@ -257,9 +256,11 @@ const Sidebar: React.FC<SidebarProps> = memo(({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         style={{ 
-          width: `${sidebarWidth}px`,
           zIndex: isHovered && isCollapsed ? 'var(--z-sidebar-hover, 1001)' : 'var(--z-sidebar, 1000)'
         }}
+        data-collapsed={isCollapsed}
+        data-hovered={isHovered}
+        data-screen-size={screenSize}
       >
         {/* Always render header first */}
         <SidebarHeader 

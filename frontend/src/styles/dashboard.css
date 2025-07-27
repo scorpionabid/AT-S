@@ -74,7 +74,7 @@
   z-index: var(--z-header, 1010);
 }
 
-/* Main content - with sidebar offset */
+/* Main content - with sidebar offset - FIXED for smooth hover transitions */
 .dashboard-main {
   width: 100%;
   min-width: 0;
@@ -83,7 +83,9 @@
   flex-direction: column;
   min-height: 100vh;
   padding-top: var(--header-height, 80px);
-  padding-left: var(--sidebar-width, 280px); /* Add left padding equal to sidebar width */
+  /* CRITICAL FIX: Dynamic padding that responds to sidebar hover state */
+  padding-left: var(--content-offset, 280px);
+  transition: padding-left 0.3s cubic-bezier(0.4, 0, 0.2, 1); /* Smooth content shift */
 }
 
 /* Responsive layout for mobile/tablet */

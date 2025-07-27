@@ -327,12 +327,19 @@
   --gradient-surface: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(249, 250, 251, 0.95) 100%);
 
   /* ====================
-   * LAYOUT TOKENS
+   * LAYOUT TOKENS - ENHANCED FOR SMOOTH HOVER ANIMATIONS
    * ==================== */
   /* Sidebar Dimensions with Fallbacks */
   --sidebar-width: 280px;
   --sidebar-width-collapsed: 80px;
+  --sidebar-width-expanded: 280px;
   --sidebar-width-fallback: 280px; /* Fallback for JavaScript failure */
+  
+  /* Dynamic width calculation - responds to state changes */
+  --sidebar-width-current: calc(
+    var(--sidebar-width-collapsed) * var(--is-sidebar-collapsed, 0) +
+    var(--sidebar-width-expanded) * (1 - var(--is-sidebar-collapsed, 0))
+  );
   
   /* Header & Footer */
   --header-height: 80px;

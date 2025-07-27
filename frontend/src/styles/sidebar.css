@@ -1,7 +1,7 @@
 /* ATİS Sidebar Component Styles */
 /* Complete sidebar styling using design tokens */
 
-/* ===== SIDEBAR BASE STYLES ===== */
+/* ===== SIDEBAR BASE STYLES - FIXED HOVER ANIMATION ===== */
 .app-sidebar {
   /* Positioning */
   position: fixed;
@@ -17,8 +17,10 @@
     0 10px 25px rgba(0, 0, 0, 0.1),
     0 4px 12px rgba(0, 0, 0, 0.05);
   
-  /* Smooth transitions - Synchronized with layout */
-  transition: var(--layout-transition, all 0.3s cubic-bezier(0.4, 0, 0.2, 1));
+  /* CRITICAL FIX: Enhanced smooth transitions using CSS custom properties */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   
   /* Z-index management - Use design token */
   z-index: var(--z-sidebar, 1000);
@@ -26,36 +28,56 @@
   /* Enhanced visibility */
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   
-  /* Width management - Use consistent values */
-  width: 280px;
+  /* FIXED: Dynamic width using CSS custom properties - no more inline width conflicts */
+  width: var(--sidebar-width-expanded); /* Default expanded */
   
   /* Overflow management */
   overflow-y: auto;
   overflow-x: hidden;
 }
 
-.app-sidebar.collapsed {
-  width: 80px;
+/* Collapsed state - uses data attributes for better control */
+.app-sidebar[data-collapsed="true"] {
+  width: var(--sidebar-width-collapsed);
 }
 
-/* Hover effect for collapsed sidebar on desktop */
-@media (min-width: 1025px) {
-  .app-sidebar.collapsed.hovered {
-    width: 280px;
+/* CRITICAL FIX: Enhanced hover effect with proper specificity and no conflicts */
+@media (min-width: 1024px) {
+  /* Pure CSS hover - this will now work without JavaScript conflicts */
+  .app-sidebar[data-collapsed="true"]:hover {
+    width: var(--sidebar-width-expanded) !important; /* Force override inline styles */
     box-shadow: 
       0 20px 40px rgba(0, 0, 0, 0.15),
       0 8px 16px rgba(0, 0, 0, 0.1);
     z-index: var(--z-sidebar-hover, 1005); /* Higher z-index when hovered */
+    transform: translateX(0); /* Ensure no transform conflicts */
   }
   
-  .app-sidebar.collapsed.hovered .sidebar-item-text {
+  /* Smooth text transitions for collapsed state */
+  .app-sidebar[data-collapsed="true"]:hover .sidebar-item-text {
     opacity: 1;
     transition-delay: 150ms; /* Delay text appearance for smooth effect */
+    transform: translateX(0);
   }
   
-  .app-sidebar.collapsed .sidebar-item-text {
+  .app-sidebar[data-collapsed="true"] .sidebar-item-text {
     opacity: 0;
-    transition: opacity 0.2s ease-in-out;
+    transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+    transform: translateX(-10px);
+  }
+  
+  /* Enhanced glow effect on hover */
+  .app-sidebar[data-collapsed="true"]:hover {
+    box-shadow: 
+      0 20px 40px rgba(0, 0, 0, 0.15),
+      0 8px 16px rgba(0, 0, 0, 0.1),
+      0 0 20px rgba(8, 114, 232, 0.2); /* Blue glow */
+  }
+  
+  /* Ensure content offset updates smoothly */
+  .app-sidebar[data-collapsed="true"]:hover ~ .dashboard-main {
+    margin-left: var(--sidebar-width-expanded);
+    transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 

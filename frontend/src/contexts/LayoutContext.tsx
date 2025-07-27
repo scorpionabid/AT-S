@@ -116,32 +116,35 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return isCollapsed ? 80 : 280;
   }, [screenSize, isCollapsed, isMobileOpen, isHovered]);
 
-  // CSS Variables sync with real-time updates
+  // CSS Variables sync with real-time updates - FIXED hover animation conflict
   React.useEffect(() => {
     const root = document.documentElement;
-    const currentWidth = screenSize === 'mobile' || screenSize === 'tablet' 
-      ? (isMobileOpen ? 280 : 0)
-      : (isCollapsed && !isHovered ? 80 : 280);
     
-    // Primary layout variables
-    root.style.setProperty('--sidebar-width-current', `${currentWidth}px`);
+    // CRITICAL FIX: Don't set inline width - let CSS handle hover transitions
+    // Only set state variables for CSS to use with calc() functions
+    
+    // Primary layout variables (base values only)
     root.style.setProperty('--sidebar-width-collapsed', '80px');
     root.style.setProperty('--sidebar-width-expanded', '280px');
     
-    // State variables for conditional CSS
+    // State variables for conditional CSS - this is the key fix
     root.style.setProperty('--is-sidebar-collapsed', isCollapsed ? '1' : '0');
     root.style.setProperty('--is-sidebar-hovered', isHovered ? '1' : '0');
     root.style.setProperty('--is-mobile-open', isMobileOpen ? '1' : '0');
     root.style.setProperty('--screen-size', screenSize);
     
-    // Transform calculations for animations
+    // Mobile-specific transform for off-canvas behavior
     const translateValue = screenSize === 'mobile' ? 
       (isMobileOpen ? '0px' : '-100%') : '0px';
     root.style.setProperty('--sidebar-translate', translateValue);
     
-    // Content offset for main area
-    const contentOffset = screenSize === 'mobile' ? '0px' : `${currentWidth}px`;
-    root.style.setProperty('--content-offset', contentOffset);
+    // Content offset calculation - let CSS handle desktop hover transitions
+    if (screenSize === 'mobile' || screenSize === 'tablet') {
+      root.style.setProperty('--content-offset', isMobileOpen ? '280px' : '0px');
+    } else {
+      // Desktop: Use CSS calc() for smooth transitions
+      root.style.setProperty('--content-offset', 'calc(var(--sidebar-width-collapsed) * (1 - var(--is-sidebar-collapsed)) + var(--sidebar-width-expanded) * var(--is-sidebar-collapsed))');
+    }
     
   }, [screenSize, isCollapsed, isHovered, isMobileOpen]);
   
