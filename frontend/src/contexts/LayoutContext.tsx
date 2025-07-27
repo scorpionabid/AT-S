@@ -179,10 +179,14 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Hover functionality for desktop sidebar
   const setHover = useCallback((hovered: boolean) => {
+    console.log('🎯 LayoutContext setHover called:', { hovered, screenSize, currentIsHovered: isHovered });
     if (screenSize === 'desktop') {
+      console.log('✅ LayoutContext updating isHovered to:', hovered);
       setIsHovered(hovered);
+    } else {
+      console.log('❌ LayoutContext NOT updating isHovered - not on desktop');
     }
-  }, [screenSize]);
+  }, [screenSize, isHovered]);
   
   // Legacy support functions (for backward compatibility)
   const toggleSidebar = () => {
@@ -224,9 +228,9 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       closeMobile,
       
       // Legacy support (will be removed)
-      isSidebarOpen: !isCollapsed,
-      toggleSidebar: toggleCollapse,
-      closeSidebar: () => setIsCollapsed(true)
+      isSidebarOpen,
+      toggleSidebar,
+      closeSidebar
     }}>
       {children}
     </LayoutContext.Provider>

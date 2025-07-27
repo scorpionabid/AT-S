@@ -11,6 +11,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
+  const layoutContext = useLayout();
   const { 
     isCollapsed, 
     isHovered,
@@ -19,7 +20,16 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
     isMobileOpen, 
     closeMobile, 
     screenSize = 'desktop'
-  } = useLayout();
+  } = layoutContext;
+  
+  // Debug: LayoutContext məlumatları
+  console.log('🔗 LayoutContext data:', {
+    isCollapsed: layoutContext.isCollapsed,
+    isHovered: layoutContext.isHovered,
+    setHovered: typeof layoutContext.setHovered,
+    screenSize: layoutContext.screenSize,
+    fullContext: Object.keys(layoutContext)
+  });
   
   const { user } = useAuth();
   const location = useLocation();
@@ -30,16 +40,20 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
 
   // Hover handlers for desktop sidebar expansion
   const handleMouseEnter = useCallback(() => {
+    console.log('🐭 Sidebar mouseEnter:', { screenSize, isCollapsed, isHovered });
     if (screenSize === 'desktop' && isCollapsed) {
+      console.log('✅ Setting hovered to TRUE');
       setHovered(true);
     }
-  }, [screenSize, isCollapsed, setHovered]);
+  }, [screenSize, isCollapsed, setHovered, isHovered]);
 
   const handleMouseLeave = useCallback(() => {
+    console.log('🐭 Sidebar mouseLeave:', { screenSize, isHovered });
     if (screenSize === 'desktop') {
+      console.log('✅ Setting hovered to FALSE');
       setHovered(false);
     }
-  }, [screenSize, setHovered]);
+  }, [screenSize, setHovered, isHovered]);
 
   // Toggle submenu expansion
   const toggleExpanded = useCallback((itemId: string) => {
@@ -69,6 +83,30 @@ const Sidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
   }, [location.pathname, navigationItems]);
 
   const isExpanded = (isCollapsed && !isHovered) ? false : true;
+  
+  // Debug: Log state changes
+  useEffect(() => {
+    console.log('🔄 Sidebar state changed:', { 
+      isCollapsed, 
+      isHovered, 
+      isExpanded, 
+      screenSize,
+      computedWidth: isCollapsed && !isHovered ? '80px' : '280px'
+    });
+  }, [isCollapsed, isHovered, isExpanded, screenSize]);
+
+  // Debug: Log render state
+  console.log('🎨 Sidebar render state:', {
+    isLoading: false,
+    hasData: navigationItems.length > 0,
+    hasError: false,
+    navigationItems: navigationItems.length,
+    userProfile: !!user,
+    isCollapsed,
+    isHovered,
+    isMobileOpen,
+    screenSize
+  });
 
   const renderNavigationItem = (item: MenuItem) => {
     const IconComponent = item.icon;
