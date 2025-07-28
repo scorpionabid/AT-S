@@ -5,6 +5,7 @@ import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/Loading';
 import { ToastContainer, toast } from 'react-toastify';
 import classAttendanceService, { ClassAttendanceData as ServiceClassAttendanceData, ClassStats } from '../../services/classAttendanceService';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ClassAttendanceData {
   id: number;
