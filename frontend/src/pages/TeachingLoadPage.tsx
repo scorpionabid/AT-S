@@ -1,15 +1,19 @@
 import React from 'react';
 import { DashboardLayout } from '../components/layout/Dashboard';
 import TeachingLoadManager from '../components/academic/TeachingLoadManager';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
+import { FiClock } from 'react-icons/fi';
 
 const TeachingLoadPage: React.FC = () => {
   return (
     <DashboardLayout>
-      <div className="page-container">
-        <h1>Dərs Yükü İdarəetməsi (Demo Versiya)</h1>
-        <p>Müəllimlərin dərs yüklərini izləyin və optimallaşdırın - Tam Demo Rejimi</p>
+      <StandardPageLayout 
+        title="Dərs Yükü İdarəetməsi"
+        subtitle="Müəllimlərin dərs yüklərini izləyin və optimallaşdırın"
+        icon={<FiClock className="w-6 h-6 text-blue-600" />}
+      >
         <TeachingLoadManager />
-      </div>
+      </StandardPageLayout>
     </DashboardLayout>
   );
 };

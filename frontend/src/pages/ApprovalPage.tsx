@@ -1,15 +1,19 @@
 import React from 'react';
 import { DashboardLayout } from '../components/layout/Dashboard';
 import ApprovalDashboard from '../components/approval/ApprovalDashboard';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
+import { FiCheckCircle } from 'react-icons/fi';
 
 const ApprovalPage: React.FC = () => {
   return (
     <DashboardLayout>
-      <div className="page-container">
-        <h1>Təsdiq Paneli</h1>
-        <p>Gözləyən təsdiq sorğularını idarə edin</p>
+      <StandardPageLayout 
+        title="Təsdiq Paneli"
+        subtitle="Gözləyən təsdiq sorğularını idarə edin"
+        icon={<FiCheckCircle className="w-6 h-6 text-orange-600" />}
+      >
         <ApprovalDashboard />
-      </div>
+      </StandardPageLayout>
     </DashboardLayout>
   );
 };

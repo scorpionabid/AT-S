@@ -1,15 +1,19 @@
 import React from 'react';
 import { DashboardLayout } from '../components/layout/Dashboard';
 import ClassAttendanceTracker from '../components/academic/ClassAttendanceTracker';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
+import { FiUserCheck } from 'react-icons/fi';
 
 const ClassAttendancePage: React.FC = () => {
   return (
     <DashboardLayout>
-      <div className="page-container">
-        <h1>Sinif Davamiyyəti</h1>
-        <p>Sinflərdə şagird davamiyyətini izləyin və idarə edin</p>
+      <StandardPageLayout 
+        title="Sinif Davamiyyəti"
+        subtitle="Sinflərdə şagird davamiyyətini izləyin və idarə edin"
+        icon={<FiUserCheck className="w-6 h-6 text-green-600" />}
+      >
         <ClassAttendanceTracker />
-      </div>
+      </StandardPageLayout>
     </DashboardLayout>
   );
 };

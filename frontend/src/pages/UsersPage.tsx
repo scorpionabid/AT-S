@@ -1,54 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/Button';
+import React from 'react';
+import { DashboardLayout } from '../components/layout/Dashboard';
+import UsersList from '../components/users/UsersList';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
+import { FiUsers } from 'react-icons/fi';
 
 const UsersPage: React.FC = () => {
-  const { user } = useAuth();
-
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '24px'
-      }}>
-        <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-            İstifadəçilər
-          </h1>
-          <p style={{ color: '#6b7280', marginTop: '4px' }}>
-            Sistem istifadəçilərini idarə edin
-          </p>
-        </div>
-        
-        <button style={{
-          background: '#3b82f6',
-          color: 'white',
-          padding: '8px 16px',
-          borderRadius: '6px',
-          border: 'none',
-          cursor: 'pointer',
-          fontSize: '14px',
-          fontWeight: '500'
-        }}>
-          + Yeni İstifadəçi
-        </button>
-      </div>
-
-      {/* Simple content */}
-      <div style={{
-        background: 'white',
-        borderRadius: '8px',
-        border: '1px solid #e5e7eb',
-        padding: '24px'
-      }}>
-        <h3 style={{ marginBottom: '16px', color: '#1f2937' }}>İstifadəçi Siyahısı</h3>
-        <p style={{ color: '#6b7280' }}>
-          İstifadəçi siyahısı burada görünəcək...
-        </p>
-      </div>
-    </div>
+    <DashboardLayout>
+      <StandardPageLayout 
+        title="İstifadəçilər"
+        subtitle="Sistem istifadəçilərini idarə edin"
+        icon={<FiUsers className="w-6 h-6 text-blue-600" />}
+      >
+        <UsersList />
+      </StandardPageLayout>
+    </DashboardLayout>
   );
 };
 
