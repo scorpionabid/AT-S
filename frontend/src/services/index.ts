@@ -76,7 +76,7 @@ export { default as userServiceLegacy } from './userService';
 export { default as institutionServiceLegacy } from './institutionService';
 export { default as roleServiceLegacy } from './roleService';
 export { default as surveyService } from './surveyService';
-export { dashboardService as dashboardServiceLegacy } from './dashboardService';
+// export { dashboardService as dashboardServiceLegacy } from './dashboardService'; // Removed - use dashboardServiceUnified
 export { default as reportsService } from './reportsService';
 
 // Specialized services (already optimized or unique functionality)
@@ -143,7 +143,7 @@ export const MIGRATION_GUIDE = {
   },
   dashboardService: {
     old: 'import dashboardService from "./services/dashboardService"',
-    legacy: 'import { dashboardServiceLegacy } from "./services"',
+    legacy: '// dashboardServiceLegacy removed - file deleted',
     new: 'import { dashboardServiceUnified } from "./services"',
     benefits: [
       'Enhanced analytics capabilities',

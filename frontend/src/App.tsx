@@ -13,7 +13,7 @@ import ErrorBoundary from './components/debug/ErrorBoundary';
 
 // Page imports
 import LoginPage from './pages/auth/LoginPage';
-import DashboardPage from './pages/dashboard/DashboardPage';
+import Dashboard from './pages/Dashboard';
 import UsersPage from './pages/UsersPage';
 import SurveysPage from './pages/SurveysPage';
 import SurveyCreatePage from './pages/SurveyCreatePage';
@@ -64,7 +64,7 @@ const App: React.FC = () => {
                           path="/dashboard" 
                           element={
                             <ProtectedRoute>
-                              <DashboardPage />
+                              <Dashboard />
                             </ProtectedRoute>
                           } 
                         />

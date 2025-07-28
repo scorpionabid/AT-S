@@ -3,11 +3,9 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { dashboardServiceUnified } from '../services';
 import type { DashboardStats } from '../services';
-import SuperAdminDashboard from '../components/admin/SuperAdminDashboard';
-import { RegionAdminDashboard } from '../components/regionadmin/dashboard';
-import RegionOperatorDashboard from '../components/rolespecific/RegionOperatorDashboard';
-import SektorAdminDashboard from '../components/rolespecific/SektorAdminDashboard';
-import MektebAdminDashboard from '../components/rolespecific/MektebAdminDashboard';
+import SuperAdminDashboardUnified from '../components/admin/SuperAdminDashboardUnified';
+import RegionAdminDashboardUnified from '../components/regionadmin/RegionAdminDashboardUnified';
+import { DashboardFactory, DashboardType } from '../components/dashboard/DashboardFactory';
 
 const DashboardHome: React.FC = () => {
   const { user } = useAuth();
@@ -28,27 +26,27 @@ const DashboardHome: React.FC = () => {
 
   // If SuperAdmin, show advanced dashboard
   if (currentRole === 'superadmin') {
-    return <SuperAdminDashboard />;
+    return <SuperAdminDashboardUnified />;
   }
 
   // If RegionAdmin, show regional dashboard
   if (currentRole === 'regionadmin') {
-    return <RegionAdminDashboard />;
+    return <RegionAdminDashboardUnified />;
   }
 
   // If RegionOperator, show department-specific dashboard
   if (currentRole === 'regionoperator') {
-    return <RegionOperatorDashboard />;
+    return <DashboardFactory type={DashboardType.REGION_ADMIN} />;
   }
 
   // If SektorAdmin, show sector-specific dashboard
   if (currentRole === 'sektoradmin') {
-    return <SektorAdminDashboard />;
+    return <DashboardFactory type={DashboardType.REGION_ADMIN} />;
   }
 
   // If MəktəbAdmin, show school-specific dashboard
   if (currentRole === 'məktəbadmin') {
-    return <MektebAdminDashboard />;
+    return <DashboardFactory type={DashboardType.SCHOOL_ADMIN} />;
   }
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
