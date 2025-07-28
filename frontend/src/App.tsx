@@ -31,6 +31,9 @@ import SchedulePage from './pages/SchedulePage';
 import TeachingLoadPage from './pages/TeachingLoadPage';
 import SchoolDashboardPage from './pages/SchoolDashboardPage';
 import DepartmentsPage from './pages/DepartmentsPage';
+import FinanceDepartmentPage from './pages/departments/FinanceDepartmentPage';
+import AdministrativeDepartmentPage from './pages/departments/AdministrativeDepartmentPage';
+import FacilityDepartmentPage from './pages/departments/FacilityDepartmentPage';
 
 // Test components
 import SimpleLoginTest from './components/test/SimpleLoginTest';
@@ -128,6 +131,32 @@ const App: React.FC = () => {
                           element={
                             <ProtectedRoute requiredRoles={['superadmin', 'regionadmin']}>
                               <DepartmentsPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+
+                        {/* Department-specific routes */}
+                        <Route 
+                          path="/departments/finance" 
+                          element={
+                            <ProtectedRoute requiredRoles={['superadmin', 'regionadmin', 'regionoperator_maliyye']}>
+                              <FinanceDepartmentPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/departments/administrative" 
+                          element={
+                            <ProtectedRoute requiredRoles={['superadmin', 'regionadmin', 'regionoperator_inzibati']}>
+                              <AdministrativeDepartmentPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        <Route 
+                          path="/departments/facility" 
+                          element={
+                            <ProtectedRoute requiredRoles={['superadmin', 'regionadmin', 'regionoperator_tesarrufat']}>
+                              <FacilityDepartmentPage />
                             </ProtectedRoute>
                           } 
                         />

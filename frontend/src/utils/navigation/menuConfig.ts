@@ -39,7 +39,8 @@ export interface MenuIcon {
 export interface MenuItem {
   id: string;
   title: string;
-  path: string;
+  path?: string; // Optional - only for navigable items
+  type: 'button' | 'menu' | 'hybrid' | 'separator'; // Navigation behavior type
   icon: React.ComponentType<any>;
   permission?: string;
   roles?: string[];
@@ -65,6 +66,7 @@ export const menuItems: MenuItem[] = [
     id: 'dashboard',
     title: 'Dashboard',
     path: '/dashboard',
+    type: 'button', // Direct navigation
     icon: FiHome,
     description: 'Əsas dashboard və ümumi məlumatlar',
     category: 'Core',
@@ -76,6 +78,7 @@ export const menuItems: MenuItem[] = [
     id: 'users',
     title: 'İstifadəçilər',
     path: '/users',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiUsers,
     permission: 'users.read',
     description: 'İstifadəçi idarəetməsi və hesablar',
