@@ -4,7 +4,8 @@ interface StandardPageLayoutProps {
   children: React.ReactNode;
   title?: string;
   subtitle?: string;
-  action?: React.ReactNode;
+  icon?: React.ReactNode;
+  actions?: React.ReactNode;
   className?: string;
 }
 
@@ -12,51 +13,39 @@ const StandardPageLayout: React.FC<StandardPageLayoutProps> = ({
   children, 
   title, 
   subtitle,
-  action,
+  icon,
+  actions,
   className = '' 
 }) => {
   return (
-    <div className={`standard-page-layout ${className}`}>
-      {(title || subtitle || action) && (
-        <div style={{ 
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'flex-start',
-          marginBottom: '24px',
-          paddingBottom: '16px',
-          borderBottom: '1px solid #e5e7eb'
-        }}>
-          <div>
-            {title && (
-              <h1 style={{
-                fontSize: '28px',
-                fontWeight: '700',
-                color: '#1f2937',
-                margin: '0 0 8px 0'
-              }}>
-                {title}
-              </h1>
-            )}
-            {subtitle && (
-              <p style={{
-                fontSize: '16px',
-                color: '#6b7280',
-                margin: 0
-              }}>
-                {subtitle}
-              </p>
+    <div className={`p-6 ${className}`}>
+      {(title || subtitle || icon || actions) && (
+        <div className="page-header">
+          <div className="page-header-content">
+            <div className="page-header-left">
+              {title && (
+                <h1 className="page-header-title flex items-center gap-3">
+                  {icon}
+                  {title}
+                </h1>
+              )}
+              {subtitle && (
+                <p className="page-header-subtitle">
+                  {subtitle}
+                </p>
+              )}
+            </div>
+            
+            {actions && (
+              <div className="page-header-actions">
+                {actions}
+              </div>
             )}
           </div>
-          
-          {action && (
-            <div style={{ flexShrink: 0, marginLeft: '24px' }}>
-              {action}
-            </div>
-          )}
         </div>
       )}
       
-      <div style={{ width: '100%' }}>
+      <div className="w-full">
         {children}
       </div>
     </div>

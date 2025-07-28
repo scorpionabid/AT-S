@@ -593,12 +593,18 @@ const Settings: React.FC = () => {
   }
 
   return (
-    <div className="settings-page">
+    <div className="p-6">
       <div className="page-header">
-        <h1 className="page-title">⚙️ Sistem Tənzimləmələri</h1>
-        <p className="page-description">
-          Sistem konfiqurasiyası və bakım əməliyyatları
-        </p>
+        <div className="page-header-content">
+          <div className="page-header-left">
+            <h1 className="page-header-title flex items-center gap-3">
+              ⚙️ Sistem Tənzimləmələri
+            </h1>
+            <p className="page-header-subtitle">
+              Sistem konfiqurasiyası və bakım əməliyyatları
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Messages */}

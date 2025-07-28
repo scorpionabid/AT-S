@@ -136,9 +136,9 @@ export default {
         '5xl': 'var(--font-size-5xl)',
       },
       spacing: {
-        'sidebar': 'var(--sidebar-width)',
-        'sidebar-collapsed': 'var(--sidebar-width-collapsed)',
-        'header': 'var(--header-height)',
+        'sidebar': '280px', // var(--sidebar-width)
+        'sidebar-collapsed': '80px', // var(--sidebar-collapsed-width) 
+        'header': '64px', // var(--header-height)
         'content': 'var(--content-padding)',
       },
       borderRadius: {

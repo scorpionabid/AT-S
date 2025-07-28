@@ -268,34 +268,38 @@ const DepartmentsPage: React.FC = () => {
       <div className="departments-page">
         {/* Header */}
         <div className="page-header">
-          <div className="header-content">
-            <h1 className="page-title">
-              <Icon type="USERS" />
-              Şöbələr
-            </h1>
-            <p className="page-description">Müəssisə şöbələrinin idarəetməsi</p>
-          </div>
-          <div className="header-stats">
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="INSTITUTION" />
-              </div>
-              <span className="stat-number">{institutions.length}</span>
-              <span className="stat-label">Müəssisə</span>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
+          <div className="page-header-content">
+            <div className="page-header-left">
+              <h1 className="page-header-title flex items-center gap-3">
                 <Icon type="USERS" />
-              </div>
-              <span className="stat-number">{departments.length}</span>
-              <span className="stat-label">Şöbə</span>
+                Şöbələr
+              </h1>
+              <p className="page-header-subtitle">Müəssisə şöbələrinin idarəetməsi</p>
             </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="ACTIVE" />
+            <div className="page-header-actions">
+              <div className="flex gap-4">
+                <div className="bg-white rounded-lg p-3 shadow-card border border-neutral-200 flex items-center gap-2">
+                  <Icon type="INSTITUTION" className="text-primary-500" />
+                  <div>
+                    <span className="block text-lg font-semibold text-gray-900">{institutions.length}</span>
+                    <span className="block text-sm text-gray-500">Müəssisə</span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 shadow-card border border-neutral-200 flex items-center gap-2">
+                  <Icon type="USERS" className="text-primary-500" />
+                  <div>
+                    <span className="block text-lg font-semibold text-gray-900">{departments.length}</span>
+                    <span className="block text-sm text-gray-500">Şöbə</span>
+                  </div>
+                </div>
+                <div className="bg-white rounded-lg p-3 shadow-card border border-neutral-200 flex items-center gap-2">
+                  <Icon type="ACTIVE" className="text-success-500" />
+                  <div>
+                    <span className="block text-lg font-semibold text-gray-900">{departments.filter(d => d.is_active).length}</span>
+                    <span className="block text-sm text-gray-500">Aktiv</span>
+                  </div>
+                </div>
               </div>
-              <span className="stat-number">{departments.filter(d => d.is_active).length}</span>
-              <span className="stat-label">Aktiv</span>
             </div>
           </div>
         </div>

@@ -132,27 +132,31 @@ export const BaseDashboard = <T = any>({
   const styles = useThemedStyles();
   const dashboardState = useDashboard(config);
 
-  // Default loading component with Tailwind
+  // Default loading component
   const defaultLoadingComponent = (
-    <div className="flex items-center justify-center flex-col">
-      <div className="w-10 h-10 bg-neutral-200 rounded-full animate-pulse mb-4" />
-      <div className="w-48 h-5 bg-neutral-200 rounded animate-pulse" />
+    <div style={styles.center()}>
+      <div style={{
+        ...styles.skeleton('40px', '40px'),
+        borderRadius: theme.borderRadius.full,
+        marginBottom: theme.spacing[4]
+      }} />
+      <div style={styles.skeleton('200px', '20px')} />
     </div>
   );
 
-  // Default error component with Tailwind
+  // Default error component
   const defaultErrorComponent = (error: string, retry: () => void) => (
-    <div className="flex items-center justify-center flex-col gap-4">
-      <div className="bg-error-50 border border-error-200 text-error-700 px-4 py-3 rounded-lg">
+    <div style={{
+      ...styles.center(),
+      flexDirection: 'column',
+      gap: theme.spacing[4]
+    }}>
+      <div style={styles.alert('error')}>
         <strong>Error:</strong> {error}
       </div>
       <button 
         onClick={retry}
-        className={`px-4 py-2 rounded-md font-medium transition-colors duration-200 ${
-          dashboardState.canRetry 
-            ? 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200' 
-            : 'bg-neutral-100 text-neutral-400 cursor-not-allowed'
-        }`}
+        style={styles.button('secondary')}
         disabled={!dashboardState.canRetry}
       >
         {dashboardState.canRetry ? 'Retry' : `Max retries reached (${dashboardState.retryCount})`}
@@ -160,48 +164,64 @@ export const BaseDashboard = <T = any>({
     </div>
   );
 
-  // Default empty component with Tailwind
+  // Default empty component
   const defaultEmptyComponent = (
-    <div className="flex items-center justify-center">
-      <div className="text-base text-neutral-500">
+    <div style={styles.center()}>
+      <div style={styles.text('base', 'normal', 'tertiary')}>
         No data available
       </div>
     </div>
   );
 
-  // Header component with Tailwind
+  const containerStyle = {
+    ...styles.card(),
+    ...style
+  };
+
+  // Header component
   const Header = () => {
     if (!config.title && !config.subtitle) return null;
 
     return (
-      <div className="mb-6 pb-4 border-b border-neutral-200">
+      <div style={{
+        marginBottom: theme.spacing[6],
+        paddingBottom: theme.spacing[4],
+        borderBottom: `1px solid ${theme.colors.border.muted}`
+      }}>
         {config.title && (
-          <h1 className="text-2xl font-bold text-neutral-900">
+          <h1 style={styles.text('2xl', 'bold')}>
             {config.title}
           </h1>
         )}
         {config.subtitle && (
-          <p className="text-base text-neutral-600 mt-2">
+          <p style={{
+            ...styles.text('base', 'normal', 'secondary'),
+            marginTop: theme.spacing[2]
+          }}>
             {config.subtitle}
           </p>
         )}
         
         {/* Refresh button and last updated */}
-        <div className="flex justify-between items-center mt-4">
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginTop: theme.spacing[4]
+        }}>
           <button
             onClick={dashboardState.refresh}
             disabled={dashboardState.loading}
-            className={`px-3 py-2 text-sm font-medium rounded-md transition-colors duration-200 ${
-              dashboardState.loading 
-                ? 'bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-60' 
-                : 'bg-neutral-100 text-neutral-700 hover:bg-neutral-200'
-            }`}
+            style={{
+              ...styles.button('secondary', 'sm'),
+              opacity: dashboardState.loading ? 0.6 : 1
+            }}
           >
             {dashboardState.loading ? 'Refreshing...' : 'Refresh'}
           </button>
           
           {dashboardState.lastUpdated && (
-            <span className="text-sm text-neutral-500">
+            <span style={styles.text('sm', 'normal', 'tertiary')}>
               Last updated: {dashboardState.lastUpdated.toLocaleTimeString()}
             </span>
           )}
@@ -211,7 +231,7 @@ export const BaseDashboard = <T = any>({
   };
 
   return (
-    <div className={`bg-white rounded-lg p-6 shadow-card border border-neutral-200 ${className}`} style={style}>
+    <div style={containerStyle} className={className}>
       <Header />
       
       {dashboardState.loading && (

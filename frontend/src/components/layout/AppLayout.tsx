@@ -11,7 +11,7 @@ interface AppLayoutProps {
 
 const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const { isAuthenticated } = useAuth();
-  const { isCollapsed, screenSize, isMobileOpen } = useLayout();
+  const { isCollapsed, screenSize, isMobileOpen, toggleMobile } = useLayout();
   const location = useLocation();
 
   // Don't show layout on login/test pages
@@ -40,40 +40,36 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      minHeight: '100vh',
-      background: '#f8fafc',
-      position: 'relative'
-    }}>
+    <div className="flex min-h-screen bg-secondary-50 relative">
       <UnifiedSidebar />
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        flex: 1,
-        minHeight: '100vh',
-        marginLeft: screenSize === 'mobile' ? 0 : (isCollapsed ? '80px' : '280px'),
-        transition: 'margin-left 0.3s ease'
-      }}>
+      
+      {/* Mobile Backdrop Overlay */}
+      {screenSize === 'mobile' && isMobileOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-[850]"
+          onClick={toggleMobile}
+        />
+      )}
+      
+      <div className={`
+        flex flex-col flex-1 min-h-screen transition-all duration-300 ease-in-out
+        ${screenSize === 'mobile' 
+          ? 'ml-0' 
+          : isCollapsed 
+            ? 'ml-sidebar-collapsed' 
+            : 'ml-sidebar'
+        }
+      `}>
         <Header />
         
         {/* Main Content Area */}
-        <main style={{
-          flex: 1,
-          marginTop: '64px',
-          padding: screenSize === 'mobile' ? '16px' : '24px',
-          minHeight: 'calc(100vh - 64px)',
-          background: '#f8fafc',
-          position: 'relative',
-          overflowX: 'hidden'
-        }}>
+        <main className={`
+          flex-1 mt-header bg-secondary-50 relative overflow-x-hidden
+          ${screenSize === 'mobile' ? 'p-4' : 'p-6'}
+          min-h-[calc(100vh-4rem)]
+        `}>
           {/* Content Container */}
-          <div style={{
-            maxWidth: '100%',
-            width: '100%',
-            margin: '0 auto',
-            position: 'relative'
-          }}>
+          <div className="max-w-full w-full mx-auto relative">
             {children}
           </div>
         </main>

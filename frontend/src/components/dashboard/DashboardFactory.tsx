@@ -401,36 +401,32 @@ export const DashboardFactory: React.FC<DashboardFactoryProps> = ({
     enableAutoRefresh: config.enableAutoRefresh
   };
 
-  // Render widget based on type
+  // Render widget based on type with Tailwind classes
   const renderWidget = (widget: DashboardWidget, data: any) => {
     const widgetData = widget.dataKey ? data[widget.dataKey] : data;
 
-    const widgetStyle = {
-      ...styles.card(),
-      marginBottom: styles.theme.spacing[4],
-      ...(widget.size === 'small' && { flex: '0 0 25%' }),
-      ...(widget.size === 'medium' && { flex: '0 0 50%' }),
-      ...(widget.size === 'large' && { flex: '0 0 75%' }),
-      ...(widget.size === 'full' && { flex: '0 0 100%' })
+    const getSizeClasses = (size: string) => {
+      switch (size) {
+        case 'small': return 'w-full lg:w-1/4';
+        case 'medium': return 'w-full lg:w-1/2';
+        case 'large': return 'w-full lg:w-3/4';
+        case 'full': return 'w-full';
+        default: return 'w-full';
+      }
     };
 
     return (
-      <div key={widget.id} style={widgetStyle}>
-        <h3 style={styles.text('lg', 'semibold')}>{widget.title}</h3>
+      <div key={widget.id} className={`bg-white rounded-lg p-6 shadow-card border border-neutral-200 mb-6 ${getSizeClasses(widget.size)}`}>
+        <h3 className="text-lg font-semibold text-neutral-900 mb-4">{widget.title}</h3>
         
         {widget.type === 'stat' && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
-            gap: styles.theme.spacing[4],
-            marginTop: styles.theme.spacing[4]
-          }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-auto gap-4 mt-4" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))' }}>
             {widgetData && Object.entries(widgetData).map(([key, value]) => (
-              <div key={key} style={styles.card('outlined')}>
-                <div style={styles.text('sm', 'normal', 'secondary')}>
+              <div key={key} className="bg-neutral-50 border border-neutral-200 rounded-lg p-4">
+                <div className="text-sm text-neutral-600 mb-2">
                   {key.replace(/([A-Z])/g, ' $1').toLowerCase()}
                 </div>
-                <div style={styles.text('xl', 'bold')}>
+                <div className="text-xl font-bold text-neutral-900">
                   {String(value)}
                 </div>
               </div>
@@ -439,19 +435,17 @@ export const DashboardFactory: React.FC<DashboardFactoryProps> = ({
         )}
 
         {widget.type === 'list' && (
-          <div style={{ marginTop: styles.theme.spacing[4] }}>
+          <div className="mt-4">
             {Array.isArray(widgetData) && widgetData.length > 0 ? (
-              widgetData.map((item, index) => (
-                <div key={index} style={{
-                  padding: styles.theme.spacing[3],
-                  borderBottom: `1px solid ${styles.theme.colors.border.muted}`,
-                  ':last-child': { border: 'none' }
-                }}>
-                  {JSON.stringify(item)}
-                </div>
-              ))
+              <div className="space-y-0">
+                {widgetData.map((item, index) => (
+                  <div key={index} className="p-3 border-b border-neutral-200 last:border-b-0">
+                    {JSON.stringify(item)}
+                  </div>
+                ))}
+              </div>
             ) : (
-              <div style={styles.text('base', 'normal', 'tertiary')}>
+              <div className="text-base text-neutral-500">
                 No items available
               </div>
             )}
@@ -459,23 +453,23 @@ export const DashboardFactory: React.FC<DashboardFactoryProps> = ({
         )}
 
         {widget.type === 'table' && (
-          <div style={{ marginTop: styles.theme.spacing[4] }}>
-            <div style={styles.text('base', 'normal', 'tertiary')}>
+          <div className="mt-4">
+            <div className="text-base text-neutral-500">
               Table view - TODO: Implement table component
             </div>
           </div>
         )}
 
         {widget.type === 'chart' && (
-          <div style={{ marginTop: styles.theme.spacing[4] }}>
-            <div style={styles.text('base', 'normal', 'tertiary')}>
+          <div className="mt-4">
+            <div className="text-base text-neutral-500">
               Chart view - TODO: Implement chart component
             </div>
           </div>
         )}
 
         {widget.type === 'custom' && widget.component && (
-          <div style={{ marginTop: styles.theme.spacing[4] }}>
+          <div className="mt-4">
             <widget.component data={widgetData} {...(widget.props || {})} />
           </div>
         )}
@@ -486,11 +480,7 @@ export const DashboardFactory: React.FC<DashboardFactoryProps> = ({
   return (
     <BaseDashboard config={dashboardConfig} className={className} style={style}>
       {({ data }) => (
-        <div style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: styles.theme.spacing[4]
-        }}>
+        <div className="flex flex-wrap gap-6">
           {filteredWidgets.map(widget => renderWidget(widget, data))}
         </div>
       )}

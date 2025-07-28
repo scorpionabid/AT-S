@@ -192,17 +192,17 @@ const DashboardHome: React.FC = () => {
   // Error state göstərmək üçün
   if (stats.error) {
     return (
-      <div className="dashboard-home">
-        <div className="page-header">
-          <h1 className="page-title">Dashboard</h1>
+      <div className="min-h-screen bg-secondary-50 p-6">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-neutral-900">Dashboard</h1>
         </div>
-        <div className="error-container">
-          <div className="error-message">
-            <h3>⚠️ Xəta baş verdi</h3>
-            <p>{stats.error}</p>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="bg-white p-8 rounded-lg shadow-card border border-neutral-200 text-center max-w-md">
+            <h3 className="text-lg font-semibold text-error-600 mb-4">⚠️ Xəta baş verdi</h3>
+            <p className="text-neutral-600 mb-6">{stats.error}</p>
             <button 
               onClick={fetchDashboardStats}
-              className="retry-button"
+              className="bg-primary-500 text-white px-6 py-2 rounded-md hover:bg-primary-600 transition-colors duration-200 font-medium"
             >
               Yenidən cəhd et
             </button>
@@ -213,155 +213,207 @@ const DashboardHome: React.FC = () => {
   }
 
   return (
-    <div className="dashboard-home">
-      <div className="page-header">
-        <h1 className="page-title">{getWelcomeMessage()}, {user?.username}!</h1>
-        <p className="page-description">
+    <div className="min-h-screen bg-secondary-50 p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold text-neutral-900 mb-2">{getWelcomeMessage()}, {user?.username}!</h1>
+        <p className="text-neutral-600">
           ATİS sistemində son vəziyyət və fəaliyyətlər • Rol: {getRoleDisplayName()}
         </p>
       </div>
 
       {/* Statistics Cards */}
-      <div className="stats-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {displayStats.map((stat, index) => (
-          <div key={index} className={`stat-card stat-${stat.color}`}>
-            <div className="stat-icon">
-              <span>{stat.icon}</span>
+          <div key={index} className={`
+            bg-white rounded-xl p-6 shadow-card border border-neutral-200 hover:shadow-card-elevated transition-shadow duration-200
+            ${stat.color === 'blue' && 'border-l-4 border-l-primary-500'}
+            ${stat.color === 'green' && 'border-l-4 border-l-success-500'}
+            ${stat.color === 'purple' && 'border-l-4 border-l-purple-500'}
+            ${stat.color === 'orange' && 'border-l-4 border-l-warning-500'}
+          `}>
+            <div className="flex items-center justify-between mb-4">
+              <div className={`
+                w-12 h-12 rounded-lg flex items-center justify-center text-2xl
+                ${stat.color === 'blue' && 'bg-primary-50 text-primary-600'}
+                ${stat.color === 'green' && 'bg-success-50 text-success-600'}
+                ${stat.color === 'purple' && 'bg-purple-50 text-purple-600'}
+                ${stat.color === 'orange' && 'bg-warning-50 text-warning-600'}
+              `}>
+                {stat.icon}
+              </div>
+              {stat.change && (
+                <span className="text-sm font-medium text-success-600 bg-success-50 px-2 py-1 rounded-full">
+                  {stat.change}
+                </span>
+              )}
             </div>
-            <div className="stat-content">
-              <h3 className="stat-value">{stat.value}</h3>
-              <p className="stat-title">{stat.title}</p>
-              <span className="stat-change positive">{stat.change}</span>
-            </div>
+            <h3 className="text-2xl font-bold text-neutral-900 mb-1">{stat.value}</h3>
+            <p className="text-sm text-neutral-600">{stat.title}</p>
           </div>
         ))}
       </div>
 
-      <div className="dashboard-grid">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Tez Əməliyyatlar</h3>
-            <p className="card-description">Ən çox istifadə olunan funksiyalar</p>
+        <div className="bg-white rounded-xl p-6 shadow-card border border-neutral-200">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Tez Əməliyyatlar</h3>
+            <p className="text-sm text-neutral-600">Ən çox istifadə olunan funksiyalar</p>
           </div>
-          <div className="card-content">
-            <div className="quick-actions">
-              {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
-                <Link to="/users" className="quick-action-btn">
-                  <span className="action-icon">👥</span>
-                  <span>İstifadəçilər</span>
-                </Link>
-              )}
-              
-              <Link to="/surveys" className="quick-action-btn">
-                <span className="action-icon">📊</span>
-                <span>Sorğular</span>
+          <div className="grid grid-cols-2 gap-4">
+            {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
+              <Link to="/users" className="flex flex-col items-center p-4 rounded-lg bg-primary-50 hover:bg-primary-100 transition-colors duration-200 text-center group">
+                <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">👥</span>
+                <span className="text-sm font-medium text-primary-700">İstifadəçilər</span>
               </Link>
-              
-              {(user?.role === 'superadmin' || user?.role === 'regionadmin' || user?.role === 'schooladmin') && (
-                <Link to="/reports" className="quick-action-btn">
-                  <span className="action-icon">📈</span>
-                  <span>Hesabatlar</span>
-                </Link>
-              )}
-              
-              {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
-                <Link to="/institutions" className="quick-action-btn">
-                  <span className="action-icon">🏢</span>
-                  <span>Təşkilatlar</span>
-                </Link>
-              )}
-              
-              {user?.role === 'superadmin' && (
-                <Link to="/roles" className="quick-action-btn">
-                  <span className="action-icon">🔐</span>
-                  <span>Rollər və İcazələr</span>
-                </Link>
-              )}
-              
-              {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
-                <Link to="/settings" className="quick-action-btn">
-                  <span className="action-icon">⚙️</span>
-                  <span>Tənzimləmələr</span>
-                </Link>
-              )}
-            </div>
+            )}
+            
+            <Link to="/surveys" className="flex flex-col items-center p-4 rounded-lg bg-secondary-50 hover:bg-secondary-100 transition-colors duration-200 text-center group">
+              <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">📊</span>
+              <span className="text-sm font-medium text-secondary-700">Sorğular</span>
+            </Link>
+            
+            {(user?.role === 'superadmin' || user?.role === 'regionadmin' || user?.role === 'schooladmin') && (
+              <Link to="/reports" className="flex flex-col items-center p-4 rounded-lg bg-success-50 hover:bg-success-100 transition-colors duration-200 text-center group">
+                <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">📈</span>
+                <span className="text-sm font-medium text-success-700">Hesabatlar</span>
+              </Link>
+            )}
+            
+            {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
+              <Link to="/institutions" className="flex flex-col items-center p-4 rounded-lg bg-warning-50 hover:bg-warning-100 transition-colors duration-200 text-center group">
+                <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🏢</span>
+                <span className="text-sm font-medium text-warning-700">Təşkilatlar</span>
+              </Link>
+            )}
+            
+            {user?.role === 'superadmin' && (
+              <Link to="/roles" className="flex flex-col items-center p-4 rounded-lg bg-purple-50 hover:bg-purple-100 transition-colors duration-200 text-center group">
+                <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🔐</span>
+                <span className="text-sm font-medium text-purple-700">Rollər və İcazələr</span>
+              </Link>
+            )}
+            
+            {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
+              <Link to="/settings" className="flex flex-col items-center p-4 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors duration-200 text-center group">
+                <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">⚙️</span>
+                <span className="text-sm font-medium text-neutral-700">Tənzimləmələr</span>
+              </Link>
+            )}
           </div>
         </div>
 
         {/* Recent Activities */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Son Fəaliyyətlər</h3>
-            <p className="card-description">Sistemdə son dəyişikliklər</p>
+        <div className="bg-white rounded-xl p-6 shadow-card border border-neutral-200">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Son Fəaliyyətlər</h3>
+            <p className="text-sm text-neutral-600">Sistemdə son dəyişikliklər</p>
           </div>
-          <div className="card-content">
-            <div className="activity-list">
-              {stats.loading ? (
-                <div className="activity-item">
-                  <div className="activity-icon loading">⏳</div>
-                  <div className="activity-content">
-                    <p className="activity-text">Fəaliyyətlər yüklənir...</p>
+          <div className="space-y-4">
+            {stats.loading ? (
+              <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-50">
+                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
+                  <span className="text-sm">⏳</span>
+                </div>
+                <div>
+                  <p className="text-sm text-neutral-600">Fəaliyyətlər yüklənir...</p>
+                </div>
+              </div>
+            ) : stats.recentActivities && stats.recentActivities.length > 0 ? (
+              stats.recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-neutral-50 transition-colors duration-200">
+                  <div className={`
+                    w-8 h-8 rounded-full flex items-center justify-center text-sm
+                    ${activity.type === 'survey' && 'bg-primary-100 text-primary-600'}
+                    ${activity.type === 'report' && 'bg-success-100 text-success-600'}
+                    ${activity.type === 'user' && 'bg-warning-100 text-warning-600'}
+                    ${activity.type === 'system' && 'bg-neutral-100 text-neutral-600'}
+                  `}>
+                    {activity.type === 'survey' && '📊'}
+                    {activity.type === 'report' && '📈'}
+                    {activity.type === 'user' && '👤'}
+                    {activity.type === 'system' && '⚙️'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-neutral-900">
+                      <span className="font-medium">{typeof activity.user === 'string' ? activity.user : activity.user?.username || activity.user?.name || 'N/A'}</span> {activity.action}
+                    </p>
+                    <p className="text-xs text-neutral-500">{activity.time}</p>
                   </div>
                 </div>
-              ) : stats.recentActivities && stats.recentActivities.length > 0 ? (
-                stats.recentActivities.map((activity) => (
-                  <div key={activity.id} className="activity-item">
-                    <div className={`activity-icon ${activity.type}`}>
-                      {activity.type === 'survey' && '📊'}
-                      {activity.type === 'report' && '📈'}
-                      {activity.type === 'user' && '👤'}
-                      {activity.type === 'system' && '⚙️'}
-                    </div>
-                    <div className="activity-content">
-                      <p className="activity-text">
-                        <strong>{typeof activity.user === 'string' ? activity.user : activity.user?.username || activity.user?.name || 'N/A'}</strong> {activity.action}
-                      </p>
-                      <span className="activity-time">{activity.time}</span>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="activity-item">
-                  <div className="activity-icon system">ℹ️</div>
-                  <div className="activity-content">
-                    <p className="activity-text">Hələlik fəaliyyət qeydə alınmayıb</p>
-                    <span className="activity-time">--</span>
-                  </div>
+              ))
+            ) : (
+              <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-50">
+                <div className="w-8 h-8 rounded-full bg-info-100 text-info-600 flex items-center justify-center">
+                  <span className="text-sm">ℹ️</span>
                 </div>
-              )}
-            </div>
+                <div>
+                  <p className="text-sm text-neutral-600">Hələlik fəaliyyət qeydə alınmayıb</p>
+                  <p className="text-xs text-neutral-500">--</p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* System Status */}
-        <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Sistem Statusu</h3>
-            <p className="card-description">Sistemin hazırkı vəziyyəti</p>
+        <div className="bg-white rounded-xl p-6 shadow-card border border-neutral-200">
+          <div className="mb-6">
+            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Sistem Statusu</h3>
+            <p className="text-sm text-neutral-600">Sistemin hazırkı vəziyyəti</p>
           </div>
-          <div className="card-content">
-            <div className="status-list">
-              <div className="status-item">
-                <span className={`status-indicator ${stats.systemStatus.database.status}`}></span>
-                <span>Database Bağlantısı</span>
-                <span className="status-value">{stats.systemStatus.database.label}</span>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
+              <div className="flex items-center space-x-3">
+                <div className={`
+                  w-3 h-3 rounded-full
+                  ${stats.systemStatus.database.status === 'healthy' && 'bg-success-500'}
+                  ${stats.systemStatus.database.status === 'warning' && 'bg-warning-500'}
+                  ${stats.systemStatus.database.status === 'error' && 'bg-error-500'}
+                  ${stats.systemStatus.database.status === 'unknown' && 'bg-neutral-400'}
+                `}></div>
+                <span className="text-sm font-medium text-neutral-700">Database Bağlantısı</span>
               </div>
-              <div className="status-item">
-                <span className={`status-indicator ${stats.systemStatus.api.status}`}></span>
-                <span>API Servisi</span>
-                <span className="status-value">{stats.systemStatus.api.label}</span>
+              <span className="text-sm text-neutral-600">{stats.systemStatus.database.label}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
+              <div className="flex items-center space-x-3">
+                <div className={`
+                  w-3 h-3 rounded-full
+                  ${stats.systemStatus.api.status === 'healthy' && 'bg-success-500'}
+                  ${stats.systemStatus.api.status === 'warning' && 'bg-warning-500'}
+                  ${stats.systemStatus.api.status === 'error' && 'bg-error-500'}
+                  ${stats.systemStatus.api.status === 'unknown' && 'bg-neutral-400'}
+                `}></div>
+                <span className="text-sm font-medium text-neutral-700">API Servisi</span>
               </div>
-              <div className="status-item">
-                <span className={`status-indicator ${stats.systemStatus.memory.status}`}></span>
-                <span>Yaddaş İstifadəsi</span>
-                <span className="status-value">{stats.systemStatus.memory.label}</span>
+              <span className="text-sm text-neutral-600">{stats.systemStatus.api.label}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
+              <div className="flex items-center space-x-3">
+                <div className={`
+                  w-3 h-3 rounded-full
+                  ${stats.systemStatus.memory.status === 'healthy' && 'bg-success-500'}
+                  ${stats.systemStatus.memory.status === 'warning' && 'bg-warning-500'}
+                  ${stats.systemStatus.memory.status === 'error' && 'bg-error-500'}
+                  ${stats.systemStatus.memory.status === 'unknown' && 'bg-neutral-400'}
+                `}></div>
+                <span className="text-sm font-medium text-neutral-700">Yaddaş İstifadəsi</span>
               </div>
-              <div className="status-item">
-                <span className={`status-indicator ${stats.systemStatus.storage.status}`}></span>
-                <span>Yaddaş</span>
-                <span className="status-value">{stats.systemStatus.storage.label}</span>
+              <span className="text-sm text-neutral-600">{stats.systemStatus.memory.label}</span>
+            </div>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
+              <div className="flex items-center space-x-3">
+                <div className={`
+                  w-3 h-3 rounded-full
+                  ${stats.systemStatus.storage.status === 'healthy' && 'bg-success-500'}
+                  ${stats.systemStatus.storage.status === 'warning' && 'bg-warning-500'}
+                  ${stats.systemStatus.storage.status === 'error' && 'bg-error-500'}
+                  ${stats.systemStatus.storage.status === 'unknown' && 'bg-neutral-400'}
+                `}></div>
+                <span className="text-sm font-medium text-neutral-700">Yaddaş</span>
               </div>
+              <span className="text-sm text-neutral-600">{stats.systemStatus.storage.label}</span>
             </div>
           </div>
         </div>

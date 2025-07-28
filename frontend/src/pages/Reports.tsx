@@ -372,12 +372,18 @@ const Reports: React.FC = () => {
   };
 
   return (
-    <div className="reports-page">
+    <div className="p-6">
       <div className="page-header">
-        <h1 className="page-title">📊 Hesabatlar və Analitika</h1>
-        <p className="page-description">
-          Sistem performansı və istifadəçi aktivliyi haqqında dəqiq hesabatlar
-        </p>
+        <div className="page-header-content">
+          <div className="page-header-left">
+            <h1 className="page-header-title flex items-center gap-3">
+              📊 Hesabatlar və Analitika
+            </h1>
+            <p className="page-header-subtitle">
+              Sistem performansı və istifadəçi aktivliyi haqqında dəqiq hesabatlar
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Filters Section */}

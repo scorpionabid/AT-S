@@ -17,29 +17,29 @@ const SurveyCreatePage: React.FC = () => {
   };
 
   return (
-    <div className="survey-create-page">
+    <div className="p-6">
       <div className="page-header">
-        <div className="header-content">
-          <div className="header-title">
-            <button 
-              onClick={handleClose}
-              className="back-button"
-              title="Geri"
-            >
-              <Icon type="ARROW_LEFT" />
-            </button>
-            <h1 className="page-title">
+        <div className="page-header-content">
+          <div className="page-header-left">
+            <h1 className="page-header-title flex items-center gap-3">
+              <button 
+                onClick={handleClose}
+                className="text-gray-500 hover:text-gray-700 transition-colors p-1 -ml-1"
+                title="Geri"
+              >
+                <Icon type="ARROW_LEFT" />
+              </button>
               <Icon type="SURVEY" />
               Yeni Sorğu Yarat
             </h1>
+            <p className="page-header-subtitle">
+              Yeni sorğu yaradın və cavabçılara göndərin
+            </p>
           </div>
-          <p className="page-description">
-            Yeni sorğu yaradın və cavabçılara göndərin
-          </p>
         </div>
       </div>
 
-      <div className="survey-create-container">
+      <div className="w-full">
         <SurveyCreateForm 
           onClose={handleClose}
           onSuccess={handleSuccess}

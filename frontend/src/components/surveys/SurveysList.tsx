@@ -455,58 +455,60 @@ const SurveysList: React.FC<SurveysListProps> = ({
   }
 
   return (
-    <div className="surveys-list">
-      <div className="page-header">
-        <div className="header-content">
-          <h1 className="page-title">
-            <Icon type="SURVEY" />
-            Sorğu İdarəetməsi
-          </h1>
-          <p className="page-description">Sistem sorğularını idarə edin və cavablandırın</p>
-        </div>
-        <div className="header-stats">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="TOTAL" />
-            </div>
-            <div className="stat-content">
-              <span className="stat-number">
+    <div className="max-w-7xl mx-auto p-4">
+      {/* Modern Page Header with Proper Z-Index */}
+      <div className="bg-white rounded-lg p-6 shadow-card border border-neutral-200 mb-6 relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-neutral-900 flex items-center gap-3 mb-2">
+              <Icon type="SURVEY" />
+              Sorğu İdarəetməsi
+            </h1>
+            <p className="text-neutral-600">Sistem sorğularını idarə edin və cavablandırın</p>
+          </div>
+          
+          {/* Stats Grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+            <div className="bg-primary-50 rounded-lg p-4 text-center border border-primary-200">
+              <div className="flex justify-center mb-2">
+                <Icon type="TOTAL" />
+              </div>
+              <div className="text-2xl font-bold text-primary-600 mb-1">
                 {dashboardStats?.overview.total_surveys || totalSurveys}
-              </span>
-              <span className="stat-label">Cəmi sorğu</span>
+              </div>
+              <div className="text-sm text-primary-700">Cəmi sorğu</div>
             </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="ACTIVE" />
-            </div>
-            <div className="stat-content">
-              <span className="stat-number">
+            
+            <div className="bg-success-50 rounded-lg p-4 text-center border border-success-200">
+              <div className="flex justify-center mb-2">
+                <Icon type="ACTIVE" />
+              </div>
+              <div className="text-2xl font-bold text-success-600 mb-1">
                 {dashboardStats?.overview.active_surveys || surveys.filter(s => s.is_active).length}
-              </span>
-              <span className="stat-label">Aktiv</span>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="SELECTED" />
-            </div>
-            <div className="stat-content">
-              <span className="stat-number">{selectedSurveys.length}</span>
-              <span className="stat-label">Seçilmiş</span>
-            </div>
-          </div>
-          {dashboardStats?.overview.my_surveys !== undefined && (
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="USER" />
               </div>
-              <div className="stat-content">
-                <span className="stat-number">{dashboardStats.overview.my_surveys}</span>
-                <span className="stat-label">Mənim</span>
-              </div>
+              <div className="text-sm text-success-700">Aktiv</div>
             </div>
-          )}
+            
+            <div className="bg-warning-50 rounded-lg p-4 text-center border border-warning-200">
+              <div className="flex justify-center mb-2">
+                <Icon type="SELECTED" />
+              </div>
+              <div className="text-2xl font-bold text-warning-600 mb-1">{selectedSurveys.length}</div>
+              <div className="text-sm text-warning-700">Seçilmiş</div>
+            </div>
+            
+            {dashboardStats?.overview.my_surveys !== undefined && (
+              <div className="bg-info-50 rounded-lg p-4 text-center border border-info-200">
+                <div className="flex justify-center mb-2">
+                  <Icon type="USER" />
+                </div>
+                <div className="text-2xl font-bold text-info-600 mb-1">
+                  {dashboardStats.overview.my_surveys}
+                </div>
+                <div className="text-sm text-info-700">Mənim</div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
