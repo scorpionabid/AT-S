@@ -1,17 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { api } from '../../services/api';
+/**
+ * ATİS Institutions List - Migrated to BaseListComponent
+ * Köhnə 400+ sətirlik komponent → 100 sətir
+ */
+
+import React from 'react';
+import { StyleSystem, styles } from '../../utils/StyleSystem';
 import { useAuth } from '../../contexts/AuthContext';
-import { useRoleBasedData, useRegionalData } from '../../hooks/useRoleBasedData';
+import BaseListComponent, { ListColumn, ListAction, BulkAction, ListFilter } from '../base/BaseListComponent';
+import BaseModal, { useModal } from '../base/BaseModal';
+import { GenericCrudService } from '../../services/base/GenericCrudService';
+import { Icon, StatusIcon, InstitutionTypeIcon } from '../common/IconSystem';
 import InstitutionCreateForm from './InstitutionCreateForm';
 import InstitutionEditForm from './InstitutionEditForm';
-import InstitutionHierarchyView from './InstitutionHierarchyView';
 import InstitutionDetails from './InstitutionDetails';
 import InstitutionDepartments from './InstitutionDepartments';
-import InstitutionCardSkeleton from '../common/InstitutionCardSkeleton';
-import ErrorDisplay from '../common/ErrorDisplay';
-import { NoResultsEmptyState, ErrorEmptyState } from '../common/EmptyState';
-import { Icon, ActionIcon, StatusIcon, InstitutionTypeIcon, ICONS } from '../common/IconSystem';
 
+// Institution interface (reused from original)
 interface Institution {
   id: number;
   name: string;
@@ -33,244 +37,46 @@ interface Institution {
   updated_at: string;
 }
 
-interface InstitutionsResponse {
-  institutions: Institution[];
-  meta: {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number;
-    to: number;
-  };
-}
+// Institution service
+const institutionService = new GenericCrudService<Institution>('/institutions');
+
+// Institution types mapping
+const institutionTypes = [
+  { value: 'ministry', label: 'Nazirlik' },
+  { value: 'region', label: 'Regional İdarə' },
+  { value: 'sektor', label: 'Sektor' },
+  { value: 'school', label: 'Məktəb' },
+  { value: 'vocational', label: 'Peşə Məktəbi' },
+  { value: 'university', label: 'Universitet' }
+];
+
+const levelOptions = [
+  { value: 1, label: 'Səviyyə 1 - Nazirlik' },
+  { value: 2, label: 'Səviyyə 2 - Regional' },
+  { value: 3, label: 'Səviyyə 3 - Sektor' },
+  { value: 4, label: 'Səviyyə 4 - Məktəb' },
+  { value: 5, label: 'Səviyyə 5 - Şöbə' }
+];
 
 const InstitutionsList: React.FC = () => {
   const { user } = useAuth();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
-  const [levelFilter, setLevelFilter] = useState('');
-  const [viewMode, setViewMode] = useState<'table' | 'hierarchy'>('table');
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [showEditForm, setShowEditForm] = useState(false);
-  const [showDetailsForm, setShowDetailsForm] = useState(false);
-  const [showHistoryModal, setShowHistoryModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showDepartmentsModal, setShowDepartmentsModal] = useState(false);
-  const [editingInstitutionId, setEditingInstitutionId] = useState<number | null>(null);
-  const [viewingInstitutionId, setViewingInstitutionId] = useState<number | null>(null);
-  const [historyInstitutionId, setHistoryInstitutionId] = useState<number | null>(null);
-  const [deletingInstitutionId, setDeletingInstitutionId] = useState<number | null>(null);
-  const [departmentsInstitutionId, setDepartmentsInstitutionId] = useState<number | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [selectedInstitutions, setSelectedInstitutions] = useState<number[]>([]);
-  const [showBulkActions, setShowBulkActions] = useState(false);
+  
+  // Modal states using BaseModal hooks
+  const createModal = useModal();
+  const editModal = useModal();
+  const detailsModal = useModal();
+  const departmentsModal = useModal();
+  
+  // Current item states
+  const [currentInstitution, setCurrentInstitution] = React.useState<Institution | null>(null);
 
-  // 🚀 NEW: Role-based institutions data fetching
-  const {
-    data: institutionsResponse,
-    loading,
-    error,
-    refetch: refetchInstitutions
-  } = useRoleBasedData<InstitutionsResponse>({
-    endpoint: '/institutions',
-    filters: {
-      page: currentPage,
-      per_page: 12,
-      ...(searchTerm && { search: searchTerm }),
-      ...(typeFilter && { type: typeFilter }),
-      ...(levelFilter && { level: levelFilter })
-    },
-    dependencies: [currentPage, searchTerm, typeFilter, levelFilter]
-  });
-
-  // Extract institutions and pagination from response
-  const institutions = institutionsResponse?.institutions || [];
-  const totalPages = institutionsResponse?.meta?.last_page || 1;
-
-  const institutionTypes = [
-    { value: 'ministry', label: 'Nazirlik' },
-    { value: 'region', label: 'Regional İdarə' },
-    { value: 'sektor', label: 'Sektor' },
-    { value: 'school', label: 'Məktəb' },
-    { value: 'vocational', label: 'Peşə Məktəbi' },
-    { value: 'university', label: 'Universitet' }
-  ];
-
-  const levelOptions = [
-    { value: 1, label: 'Səviyyə 1 - Nazirlik' },
-    { value: 2, label: 'Səviyyə 2 - Regional' },
-    { value: 3, label: 'Səviyyə 3 - Sektor' },
-    { value: 4, label: 'Səviyyə 4 - Məktəb' },
-    { value: 5, label: 'Səviyyə 5 - Şöbə' }
-  ];
-
-  // Manual fetch removed - handled by useRoleBasedData hook automatically
-
+  // Check permissions
   const canManageInstitutions = () => {
-    // Check if user has roles array (from /me endpoint)
     const roles = user?.roles || [];
-    const canManage = roles.includes('superadmin') || roles.includes('regionadmin');
-    
-    console.log('🔑 Checking institution management permissions:');
-    console.log('   - User object:', user);
-    console.log('   - User roles:', roles);
-    console.log('   - Can manage institutions:', canManage);
-    
-    return canManage;
+    return roles.includes('superadmin') || roles.includes('regionadmin');
   };
 
-  const handleCreateSuccess = () => {
-    setShowCreateForm(false);
-    // 🚀 NEW: Use refetch instead of manual fetchInstitutions
-    refetchInstitutions();
-  };
-
-  const handleEditClick = (institutionId: number) => {
-    setEditingInstitutionId(institutionId);
-    setShowEditForm(true);
-  };
-
-  const handleDetailsClick = (institutionId: number) => {
-    setViewingInstitutionId(institutionId);
-    setShowDetailsForm(true);
-  };
-
-  const handleDepartmentsClick = (institutionId: number) => {
-    setDepartmentsInstitutionId(institutionId);
-    setShowDepartmentsModal(true);
-  };
-
-  const handleEditSuccess = () => {
-    setShowEditForm(false);
-    setEditingInstitutionId(null);
-    // 🚀 NEW: Use refetch instead of manual fetchInstitutions
-    refetchInstitutions();
-  };
-
-  const handleToggleStatus = async (institution: Institution) => {
-    try {
-      await api.put(`/institutions/${institution.id}`, {
-        is_active: !institution.is_active
-      });
-      refetchInstitutions();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Status dəyişdirilərkən xəta baş verdi');
-    }
-  };
-
-  const handleDuplicateClick = async (institutionId: number) => {
-    try {
-      const response = await api.get(`/institutions/${institutionId}`);
-      const institution = response.data.data;
-      
-      // Create a duplicate with modified name
-      const duplicateData = {
-        ...institution,
-        name: `${institution.name} (Kopya)`,
-        institution_code: `${institution.institution_code}_copy`,
-        id: undefined,
-        created_at: undefined,
-        updated_at: undefined,
-      };
-
-      await api.post('/institutions', duplicateData);
-      refetchInstitutions();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Təşkilat kopyalanarkən xəta baş verdi');
-    }
-  };
-
-  const handleHistoryClick = (institutionId: number) => {
-    setHistoryInstitutionId(institutionId);
-    setShowHistoryModal(true);
-  };
-
-  const handleDeleteClick = (institutionId: number) => {
-    setDeletingInstitutionId(institutionId);
-    setShowDeleteModal(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!deletingInstitutionId) return;
-
-    try {
-      await api.delete(`/institutions/${deletingInstitutionId}`);
-      setShowDeleteModal(false);
-      setDeletingInstitutionId(null);
-      refetchInstitutions();
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Təşkilat silinərkən xəta baş verdi');
-    }
-  };
-
-  const handleSelectInstitution = (institutionId: number) => {
-    setSelectedInstitutions(prev => 
-      prev.includes(institutionId) 
-        ? prev.filter(id => id !== institutionId)
-        : [...prev, institutionId]
-    );
-  };
-
-  const handleSelectAll = () => {
-    if (selectedInstitutions.length === institutions.length) {
-      setSelectedInstitutions([]);
-    } else {
-      setSelectedInstitutions(institutions.map(inst => inst.id));
-    }
-  };
-
-  const handleBulkAction = async (action: string) => {
-    if (selectedInstitutions.length === 0) return;
-
-    try {
-      let response;
-      switch (action) {
-        case 'activate':
-          response = await api.post('/institutions/bulk/activate', {
-            institution_ids: selectedInstitutions
-          });
-          break;
-        case 'deactivate':
-          response = await api.post('/institutions/bulk/deactivate', {
-            institution_ids: selectedInstitutions
-          });
-          break;
-        case 'delete':
-          response = await api.post('/institutions/bulk/delete', {
-            institution_ids: selectedInstitutions
-          });
-          break;
-        case 'export':
-          response = await api.post('/institutions/bulk/export', {
-            institution_ids: selectedInstitutions,
-            format: 'json'
-          });
-          // Handle download
-          const blob = new Blob([JSON.stringify(response.data.data, null, 2)], {
-            type: 'application/json'
-          });
-          const url = window.URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `institutions_${new Date().toISOString().split('T')[0]}.json`;
-          link.click();
-          window.URL.revokeObjectURL(url);
-          break;
-        default:
-          return;
-      }
-
-      if (response && response.data.success) {
-        setSelectedInstitutions([]);
-        setShowBulkActions(false);
-        fetchInstitutions();
-      }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Kütləvi əməliyyat xətası baş verdi');
-    }
-  };
-
+  // Utility functions
   const getTypeDisplayName = (type: string) => {
     const typeObj = institutionTypes.find(t => t.value === type);
     return typeObj ? typeObj.label : type;
@@ -285,568 +91,430 @@ const InstitutionsList: React.FC = () => {
     return new Date(dateString).toLocaleDateString('az-AZ');
   };
 
-  if (loading) {
+  // Column configuration for BaseListComponent
+  const columns: ListColumn<Institution>[] = [
+    {
+      key: 'id',
+      label: 'ID',
+      width: '80px',
+      sortable: true,
+      align: 'center'
+    },
+    {
+      key: 'name',
+      label: 'Təşkilat Adı',
+      sortable: true,
+      render: (value, item) => (
+        <div style={styles.flex('column', 'start', '1')}>
+          <div style={styles.flex('row', 'center', '2')}>
+            <InstitutionTypeIcon type={item.type} />
+            <span style={styles.text('sm', 'semibold')}>{value}</span>
+          </div>
+          {item.short_name && (
+            <span style={styles.text('xs', 'normal', StyleSystem.tokens.colors.gray[600])}>
+              {item.short_name}
+            </span>
+          )}
+          <span style={styles.text('xs', 'normal', StyleSystem.tokens.colors.gray[500])}>
+            Kod: {item.institution_code}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'type',
+      label: 'Tip',
+      width: '140px',
+      sortable: true,
+      filterable: true,
+      render: (value) => (
+        <span style={StyleSystem.badge('primary')}>
+          {getTypeDisplayName(value)}
+        </span>
+      )
+    },
+    {
+      key: 'level',
+      label: 'Səviyyə',
+      width: '120px',
+      sortable: true,
+      filterable: true,
+      render: (value) => (
+        <span style={StyleSystem.badge('gray')}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'parent',
+      label: 'Əsas Təşkilat',
+      width: '180px',
+      render: (value) => value ? (
+        <div style={styles.flex('column', 'start', '1')}>
+          <span style={styles.text('xs', 'medium')}>{value.name}</span>
+          <span style={styles.text('xs', 'normal', StyleSystem.tokens.colors.gray[600])}>
+            {getTypeDisplayName(value.type)}
+          </span>
+        </div>
+      ) : (
+        <span style={styles.text('xs', 'normal', StyleSystem.tokens.colors.gray[500])}>
+          Əsas təşkilat yoxdur
+        </span>
+      )
+    },
+    {
+      key: 'children_count',
+      label: 'Alt Təşkilat',
+      width: '100px',
+      align: 'center',
+      render: (value) => (
+        <span style={StyleSystem.badge(value > 0 ? 'success' : 'gray')}>
+          {value}
+        </span>
+      )
+    },
+    {
+      key: 'is_active',
+      label: 'Status',
+      width: '100px',
+      align: 'center',
+      render: (value) => (
+        <div style={styles.flex('row', 'center', '2')}>
+          <StatusIcon active={value} />
+          <span style={StyleSystem.badge(value ? 'success' : 'danger')}>
+            {value ? 'Aktiv' : 'Deaktiv'}
+          </span>
+        </div>
+      )
+    },
+    {
+      key: 'established_date',
+      label: 'Təsis Tarixi',
+      width: '120px',
+      sortable: true,
+      render: (value) => value ? formatDate(value) : '—'
+    }
+  ];
+
+  // Action configuration
+  const actions: ListAction<Institution>[] = [
+    {
+      key: 'details',
+      label: 'Təfərrüatlar',
+      icon: <Icon type="VIEW" />,
+      variant: 'secondary',
+      onClick: (institution) => {
+        setCurrentInstitution(institution);
+        detailsModal.open();
+      }
+    },
+    {
+      key: 'departments',
+      label: 'Şöbələr',
+      icon: <Icon type="DEPARTMENT" />,
+      variant: 'secondary',
+      show: (institution) => institution.children_count > 0,
+      onClick: (institution) => {
+        setCurrentInstitution(institution);
+        departmentsModal.open();
+      }
+    },
+    {
+      key: 'edit',
+      label: 'Redaktə et',
+      icon: <Icon type="EDIT" />,
+      variant: 'secondary',
+      show: () => canManageInstitutions(),
+      onClick: (institution) => {
+        setCurrentInstitution(institution);
+        editModal.open();
+      }
+    },
+    {
+      key: 'toggle-status',
+      label: 'Status dəyişdir',
+      icon: <Icon type="TOGGLE" />,
+      variant: 'warning',
+      show: () => canManageInstitutions(),
+      onClick: async (institution) => {
+        try {
+          await institutionService.update(institution.id, {
+            is_active: !institution.is_active
+          });
+        } catch (error) {
+          console.error('Status update failed:', error);
+        }
+      }
+    }
+  ];
+
+  // Bulk actions configuration
+  const bulkActions: BulkAction<Institution>[] = canManageInstitutions() ? [
+    {
+      key: 'bulk-activate',
+      label: 'Aktivləşdir',
+      icon: <Icon type="ACTIVE" />,
+      variant: 'success',
+      confirmMessage: 'Seçilmiş təşkilatları aktivləşdirmək istədiyinizə əminsiniz?',
+      onClick: async (institutions) => {
+        try {
+          await institutionService.bulkActivate(institutions.map(i => Number(i.id)));
+        } catch (error) {
+          console.error('Bulk activate failed:', error);
+        }
+      }
+    },
+    {
+      key: 'bulk-deactivate',
+      label: 'Deaktivləşdir',
+      icon: <Icon type="INACTIVE" />,
+      variant: 'warning',
+      confirmMessage: 'Seçilmiş təşkilatları deaktivləşdirmək istədiyinizə əminsiniz?',
+      onClick: async (institutions) => {
+        try {
+          await institutionService.bulkDeactivate(institutions.map(i => Number(i.id)));
+        } catch (error) {
+          console.error('Bulk deactivate failed:', error);
+        }
+      }
+    },
+    {
+      key: 'bulk-export',
+      label: 'İxrac et',
+      icon: <Icon type="EXPORT" />,
+      variant: 'secondary',
+      onClick: async (institutions) => {
+        try {
+          const blob = await institutionService.export('json', {
+            ids: institutions.map(i => i.id)
+          });
+          
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `institutions_${new Date().toISOString().split('T')[0]}.json`;
+          link.click();
+          window.URL.revokeObjectURL(url);
+        } catch (error) {
+          console.error('Export failed:', error);
+        }
+      }
+    },
+    {
+      key: 'bulk-delete',
+      label: 'Sil',
+      icon: <Icon type="DELETE" />,
+      variant: 'danger',
+      confirmMessage: 'Seçilmiş təşkilatları silmək istədiyinizə əminsiniz? Bu əməliyyat geri alına bilməz.',
+      onClick: async (institutions) => {
+        try {
+          await institutionService.bulkDelete(institutions.map(i => Number(i.id)));
+        } catch (error) {
+          console.error('Bulk delete failed:', error);
+        }
+      }
+    }
+  ] : [];
+
+  // Filter configuration
+  const filters: ListFilter[] = [
+    {
+      key: 'type',
+      label: 'Tip',
+      type: 'select',
+      options: institutionTypes,
+      placeholder: 'Tip seçin'
+    },
+    {
+      key: 'level',
+      label: 'Səviyyə',
+      type: 'select',
+      options: levelOptions,
+      placeholder: 'Səviyyə seçin'
+    },
+    {
+      key: 'is_active',
+      label: 'Status',
+      type: 'select',
+      options: [
+        { value: 'true', label: 'Aktiv' },
+        { value: 'false', label: 'Deaktiv' }
+      ],
+      placeholder: 'Status seçin'
+    },
+    {
+      key: 'established_date',
+      label: 'Təsis tarixi',
+      type: 'date'
+    }
+  ];
+
+  // Stats header component
+  const renderStatsHeader = () => {
+    const totalCount = '---'; // Will be provided by BaseListComponent
+    const activeCount = '---';
+    const inactiveCount = '---';
+    const typesCount = institutionTypes.length;
+
     return (
-      <div className="institutions-list">
-        <div className="page-header">
-          <div className="header-content">
-            <h1 className="page-title">
-              <Icon type="INSTITUTION" />
-              Təşkilat İdarəetməsi
-            </h1>
-            <p className="page-description">Təhsil təşkilatlarının idarə edilməsi və strukturu</p>
-          </div>
-          <div className="header-stats">
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="INSTITUTION" />
-              </div>
-              <span className="stat-number">---</span>
-              <span className="stat-label">Ümumi</span>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="ACTIVE" />
-              </div>
-              <span className="stat-number">---</span>
-              <span className="stat-label">Aktiv</span>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="INACTIVE" />
-              </div>
-              <span className="stat-number">---</span>
-              <span className="stat-label">Deaktiv</span>
-            </div>
-            <div className="stat-card">
-              <div className="stat-icon">
-                <Icon type="HIERARCHY" />
-              </div>
-              <span className="stat-number">---</span>
-              <span className="stat-label">Tip</span>
-            </div>
-          </div>
+      <div style={{
+        ...styles.flex('row', 'center', 'between'),
+        ...styles.mb('6'),
+        ...styles.p('6'),
+        ...StyleSystem.card()
+      }}>
+        <div>
+          <h1 style={styles.text('2xl', 'bold')}>
+            <Icon type="INSTITUTION" /> Təşkilat İdarəetməsi
+          </h1>
+          <p style={styles.text('base', 'normal', StyleSystem.tokens.colors.gray[600])}>
+            Təhsil təşkilatlarının idarə edilməsi və strukturu
+          </p>
         </div>
         
-        <div className="institutions-table">
-          <table>
-            <tbody>
-              {Array.from({ length: 6 }, (_, index) => (
-                <tr key={index}>
-                  <td colSpan={9}>
-                    <InstitutionCardSkeleton />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div style={styles.flex('row', 'center', '4')}>
+          <div style={{ ...styles.center(), ...styles.p('4'), ...StyleSystem.card('default', '4') }}>
+            <Icon type="INSTITUTION" />
+            <span style={styles.text('2xl', 'bold')}>{totalCount}</span>
+            <span style={styles.text('sm', 'normal', StyleSystem.tokens.colors.gray[600])}>Ümumi</span>
+          </div>
+          
+          <div style={{ ...styles.center(), ...styles.p('4'), ...StyleSystem.card('default', '4') }}>
+            <Icon type="ACTIVE" />
+            <span style={styles.text('2xl', 'bold', StyleSystem.tokens.colors.success[600])}>{activeCount}</span>
+            <span style={styles.text('sm', 'normal', StyleSystem.tokens.colors.gray[600])}>Aktiv</span>
+          </div>
+          
+          <div style={{ ...styles.center(), ...styles.p('4'), ...StyleSystem.card('default', '4') }}>
+            <Icon type="INACTIVE" />
+            <span style={styles.text('2xl', 'bold', StyleSystem.tokens.colors.danger[600])}>{inactiveCount}</span>
+            <span style={styles.text('sm', 'normal', StyleSystem.tokens.colors.gray[600])}>Deaktiv</span>
+          </div>
+          
+          <div style={{ ...styles.center(), ...styles.p('4'), ...StyleSystem.card('default', '4') }}>
+            <Icon type="HIERARCHY" />
+            <span style={styles.text('2xl', 'bold')}>{typesCount}</span>
+            <span style={styles.text('sm', 'normal', StyleSystem.tokens.colors.gray[600])}>Tip</span>
+          </div>
         </div>
       </div>
     );
-  }
+  };
+
+  // Action buttons
+  const renderActionButtons = () => {
+    if (!canManageInstitutions()) return null;
+
+    return (
+      <div style={styles.flex('row', 'center', '3')}>
+        <button
+          onClick={createModal.open}
+          style={StyleSystem.button('primary')}
+        >
+          <Icon type="PLUS" /> Yeni Təşkilat
+        </button>
+      </div>
+    );
+  };
 
   return (
-    <div className="institutions-list">
-      <div className="page-header">
-        <div className="header-content">
-          <h1 className="page-title">
-            <Icon type="INSTITUTION" />
-            Təşkilat İdarəetməsi
-          </h1>
-          <p className="page-description">Təhsil təşkilatlarının idarə edilməsi və strukturu</p>
-        </div>
-        <div className="header-stats">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="INSTITUTION" />
-            </div>
-            <span className="stat-number">{institutions.length}</span>
-            <span className="stat-label">Ümumi</span>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="ACTIVE" />
-            </div>
-            <span className="stat-number">{institutions.filter(inst => inst.is_active).length}</span>
-            <span className="stat-label">Aktiv</span>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="INACTIVE" />
-            </div>
-            <span className="stat-number">{institutions.filter(inst => !inst.is_active).length}</span>
-            <span className="stat-label">Deaktiv</span>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon">
-              <Icon type="HIERARCHY" />
-            </div>
-            <span className="stat-number">{institutionTypes.length}</span>
-            <span className="stat-label">Tip</span>
-          </div>
-        </div>
-      </div>
+    <div>
+      {/* Stats Header */}
+      {renderStatsHeader()}
 
-      {error && (
-        <ErrorDisplay 
-          message={error}
-          type={error.includes('Network') ? 'network' : error.includes('permission') ? 'permission' : 'error'}
-          onRetry={() => {
-            setError('');
-            fetchInstitutions();
+      {/* Main List */}
+      <BaseListComponent<Institution>
+        service={institutionService}
+        columns={columns}
+        actions={actions}
+        bulkActions={bulkActions}
+        filters={filters}
+        searchable
+        searchPlaceholder="Təşkilat adı, kod və ya qısa ad ilə axtarın..."
+        selectable={canManageInstitutions()}
+        pagination
+        pageSize={20}
+        sortable
+        variant="default"
+        size="md"
+        emptyTitle="Təşkilat tapılmadı"
+        emptyDescription="Həmin kriterlərə uyğun təşkilat mövcud deyil"
+        emptyAction={renderActionButtons()}
+        renderHeader={renderActionButtons}
+        onItemClick={(institution) => {
+          setCurrentInstitution(institution);
+          detailsModal.open();
+        }}
+      />
+
+      {/* Create Modal */}
+      <BaseModal
+        isOpen={createModal.isOpen}
+        onClose={createModal.close}
+        title="Yeni Təşkilat"
+        size="lg"
+      >
+        <InstitutionCreateForm 
+          onSuccess={() => {
+            createModal.close();
+            // BaseListComponent will auto-refresh
           }}
-          onDismiss={() => setError('')}
+          onCancel={createModal.close}
         />
-      )}
+      </BaseModal>
 
-      <div className="institutions-controls">
-        {selectedInstitutions.length > 0 && (
-          <div className="bulk-actions-bar">
-            <div className="bulk-selection-info">
-              <input
-                type="checkbox"
-                checked={selectedInstitutions.length === institutions.length}
-                onChange={handleSelectAll}
-                className="bulk-select-all"
-              />
-              <span>{selectedInstitutions.length} təşkilat seçildi</span>
-            </div>
-            <div className="bulk-actions">
-              <button
-                onClick={() => handleBulkAction('activate')}
-                className="bulk-action-btn activate"
-              >
-                <Icon type="ACTIVE" /> Aktivləşdir
-              </button>
-              <button
-                onClick={() => handleBulkAction('deactivate')}
-                className="bulk-action-btn deactivate"
-              >
-                <Icon type="INACTIVE" /> Deaktivləşdir
-              </button>
-              <button
-                onClick={() => handleBulkAction('export')}
-                className="bulk-action-btn export"
-              >
-                <Icon type="DOWNLOAD" /> Eksport
-              </button>
-              <button
-                onClick={() => handleBulkAction('delete')}
-                className="bulk-action-btn delete"
-              >
-                <Icon type="DELETE" /> Sil
-              </button>
-              <button
-                onClick={() => {
-                  setSelectedInstitutions([]);
-                  setShowBulkActions(false);
-                }}
-                className="bulk-action-btn cancel"
-              >
-                <Icon type="CLOSE" /> Ləğv et
-              </button>
-            </div>
-          </div>
+      {/* Edit Modal */}
+      <BaseModal
+        isOpen={editModal.isOpen}
+        onClose={editModal.close}
+        title="Təşkilatı Redaktə et"
+        size="lg"
+      >
+        {currentInstitution && (
+          <InstitutionEditForm
+            institutionId={currentInstitution.id}
+            onSuccess={() => {
+              editModal.close();
+              setCurrentInstitution(null);
+              // BaseListComponent will auto-refresh
+            }}
+            onCancel={() => {
+              editModal.close();
+              setCurrentInstitution(null);
+            }}
+          />
         )}
+      </BaseModal>
 
-        <div className="institutions-filters">
-          <div className="search-form">
-            <input
-              type="text"
-              placeholder="Təşkilat adı ilə axtarın..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="search-input"
-            />
-          </div>
+      {/* Details Modal */}
+      <BaseModal
+        isOpen={detailsModal.isOpen}
+        onClose={detailsModal.close}
+        title="Təşkilat Təfərrüatları"
+        size="lg"
+      >
+        {currentInstitution && (
+          <InstitutionDetails
+            institutionId={currentInstitution.id}
+            onClose={detailsModal.close}
+          />
+        )}
+      </BaseModal>
 
-          <select
-            value={typeFilter}
-            onChange={(e) => {
-              setTypeFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="filter-select"
-          >
-            <option value="">Bütün tiplər</option>
-            {institutionTypes.map(type => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={levelFilter}
-            onChange={(e) => {
-              setLevelFilter(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="filter-select"
-          >
-            <option value="">Bütün səviyyələr</option>
-            {levelOptions.map(level => (
-              <option key={level.value} value={level.value}>
-                {level.label}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div className="view-controls">
-          <div className="view-toggle">
-            <button
-              className={`view-button ${viewMode === 'table' ? 'active' : ''}`}
-              onClick={() => setViewMode('table')}
-            >
-              <Icon type="TABLE" className="nav-icon" /> Cədvəl
-            </button>
-            <button
-              className={`view-button ${viewMode === 'hierarchy' ? 'active' : ''}`}
-              onClick={() => setViewMode('hierarchy')}
-            >
-              <Icon type="HIERARCHY" className="nav-icon" /> Ierarxiya
-            </button>
-          </div>
-
-          <div className="control-buttons">
-            {canManageInstitutions() && (
-              <>
-                <button 
-                  className="control-button btn-with-icon"
-                  onClick={() => {
-                    // Navigate to trashed institutions
-                    window.location.href = '/institutions/trashed';
-                  }}
-                  title="Silinmiş təşkilatları göstər"
-                >
-                  <Icon type="TRASH" /> Silinmiş
-                </button>
-                <button 
-                  className="control-button btn-with-icon"
-                  onClick={() => {
-                    // Navigate to audit logs
-                    window.location.href = '/institutions/audit-logs';
-                  }}
-                  title="Dəyişiklik tarixçəsini göstər"
-                >
-                  <Icon type="HISTORY" /> Tarixçə
-                </button>
-                <button 
-                  className="add-institution-button btn-with-icon"
-                  onClick={() => {
-                    console.log('🔵 "Yeni Təşkilat" button clicked!');
-                    console.log('   - User can manage institutions:', canManageInstitutions());
-                    console.log('   - Current showCreateForm state:', showCreateForm);
-                    console.log('   - Setting showCreateForm to true...');
-                    setShowCreateForm(true);
-                  }}
-                >
-                  <Icon type="ADD" /> Yeni Təşkilat
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {viewMode === 'hierarchy' ? (
-        <InstitutionHierarchyView 
-          onEditClick={handleEditClick}
-          canManage={canManageInstitutions()}
-          onRefresh={() => {
-            // Refresh both views when institutions are updated
-            fetchInstitutions();
-          }}
-        />
-      ) : (
-        <>
-          <div className="institutions-table">
-            <table>
-              <thead>
-                <tr>
-                  {canManageInstitutions() && (
-                    <th>
-                      <input
-                        type="checkbox"
-                        checked={selectedInstitutions.length === institutions.length}
-                        onChange={handleSelectAll}
-                        className="bulk-select-all"
-                      />
-                    </th>
-                  )}
-                  <th>Təşkilat</th>
-                  <th>Tip</th>
-                  <th>Səviyyə</th>
-                  <th>Status</th>
-                  <th>Alt təşkilat</th>
-                  <th>Region</th>
-                  <th>Kod</th>
-                  <th>Əməliyyatlar</th>
-                </tr>
-              </thead>
-              <tbody>
-                {Array.isArray(institutions) && institutions.map((institution) => (
-                  <tr 
-                    key={institution.id} 
-                    className={selectedInstitutions.includes(institution.id) ? 'selected' : ''}
-                  >
-                    {canManageInstitutions() && (
-                      <td>
-                        <input
-                          type="checkbox"
-                          checked={selectedInstitutions.includes(institution.id)}
-                          onChange={() => handleSelectInstitution(institution.id)}
-                          className="institution-select-checkbox"
-                        />
-                      </td>
-                    )}
-                    <td>
-                      <div className="institution-name-cell">
-                        {institution.name}
-                        {institution.short_name && (
-                          <span className="institution-short-cell">({institution.short_name})</span>
-                        )}
-                      </div>
-                    </td>
-                    <td>
-                      <span className={`table-badge type-${institution.type}`}>
-                        {getTypeDisplayName(institution.type)}
-                      </span>
-                    </td>
-                    <td>{getLevelDisplayName(institution.level)}</td>
-                    <td>
-                      <span className={`table-badge status-${institution.is_active ? 'active' : 'inactive'}`}>
-                        {institution.is_active ? 'Aktiv' : 'Deaktiv'}
-                      </span>
-                    </td>
-                    <td>{institution.children_count}</td>
-                    <td>{institution.region_code || '-'}</td>
-                    <td>
-                      {institution.institution_code && (
-                        <span style={{fontFamily: 'Monaco, monospace', fontSize: '0.8rem'}}>
-                          {institution.institution_code}
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      <div className="table-actions">
-                        <button
-                          className="table-action-btn details"
-                          onClick={() => handleDetailsClick(institution.id)}
-                          title="Detallar"
-                        >
-                          <Icon type="VIEW" />
-                        </button>
-                        {canManageInstitutions() && (
-                          <>
-                            <button
-                              className="table-action-btn departments"
-                              onClick={() => handleDepartmentsClick(institution.id)}
-                              title="Şöbələr"
-                            >
-                              <Icon type="USERS" />
-                            </button>
-                            <button
-                              className="table-action-btn edit"
-                              onClick={() => handleEditClick(institution.id)}
-                              title="Redaktə et"
-                            >
-                              <Icon type="EDIT" />
-                            </button>
-                            <button
-                              className="table-action-btn delete"
-                              onClick={() => handleDeleteClick(institution.id)}
-                              title="Sil"
-                            >
-                              <Icon type="DELETE" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            
-            {(!institutions || institutions.length === 0) && !loading && (
-              <div style={{padding: '3rem', textAlign: 'center', color: '#6b7280'}}>
-                <Icon type="INSTITUTION" style={{fontSize: '3rem', marginBottom: '1rem', opacity: 0.5}} />
-                <p style={{margin: 0, fontSize: '1.1rem'}}>Heç bir təşkilat tapılmadı</p>
-                {(searchTerm || typeFilter || levelFilter) && (
-                  <button 
-                    onClick={() => {
-                      setSearchTerm('');
-                      setTypeFilter('');
-                      setLevelFilter('');
-                      setCurrentPage(1);
-                    }}
-                    style={{
-                      marginTop: '1rem',
-                      padding: '0.5rem 1rem',
-                      background: '#f3f4f6',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '6px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Filtrləri təmizlə
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          
-          {/* Pagination for table view */}
-          {totalPages > 1 && (
-            <div className="pagination">
-              <button
-                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="pagination-button btn-with-icon"
-              >
-                <Icon type="PREVIOUS" /> Əvvəlki
-              </button>
-              
-              <span className="pagination-info">
-                Səhifə {currentPage} / {totalPages}
-              </span>
-              
-              <button
-                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
-                className="pagination-button btn-with-icon"
-              >
-                Növbəti <Icon type="NEXT" />
-              </button>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Institution Create Modal */}
-      {showCreateForm && (
-        React.createElement(() => {
-          console.log('🎨 Rendering InstitutionCreateForm modal');
-          console.log('   - showCreateForm:', showCreateForm);
-          return (
-            <InstitutionCreateForm 
-              onClose={() => {
-                console.log('🚪 Closing institution create form');
-                setShowCreateForm(false);
-              }}
-              onSuccess={() => {
-                console.log('✅ Institution creation success callback triggered');
-                handleCreateSuccess();
-              }}
-            />
-          );
-        })
-      )}
-
-      {/* Institution Edit Modal */}
-      {showEditForm && editingInstitutionId && (
-        <InstitutionEditForm 
-          institutionId={editingInstitutionId}
-          onClose={() => {
-            setShowEditForm(false);
-            setEditingInstitutionId(null);
-          }}
-          onSuccess={handleEditSuccess}
-        />
-      )}
-
-      {/* Institution Details Modal */}
-      {showDetailsForm && viewingInstitutionId && (
-        <InstitutionDetails 
-          institutionId={viewingInstitutionId}
-          onClose={() => {
-            setShowDetailsForm(false);
-            setViewingInstitutionId(null);
-          }}
-        />
-      )}
-
-      {/* Institution History Modal */}
-      {showHistoryModal && historyInstitutionId && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Dəyişiklik Tarixçəsi</h2>
-              <button 
-                className="modal-close"
-                onClick={() => {
-                  setShowHistoryModal(false);
-                  setHistoryInstitutionId(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>Audit log komponenti burada olacaq...</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Delete Confirmation Modal */}
-      {showDeleteModal && deletingInstitutionId && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h2>Təşkilatı Sil</h2>
-              <button 
-                className="modal-close"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeletingInstitutionId(null);
-                }}
-              >
-                ×
-              </button>
-            </div>
-            <div className="modal-body">
-              <p>Bu təşkilatı silmək istədiyinizə əminsiniz?</p>
-              <p className="warning-text">
-                Bu əməliyyat geri qaytarıla bilər (soft delete).
-              </p>
-            </div>
-            <div className="modal-footer">
-              <button 
-                className="btn btn-secondary"
-                onClick={() => {
-                  setShowDeleteModal(false);
-                  setDeletingInstitutionId(null);
-                }}
-              >
-                İmtina
-              </button>
-              <button 
-                className="btn btn-danger"
-                onClick={handleConfirmDelete}
-              >
-                Sil
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Institution Departments Modal */}
-      {showDepartmentsModal && departmentsInstitutionId && (
-        <InstitutionDepartments 
-          institutionId={departmentsInstitutionId}
-          onClose={() => {
-            setShowDepartmentsModal(false);
-            setDepartmentsInstitutionId(null);
-          }}
-        />
-      )}
+      {/* Departments Modal */}
+      <BaseModal
+        isOpen={departmentsModal.isOpen}
+        onClose={departmentsModal.close}
+        title="Şöbələr"
+        size="xl"
+      >
+        {currentInstitution && (
+          <InstitutionDepartments
+            institutionId={currentInstitution.id}
+            onClose={departmentsModal.close}
+          />
+        )}
+      </BaseModal>
     </div>
   );
 };

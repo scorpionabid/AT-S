@@ -3,8 +3,10 @@ import { createRoot } from 'react-dom/client';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
-// Import Tailwind CSS with design tokens
-// Import unified component system
+
+// Global styles (unified CSS system)
+import './styles/global.css';
+
 import App from './App.tsx';
 import i18n from './i18n/config';
 import { initI18n } from './i18n/initI18n';

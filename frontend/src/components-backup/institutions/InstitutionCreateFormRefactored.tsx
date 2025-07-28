@@ -1,5 +1,5 @@
 import React from 'react';
-import BaseForm from '../common/BaseForm';
+import BaseForm from '../base/BaseForm';
 import useForm, { FormField, FormSection } from '../../hooks/useForm';
 
 interface InstitutionCreateData {

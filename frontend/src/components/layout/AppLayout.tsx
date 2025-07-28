@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
-import Sidebar from './Sidebar';
+import UnifiedSidebar from './UnifiedSidebar';
 import Header from './Header';
 
 interface AppLayoutProps {
@@ -46,7 +46,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       background: '#f8fafc',
       position: 'relative'
     }}>
-      <Sidebar />
+      <UnifiedSidebar />
       <div style={{
         display: 'flex',
         flexDirection: 'column',

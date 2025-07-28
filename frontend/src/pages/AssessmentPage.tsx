@@ -1,11 +1,11 @@
 import React from 'react';
 import Dashboard from '../components/layout/Dashboard';
-import AssessmentDashboard from '../components/assessment/AssessmentDashboard';
+import AssessmentDashboardUnified from '../components/assessment/AssessmentDashboardUnified';
 
 const AssessmentPage: React.FC = () => {
   return (
     <Dashboard>
-      <AssessmentDashboard />
+      <AssessmentDashboardUnified />
     </Dashboard>
   );
 };

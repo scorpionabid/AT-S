@@ -6,6 +6,7 @@
 import { GenericCrudService } from './base/GenericCrudService';
 import { ATİSTypes } from '../types/shared';
 import { api } from './api';
+import { logger } from '../utils/logger';
 
 // Dashboard-specific types
 export interface DashboardStats {
@@ -208,21 +209,18 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
    */
   async getStats(filters?: DashboardFilters): Promise<DashboardStats> {
     try {
-      console.log('Dashboard Service: Fetching stats...', filters);
+      logger.service.request('DashboardService', '/stats', filters);
       const response = await api.get<{
         status: string;
         data: DashboardStats;
         message?: string;
       }>(`${this.endpoint}/stats`, { params: filters });
       
-      console.log('Dashboard Service: Response received', {
-        status: response.status,
-        dataKeys: Object.keys(response.data?.data || {})
-      });
+      logger.service.response('DashboardService', '/stats', response.status, Object.keys(response.data?.data || {}));
       
       if (response.data.status === 'success') {
         const data = response.data.data;
-        console.log('Dashboard Service: Data parsed successfully', {
+        logger.debug('DashboardService', 'Stats data parsed successfully', {
           totalUsers: data.totalUsers,
           totalInstitutions: data.totalInstitutions,
           totalSurveys: data.totalSurveys,
@@ -234,7 +232,7 @@ class DashboardServiceUnified extends GenericCrudService<any, any, any> {
         throw new Error(response.data.message || 'API xətası');
       }
     } catch (error: any) {
-      console.error('Dashboard service error:', error);
+      logger.service.error('DashboardService', 'Get stats', error);
       this.handleError(error, 'Dashboard statistikaları');
       throw error;
     }
