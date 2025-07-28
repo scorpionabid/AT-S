@@ -1,0 +1,40 @@
+/**
+ * ATİS - Z-index və Layout Critical Fixes
+ * Bu fayl sidebar vs page-header z-index conflict-lərini həll edir
+ * QEYD: Bu fayl kritik problemlər üçün temporary fix-dir, uzunmüddətli həll global.css-dən aparılmalıdır
+ */
+
+/* 🎯 CRITICAL: Page Header Z-index Fix */
+.page-header {
+  /* Bu fix sidebar-dan yüksək z-index verir amma global.css-də məntiqli hierarchy olmalıdır */
+  z-index: 1200 !important; 
+  position: relative !important;
+  isolation: isolate !important;
+  /* CSS containment for performance */
+  contain: layout style paint;
+}
+
+/* 🔧 Sidebar z-index control */
+[class*="sidebar"],
+.unified-sidebar,
+.app-sidebar {
+  z-index: 1000 !important;
+}
+
+/* 📱 Mobile backdrop fix */
+[class*="mobile"] [class*="backdrop"] {
+  z-index: 999 !important;
+}
+
+/* 🎨 Page header visual consistency */
+.page-header {
+  background: var(--gradient-primary, linear-gradient(135deg, #3b82f6 0%, #2563eb 100%)) !important;
+  color: white !important;
+  border-radius: 1rem !important;
+  padding: 2rem !important;
+  margin-bottom: 2rem !important;
+  box-shadow: var(--shadow-card-elevated, 0 4px 6px -1px rgb(0 0 0 / 0.1)) !important;
+}
+
+/* TODO: Bu fix-lər uzunmüddətli həll üçün global.css-ə köçürülməlidir */
+/* Səlahiyyətli z-index hierarchy sistemi yaradılmalıdır */

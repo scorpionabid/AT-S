@@ -5,25 +5,25 @@
 
 import React from 'react';
 import { DashboardFactory, DashboardType } from '../dashboard/DashboardFactory';
-import { dashboardServiceUnified } from '../../services/dashboardServiceUnified';
+import { dashboardService } from '../../services/dashboardServiceUnified';
 
 const SuperAdminDashboardUnified: React.FC = () => {
   // Custom data service for Super Admin
   const fetchSuperAdminData = async () => {
     try {
       // Use existing unified service
-      const stats = await dashboardServiceUnified.getDashboardStats();
-      const analytics = await dashboardServiceUnified.getSuperAdminAnalytics();
+      const stats = await dashboardService.getStats();
+      const analytics = await dashboardService.getSuperAdminAnalytics();
       
       return {
         systemStats: {
           totalUsers: stats.totalUsers,
           totalInstitutions: stats.totalInstitutions,
           activeSurveys: stats.activeSurveys,
-          systemHealth: stats.systemStatus?.status || 'unknown'
+          systemHealth: stats.systemStatus?.overall || 'unknown'
         },
         recentActivities: stats.recentActivities || [],
-        systemAlerts: analytics?.systemAlerts || [],
+        systemAlerts: analytics?.alertsSummary?.recent || [],
         usersByRole: stats.usersByRole || {},
         institutionsByLevel: stats.institutionsByLevel || {}
       };

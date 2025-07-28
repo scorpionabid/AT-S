@@ -20,7 +20,7 @@ const StandardPageLayout: React.FC<StandardPageLayoutProps> = ({
   return (
     <div className={`p-6 ${className}`}>
       {(title || subtitle || icon || actions) && (
-        <div className="page-header">
+        <div className="page-header" style={{ zIndex: 9999, position: 'relative' }}>
           <div className="page-header-content">
             <div className="page-header-left">
               {title && (

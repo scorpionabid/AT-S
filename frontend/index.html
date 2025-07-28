@@ -5,6 +5,30 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Vite + React + TS</title>
+    <!-- Z-index fix -->
+    <style>
+      /* Kritik CSS override - Z-index problemini həll edir */
+      .page-header {
+        position: relative !important; 
+        z-index: 9999 !important;
+        isolation: isolate !important;
+      }
+
+      .page-header::before {
+        z-index: -1 !important;
+      }
+
+      [class*="sidebar"] {
+        z-index: 500 !important;
+      }
+
+      .dashboard-grid-container,
+      .dashboard-main,
+      .dashboard-content {
+        position: relative !important;
+        z-index: 1001 !important;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>

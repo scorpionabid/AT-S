@@ -90,7 +90,7 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
     width: isExpanded ? 'var(--sidebar-width)' : 'var(--sidebar-collapsed-width)',
     backgroundColor: theme.colors.background.elevated,
     borderRight: `1px solid ${theme.colors.border.default}`,
-    zIndex: 'var(--z-sidebar)',
+    zIndex: '500', // Sabit z-index dəyəri təyin edildi,
     transition: 'width var(--transition-sidebar), background-color var(--transition-base), border-color var(--transition-base)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -264,7 +264,7 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
             aria-expanded={isItemExpanded}
           >
             <Icon style={navIconStyles} />
-            <span style={navTextStyles}>{item.label}</span>
+            <span style={navTextStyles}>{item.title}</span>
             <ChevronRight 
               style={{
                 ...chevronStyles,
@@ -290,7 +290,7 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
         onClick={screenSize === 'mobile' ? closeMobile : undefined}
       >
         <Icon style={navIconStyles} />
-        <span style={navTextStyles}>{item.label}</span>
+        <span style={navTextStyles}>{item.title}</span>
       </Link>
     );
   };

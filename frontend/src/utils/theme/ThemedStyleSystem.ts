@@ -5,7 +5,7 @@
 
 import React from 'react';
 import { StyleSystem, styles } from '../StyleSystem';
-import { Theme, useTheme } from './ThemeSystem';
+import { Theme, useTheme, lightTheme } from './ThemeSystem';
 
 // Create a themed version of StyleSystem that automatically uses current theme
 export class ThemedStyleSystem {
@@ -20,7 +20,7 @@ export class ThemedStyleSystem {
   private static getTheme(): Theme {
     if (!this.currentTheme) {
       // Fallback to light theme if no theme is set
-      return require('./ThemeSystem').lightTheme;
+      return lightTheme;
     }
     return this.currentTheme;
   }

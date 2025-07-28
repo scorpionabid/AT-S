@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import UnifiedSidebar from './UnifiedSidebar';
 import Header from './Header';
+import { ThemeProvider as ThemedStyleProvider } from '../../utils/theme/ThemeSystem';
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -40,8 +41,9 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   }
 
   return (
-    <div className="flex min-h-screen bg-secondary-50 relative">
-      <UnifiedSidebar />
+    <ThemedStyleProvider>
+      <div className="flex min-h-screen bg-secondary-50 relative">
+        <UnifiedSidebar />
       
       {/* Mobile Backdrop Overlay */}
       {screenSize === 'mobile' && isMobileOpen && (
@@ -75,6 +77,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
         </main>
       </div>
     </div>
+    </ThemedStyleProvider>
   );
 };
 

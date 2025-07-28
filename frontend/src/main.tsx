@@ -6,6 +6,8 @@ import { BrowserRouter } from 'react-router-dom';
 
 // Global styles (unified CSS system)
 import './styles/global.css';
+// Z-index fixes - add after global CSS to override
+import './styles/fixes.css';
 
 import App from './App.tsx';
 import i18n from './i18n/config';
