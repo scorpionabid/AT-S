@@ -5,105 +5,22 @@
 
 import React, { useState, useCallback } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, Users, FileText, Settings, ChevronRight, ChevronLeft, 
-  X, Menu, BarChart3, Building2, ClipboardList, BookOpen,
-  DollarSign, Shield, Wrench, GraduationCap
-} from 'lucide-react';
+import { ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSimplifiedNavigation } from '../../hooks/useSimplifiedNavigation';
+import { isPathActive, MenuItem } from '../../utils/navigation/menuConfig';
 
-interface NavigationItem {
-  id: string;
-  title: string;
-  path?: string;
-  icon: React.ComponentType<any>;
-  children?: NavigationItem[];
-  department?: string;
-}
+// Remove hardcoded navigation items - will use menuConfig instead
 
-const navigationItems: NavigationItem[] = [
-  {
-    id: 'dashboard',
-    title: 'Dashboard',
-    path: '/dashboard',
-    icon: Home
-  },
-  {
-    id: 'departments',
-    title: 'Departamentlər',
-    icon: Building2,
-    children: [
-      {
-        id: 'finance',
-        title: 'Maliyyə',
-        path: '/departments/finance',
-        icon: DollarSign,
-        department: 'finance'
-      },
-      {
-        id: 'admin',
-        title: 'İdarəetmə',
-        path: '/departments/administrative',
-        icon: Shield,
-        department: 'admin'
-      },
-      {
-        id: 'facility',
-        title: 'Texniki Xidmət',
-        path: '/departments/facility',
-        icon: Wrench,
-        department: 'facility'
-      }
-    ]
-  },
-  {
-    id: 'institutions',
-    title: 'Təhsil Müəssisələri',
-    path: '/institutions',
-    icon: GraduationCap,
-    department: 'institutions'
-  },
-  {
-    id: 'assessments',
-    title: 'Qiymətləndirmə',
-    path: '/assessment',
-    icon: ClipboardList,
-    department: 'assessment'
-  },
-  {
-    id: 'surveys',
-    title: 'Sorğular',
-    path: '/surveys',
-    icon: FileText,
-    department: 'surveys'
-  },
-  {
-    id: 'reports',
-    title: 'Hesabatlar',
-    path: '/reports',
-    icon: BarChart3,
-    department: 'reports'
-  },
-  {
-    id: 'users',
-    title: 'İstifadəçilər',
-    path: '/users',
-    icon: Users
-  },
-  {
-    id: 'settings',
-    title: 'Tənzimləmələr',
-    path: '/settings',
-    icon: Settings
-  }
-];
-
-const EnhancedSidebar: React.FC = () => {
+const Sidebar: React.FC = () => {
   const { isCollapsed, toggleCollapse, screenSize, isMobileOpen, toggleMobile, closeMobile } = useLayout();
   const { user } = useAuth();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  
+  // Get navigation items from centralized config
+  const { navigationItems } = useSimplifiedNavigation();
 
   const isExpanded = screenSize === 'mobile' ? true : !isCollapsed;
 
@@ -119,13 +36,7 @@ const EnhancedSidebar: React.FC = () => {
     });
   }, []);
 
-  const isPathActive = useCallback((path?: string, children?: NavigationItem[]) => {
-    if (path && location.pathname === path) return true;
-    if (children) {
-      return children.some(child => isPathActive(child.path, child.children));
-    }
-    return false;
-  }, [location.pathname]);
+  // Use the centralized isPathActive function instead of local implementation
 
   const handleMouseEnter = useCallback(() => {
     if (screenSize === 'desktop' && isCollapsed) {
@@ -139,8 +50,8 @@ const EnhancedSidebar: React.FC = () => {
     }
   }, [screenSize]);
 
-  const renderNavItem = (item: NavigationItem, level = 0): React.JSX.Element => {
-    const isActive = isPathActive(item.path, item.children);
+  const renderNavItem = (item: MenuItem, level = 0): React.JSX.Element => {
+    const isActive = isPathActive(item.path || '', location.pathname);
     const isItemExpanded = expandedItems.has(item.id);
     const Icon = item.icon;
 
@@ -173,7 +84,7 @@ const EnhancedSidebar: React.FC = () => {
         <li key={item.id} className="sidebar-nav-item">
           <Link
             to={item.path}
-            className={`sidebar-nav-link ${item.department ? `sidebar-nav-link-${item.department}` : ''} ${isActive ? 'sidebar-nav-link-active' : ''}`}
+            className={`sidebar-nav-link ${isActive ? 'sidebar-nav-link-active' : ''}`}
             onClick={screenSize === 'mobile' ? closeMobile : undefined}
           >
             <Icon className="sidebar-nav-icon" />
@@ -265,4 +176,4 @@ const EnhancedSidebar: React.FC = () => {
   );
 };
 
-export default EnhancedSidebar;
+export default Sidebar;

@@ -1,6 +1,6 @@
 /**
- * ATİS Header Component - ThemedStyleSystem Migration
- * Inline CSS → Theme-aware styling with ThemedStyleSystem
+ * ATİS Enhanced Header Component
+ * Modern header using modular CSS architecture
  */
 
 import React, { useState, useRef, useEffect } from 'react';
@@ -8,12 +8,6 @@ import { Search, Bell, User, Menu, LogOut, Settings, ChevronDown } from 'lucide-
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useNavigate } from 'react-router-dom';
-import { useThemedStyles } from '../../utils/theme/ThemedStyleSystem';
-import { useTheme } from '../../utils/theme/ThemeSystem';
-
-interface HeaderProps {
-  className?: string;
-}
 
 interface Notification {
   id: string;
@@ -24,16 +18,19 @@ interface Notification {
   read: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ className = '' }) => {
+const Header: React.FC = () => {
   const { user, logout } = useAuth();
   const { isCollapsed, screenSize, toggleMobile } = useLayout();
-  const { theme } = useTheme();
-  const styles = useThemedStyles();
   const navigate = useNavigate();
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  
+  const searchRef = useRef<HTMLDivElement>(null);
+  const notificationsRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
   const [notifications] = useState<Notification[]>([
     {
       id: '1',
@@ -48,18 +45,23 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
       title: 'Anket tamamlandı',
       message: 'Məktəb rəhbərliyi anketi tamamladı',
       type: 'success',
-      timestamp: '1 saat əvvəl',
+      timestamp: '10 dəqiqə əvvəl',
       read: false
+    },
+    {
+      id: '3',
+      title: 'Sistem yeniləməsi',
+      message: 'Sistem bu gecə yenilənəcək',
+      type: 'warning',
+      timestamp: '1 saat əvvəl',
+      read: true
     }
   ]);
-
-  const notificationRef = useRef<HTMLDivElement>(null);
-  const profileRef = useRef<HTMLDivElement>(null);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
+      if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
         setShowNotifications(false);
       }
       if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
@@ -70,6 +72,18 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Implement search functionality
+      console.log('Searching for:', searchQuery);
+    }
+  };
+
+  const clearSearch = () => {
+    setSearchQuery('');
+  };
 
   const handleLogout = async () => {
     try {
@@ -82,275 +96,194 @@ const Header: React.FC<HeaderProps> = ({ className = '' }) => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  // Header styles using ThemedStyleSystem
-  const headerStyles = {
-    position: 'fixed' as const,
-    top: 0,
-    left: screenSize === 'mobile' ? 0 : (isCollapsed ? 'var(--sidebar-collapsed-width)' : 'var(--sidebar-width)'),
-    right: 0,
-    height: 'var(--header-height)',
-    zIndex: 'var(--z-header)',
-    backgroundColor: theme.colors.background.elevated,
-    borderBottom: `1px solid ${theme.colors.border.default}`,
-    boxShadow: styles.shadow('sm'),
-    transition: 'left var(--transition-sidebar), background-color var(--transition-base), border-color var(--transition-base)',
-    display: 'flex',
-    alignItems: 'center',
-    padding: screenSize === 'mobile' ? `0 ${theme.spacing[4]}` : `0 ${theme.spacing[6]}`
-  };
-
-  const searchContainerStyles = {
-    position: 'relative' as const,
-    maxWidth: '400px',
-    width: '100%',
-    marginLeft: theme.spacing[4]
-  };
-
-  const searchInputStyles = {
-    ...styles.input(),
-    paddingLeft: theme.spacing[10],
-    fontSize: theme.typography.fontSize.sm,
-    width: '100%'
-  };
-
-  const searchIconStyles = {
-    position: 'absolute' as const,
-    left: theme.spacing[3],
-    top: '50%',
-    transform: 'translateY(-50%)',
-    color: theme.colors.text.tertiary,
-    pointerEvents: 'none' as const
-  };
-
-  const actionsContainerStyles = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing[2],
-    marginLeft: 'auto'
-  };
-
-  const iconButtonStyles = {
-    position: 'relative' as const,
-    padding: theme.spacing[2],
-    borderRadius: theme.borderRadius.md,
-    border: 'none',
-    backgroundColor: 'transparent',
-    color: theme.colors.text.secondary,
-    cursor: 'pointer',
-    transition: `background-color ${theme.animation.duration.colors}, color ${theme.animation.duration.colors}`,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    ':hover': {
-      backgroundColor: theme.colors.background.tertiary,
-      color: theme.colors.text.primary
+  const getNotificationTypeClass = (type: string) => {
+    switch (type) {
+      case 'success': return 'text-success';
+      case 'warning': return 'text-warning';
+      case 'error': return 'text-error';
+      default: return 'text-info';
     }
   };
 
-  const badgeStyles = {
-    position: 'absolute' as const,
-    top: theme.spacing[1],
-    right: theme.spacing[1],
-    backgroundColor: theme.colors.status.error,
-    color: theme.colors.text.inverse,
-    fontSize: theme.typography.fontSize.xs,
-    fontWeight: theme.typography.fontWeight.bold,
-    borderRadius: theme.borderRadius.full,
-    minWidth: '18px',
-    height: '18px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    lineHeight: 1
-  };
-
-  const dropdownStyles = {
-    position: 'absolute' as const,
-    top: '100%',
-    right: 0,
-    marginTop: theme.spacing[1],
-    backgroundColor: theme.colors.background.elevated,
-    border: `1px solid ${theme.colors.border.default}`,
-    borderRadius: theme.borderRadius.lg,
-    boxShadow: styles.shadow('lg'),
-    zIndex: 'var(--z-dropdown)',
-    minWidth: '280px',
-    maxHeight: '400px',
-    overflow: 'auto'
-  };
-
-  const notificationItemStyles = {
-    padding: theme.spacing[4],
-    borderBottom: `1px solid ${theme.colors.border.muted}`,
-    cursor: 'pointer',
-    transition: `background-color ${theme.animation.duration.colors}`,
-    ':hover': {
-      backgroundColor: theme.colors.background.tertiary
-    },
-    ':last-child': {
-      borderBottom: 'none'
-    }
-  };
-
-  const profileMenuStyles = {
-    padding: theme.spacing[2],
-    width: '200px'
-  };
-
-  const menuItemStyles = {
-    width: '100%',
-    padding: `${theme.spacing[3]} ${theme.spacing[4]}`,
-    border: 'none',
-    backgroundColor: 'transparent',
-    color: theme.colors.text.primary,
-    fontSize: theme.typography.fontSize.sm,
-    textAlign: 'left' as const,
-    cursor: 'pointer',
-    borderRadius: theme.borderRadius.md,
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing[3],
-    transition: `background-color ${theme.animation.duration.colors}`,
-    ':hover': {
-      backgroundColor: theme.colors.background.tertiary
-    }
-  };
-
-  const mobileMenuButtonStyles = {
-    ...iconButtonStyles,
-    marginRight: theme.spacing[3]
-  };
+  const headerClasses = `
+    header
+    ${screenSize === 'mobile' ? 'header-mobile' : ''}
+    ${screenSize === 'mobile' ? 'header-no-sidebar' : (isCollapsed ? 'header-with-sidebar-collapsed' : 'header-with-sidebar')}
+  `.trim().replace(/\s+/g, ' ');
 
   return (
-    <header style={headerStyles} className={className}>
-      {/* Mobile menu button */}
-      {screenSize === 'mobile' && (
-        <button 
-          style={mobileMenuButtonStyles}
-          onClick={toggleMobile}
-          aria-label="Toggle mobile menu"
-        >
-          <Menu size={20} />
-        </button>
-      )}
+    <header className={headerClasses}>
+      <div className="header-content">
+        {/* Left Section */}
+        <div className="header-left">
+          {/* Mobile Menu Button */}
+          {screenSize === 'mobile' && (
+            <button
+              className="header-mobile-menu"
+              onClick={toggleMobile}
+              aria-label="Menyunu aç"
+            >
+              <Menu className="header-mobile-menu-icon" />
+            </button>
+          )}
 
-      {/* Search */}
-      <div style={searchContainerStyles}>
-        <div style={{ position: 'relative' }}>
-          <Search size={16} style={searchIconStyles} />
-          <input
-            type="text"
-            placeholder="Axtarış..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={searchInputStyles}
-          />
+          {/* Breadcrumbs */}
+          <div className="header-breadcrumbs">
+            <div className="header-breadcrumb-item">
+              <span className="header-breadcrumb-current">Dashboard</span>
+            </div>
+          </div>
         </div>
-      </div>
 
-      {/* Actions */}
-      <div style={actionsContainerStyles}>
-        {/* Notifications */}
-        <div style={{ position: 'relative' }} ref={notificationRef}>
-          <button
-            style={iconButtonStyles}
-            onClick={() => setShowNotifications(!showNotifications)}
-            aria-label={`Bildirişlər${unreadCount > 0 ? ` (${unreadCount} oxunmamış)` : ''}`}
-          >
-            <Bell size={20} />
-            {unreadCount > 0 && (
-              <span style={badgeStyles}>
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
-            )}
-          </button>
+        {/* Center Section - Search */}
+        <div className="header-center">
+          <div className="header-search" ref={searchRef}>
+            <form onSubmit={handleSearch}>
+              <Search className="header-search-icon" />
+              <input
+                type="text"
+                placeholder="Axtarış..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="header-search-input"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="header-search-clear"
+                  aria-label="Axtarışı təmizlə"
+                >
+                  ×
+                </button>
+              )}
+            </form>
+          </div>
+        </div>
 
-          {showNotifications && (
-            <div style={dropdownStyles} className="animate-fade-in">
-              <div style={{ 
-                padding: theme.spacing[4], 
-                borderBottom: `1px solid ${theme.colors.border.muted}` 
-              }}>
-                <h3 style={styles.text('base', 'semibold')}>Bildirişlər</h3>
+        {/* Right Section */}
+        <div className="header-right">
+          {/* Notifications */}
+          <div className="header-notifications" ref={notificationsRef}>
+            <button
+              className="header-notifications-button"
+              onClick={() => setShowNotifications(!showNotifications)}
+              aria-label="Bildirişlər"
+            >
+              <Bell className="header-notifications-icon" />
+              {unreadCount > 0 && (
+                <span className="header-notifications-badge">
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+
+            {/* Notifications Dropdown */}
+            {showNotifications && (
+              <div className="header-notifications-dropdown header-notifications-dropdown-open">
+                <div className="p-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Bildirişlər</h3>
+                </div>
+                <div className="max-h-80 overflow-y-auto">
+                  {notifications.length > 0 ? (
+                    notifications.map(notification => (
+                      <div
+                        key={notification.id}
+                        className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${!notification.read ? 'bg-blue-50' : ''}`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h4 className={`font-medium ${getNotificationTypeClass(notification.type)}`}>
+                              {notification.title}
+                            </h4>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {notification.message}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-2">
+                              {notification.timestamp}
+                            </p>
+                          </div>
+                          {!notification.read && (
+                            <div className="w-2 h-2 bg-blue-500 rounded-full ml-2 mt-1"></div>
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-8 text-center text-gray-500">
+                      Bildiriş yoxdur
+                    </div>
+                  )}
+                </div>
+                <div className="p-4 border-t border-gray-200">
+                  <button className="text-blue-600 hover:text-blue-800 text-sm font-medium w-full text-center">
+                    Hamısını gör
+                  </button>
+                </div>
               </div>
-              {notifications.length > 0 ? (
-                notifications.map((notification) => (
-                  <div key={notification.id} style={notificationItemStyles}>
-                    <div style={styles.text('sm', 'semibold')}>{notification.title}</div>
-                    <div style={{
-                      ...styles.text('sm', 'normal', 'secondary'),
-                      marginTop: theme.spacing[1]
-                    }}>
-                      {notification.message}
-                    </div>
-                    <div style={{
-                      ...styles.text('xs', 'normal', 'tertiary'),
-                      marginTop: theme.spacing[2]
-                    }}>
-                      {notification.timestamp}
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div style={{ 
-                  padding: theme.spacing[6], 
-                  textAlign: 'center' as const 
-                }}>
-                  <span style={styles.text('sm', 'normal', 'tertiary')}>
-                    Yeni bildiriş yoxdur
-                  </span>
+            )}
+          </div>
+
+          {/* User Menu */}
+          <div className="header-user" ref={profileRef}>
+            <button
+              className="header-user-button"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              aria-label="İstifadəçi menyusu"
+            >
+              <div className="header-user-avatar">
+                {user?.name?.charAt(0) || 'U'}
+              </div>
+              {screenSize !== 'mobile' && (
+                <div className="header-user-info">
+                  <div className="header-user-name">{user?.name || 'İstifadəçi'}</div>
+                  <div className="header-user-role">{user?.role || 'Rol'}</div>
                 </div>
               )}
-            </div>
-          )}
-        </div>
+              <ChevronDown 
+                className={`header-user-dropdown-icon ${showProfileMenu ? 'header-user-dropdown-open' : ''}`}
+              />
+            </button>
 
-        {/* Profile Menu */}
-        <div style={{ position: 'relative' }} ref={profileRef}>
-          <button
-            style={{
-              ...iconButtonStyles,
-              gap: theme.spacing[2],
-              padding: `${theme.spacing[2]} ${theme.spacing[3]}`
-            }}
-            onClick={() => setShowProfileMenu(!showProfileMenu)}
-            aria-label="Profil menyusu"
-          >
-            <User size={20} />
-            <span style={styles.text('sm', 'normal')}>{user?.firstName}</span>
-            <ChevronDown size={16} />
-          </button>
-
-          {showProfileMenu && (
-            <div style={{ ...dropdownStyles, width: '200px' }} className="animate-fade-in">
-              <div style={profileMenuStyles}>
-                <div style={{ 
-                  padding: theme.spacing[3], 
-                  borderBottom: `1px solid ${theme.colors.border.muted}`,
-                  marginBottom: theme.spacing[2]
-                }}>
-                  <div style={styles.text('sm', 'semibold')}>{user?.firstName} {user?.lastName}</div>
-                  <div style={styles.text('xs', 'normal', 'secondary')}>{user?.email}</div>
+            {/* Profile Dropdown */}
+            {showProfileMenu && (
+              <div className="header-user-dropdown header-user-dropdown-open">
+                <div className="py-2">
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={() => {
+                      navigate('/settings/profile');
+                      setShowProfileMenu(false);
+                    }}
+                  >
+                    <User size={16} />
+                    Profil
+                  </button>
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2"
+                    onClick={() => {
+                      navigate('/settings');
+                      setShowProfileMenu(false);
+                    }}
+                  >
+                    <Settings size={16} />
+                    Tənzimləmələr
+                  </button>
+                  <hr className="my-2" />
+                  <button
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      handleLogout();
+                    }}
+                  >
+                    <LogOut size={16} />
+                    Çıxış
+                  </button>
                 </div>
-
-                <button style={menuItemStyles} onClick={() => navigate('/settings')}>
-                  <Settings size={16} />
-                  Parametrlər
-                </button>
-
-                <button 
-                  style={{
-                    ...menuItemStyles,
-                    color: theme.colors.status.error
-                  }}
-                  onClick={handleLogout}
-                >
-                  <LogOut size={16} />
-                  Çıxış
-                </button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </header>

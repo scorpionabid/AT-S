@@ -2,8 +2,8 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { useLayout } from '../../contexts/LayoutContext';
-import EnhancedSidebar from './EnhancedSidebar';
-import EnhancedHeader from './EnhancedHeader';
+import Sidebar from './Sidebar';
+import Header from './Header';
 import { ThemeProvider as ThemedStyleProvider } from '../../utils/theme/ThemeSystem';
 
 interface AppLayoutProps {
@@ -43,10 +43,10 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   return (
     <ThemedStyleProvider>
       <div className="page-container">
-        <EnhancedSidebar />
+        <Sidebar />
         
         <div className="main-container">
-          <EnhancedHeader />
+          <Header />
           
           {/* Main Content Area */}
           <main className="content-container">
