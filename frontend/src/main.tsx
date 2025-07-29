@@ -4,10 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { I18nextProvider } from 'react-i18next';
 import { BrowserRouter } from 'react-router-dom';
 
-// Global styles (unified CSS system)
-import './styles/global.css';
-// Z-index fixes - add after global CSS to override
-import './styles/fixes.css';
+// ATİS Modular CSS Architecture
+import './styles/index.css';
 
 import App from './App.tsx';
 import i18n from './i18n/config';

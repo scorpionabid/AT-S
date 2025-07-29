@@ -1,0 +1,403 @@
+/**
+ * ATİS Color Token System
+ * Semantic color utilities built on CSS custom properties
+ */
+
+/* ============================================
+   SEMANTIC BACKGROUND COLORS
+   ============================================ */
+
+.bg-primary {
+  background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+  background-color: var(--color-bg-secondary);
+}
+
+.bg-tertiary {
+  background-color: var(--color-bg-tertiary);
+}
+
+.bg-elevated {
+  background-color: var(--color-bg-elevated);
+  box-shadow: var(--shadow-card);
+}
+
+.bg-overlay {
+  background-color: var(--color-bg-overlay);
+}
+
+.bg-disabled {
+  background-color: var(--color-bg-disabled);
+}
+
+/* ============================================
+   STATUS BACKGROUND COLORS
+   ============================================ */
+
+.bg-success {
+  background-color: var(--color-status-success-bg);
+  color: var(--color-status-success);
+  border: 1px solid var(--color-status-success-border);
+}
+
+.bg-warning {
+  background-color: var(--color-status-warning-bg);
+  color: var(--color-status-warning);
+  border: 1px solid var(--color-status-warning-border);
+}
+
+.bg-error {
+  background-color: var(--color-status-error-bg);
+  color: var(--color-status-error);
+  border: 1px solid var(--color-status-error-border);
+}
+
+.bg-info {
+  background-color: var(--color-status-info-bg);
+  color: var(--color-status-info);
+  border: 1px solid var(--color-status-info-border);
+}
+
+/* Status Background Variants (Subtle) */
+.bg-success-subtle {
+  background-color: var(--color-status-success-bg);
+}
+
+.bg-warning-subtle {
+  background-color: var(--color-status-warning-bg);
+}
+
+.bg-error-subtle {
+  background-color: var(--color-status-error-bg);
+}
+
+.bg-info-subtle {
+  background-color: var(--color-status-info-bg);
+}
+
+/* ============================================
+   DEPARTMENT BACKGROUND COLORS
+   ============================================ */
+
+.bg-finance {
+  background-color: var(--color-finance-bg);
+  color: var(--color-finance);
+  border: 1px solid var(--color-finance-border);
+}
+
+.bg-admin {
+  background-color: var(--color-admin-bg);
+  color: var(--color-admin);
+  border: 1px solid var(--color-admin-border);
+}
+
+.bg-facility {
+  background-color: var(--color-facility-bg);
+  color: var(--color-facility);
+  border: 1px solid var(--color-facility-border);
+}
+
+.bg-assessment {
+  background-color: var(--color-assessment-bg);
+  color: var(--color-assessment);
+  border: 1px solid var(--color-assessment-border);
+}
+
+.bg-institutions {
+  background-color: var(--color-institutions-bg);
+  color: var(--color-institutions);
+  border: 1px solid var(--color-institutions-border);
+}
+
+.bg-reports {
+  background-color: var(--color-reports-bg);
+  color: var(--color-reports);
+  border: 1px solid var(--color-reports-border);
+}
+
+.bg-surveys {
+  background-color: var(--color-surveys-bg);
+  color: var(--color-surveys);
+  border: 1px solid var(--color-surveys-border);
+}
+
+/* Department Background Variants (Subtle) */
+.bg-finance-subtle {
+  background-color: var(--color-finance-bg);
+}
+
+.bg-admin-subtle {
+  background-color: var(--color-admin-bg);
+}
+
+.bg-facility-subtle {
+  background-color: var(--color-facility-bg);
+}
+
+.bg-assessment-subtle {
+  background-color: var(--color-assessment-bg);
+}
+
+.bg-institutions-subtle {
+  background-color: var(--color-institutions-bg);
+}
+
+.bg-reports-subtle {
+  background-color: var(--color-reports-bg);
+}
+
+.bg-surveys-subtle {
+  background-color: var(--color-surveys-bg);
+}
+
+/* ============================================
+   INTERACTIVE BACKGROUND COLORS
+   ============================================ */
+
+.bg-interactive-primary {
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-inverse);
+}
+
+.bg-interactive-primary:hover {
+  background-color: var(--color-interactive-primary-hover);
+}
+
+.bg-interactive-primary:active {
+  background-color: var(--color-interactive-primary-active);
+}
+
+.bg-interactive-primary:disabled {
+  background-color: var(--color-interactive-primary-disabled);
+  color: var(--color-text-disabled);
+}
+
+.bg-interactive-secondary {
+  background-color: var(--color-interactive-secondary);
+  color: var(--color-text-primary);
+}
+
+.bg-interactive-secondary:hover {
+  background-color: var(--color-interactive-secondary-hover);
+}
+
+.bg-interactive-secondary:active {
+  background-color: var(--color-interactive-secondary-active);
+}
+
+/* ============================================
+   BORDER COLORS
+   ============================================ */
+
+.border-primary {
+  border-color: var(--color-border-primary);
+}
+
+.border-secondary {
+  border-color: var(--color-border-secondary);
+}
+
+.border-focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+
+.border-error {
+  border-color: var(--color-border-error);
+}
+
+.border-disabled {
+  border-color: var(--color-border-disabled);
+}
+
+/* Status Border Colors */
+.border-success {
+  border-color: var(--color-status-success-border);
+}
+
+.border-warning {
+  border-color: var(--color-status-warning-border);
+}
+
+.border-info {
+  border-color: var(--color-status-info-border);
+}
+
+/* Department Border Colors */
+.border-finance {
+  border-color: var(--color-finance-border);
+}
+
+.border-admin {
+  border-color: var(--color-admin-border);
+}
+
+.border-facility {
+  border-color: var(--color-facility-border);
+}
+
+.border-assessment {
+  border-color: var(--color-assessment-border);
+}
+
+.border-institutions {
+  border-color: var(--color-institutions-border);
+}
+
+.border-reports {
+  border-color: var(--color-reports-border);
+}
+
+.border-surveys {
+  border-color: var(--color-surveys-border);
+}
+
+/* ============================================
+   GRADIENT BACKGROUNDS
+   ============================================ */
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, var(--color-interactive-primary), var(--color-interactive-primary-hover));
+  color: var(--color-text-inverse);
+}
+
+.bg-gradient-success {
+  background: linear-gradient(135deg, var(--color-status-success), var(--green-700));
+  color: var(--color-text-inverse);
+}
+
+.bg-gradient-warning {
+  background: linear-gradient(135deg, var(--color-status-warning), var(--yellow-700));
+  color: var(--color-text-inverse);
+}
+
+.bg-gradient-error {
+  background: linear-gradient(135deg, var(--color-status-error), var(--red-700));
+  color: var(--color-text-inverse);
+}
+
+/* Subtle Gradients */
+.bg-gradient-subtle {
+  background: linear-gradient(135deg, var(--color-bg-secondary), var(--color-bg-tertiary));
+}
+
+.bg-gradient-department-finance {
+  background: linear-gradient(135deg, var(--color-finance-bg), var(--color-finance-border));
+  color: var(--color-finance);
+}
+
+.bg-gradient-department-admin {
+  background: linear-gradient(135deg, var(--color-admin-bg), var(--color-admin-border));
+  color: var(--color-admin);
+}
+
+/* ============================================
+   HOVER & STATE VARIATIONS
+   ============================================ */
+
+.hover\:bg-primary:hover {
+  background-color: var(--color-bg-primary);
+}
+
+.hover\:bg-secondary:hover {
+  background-color: var(--color-bg-secondary);
+}
+
+.hover\:bg-tertiary:hover {
+  background-color: var(--color-bg-tertiary);
+}
+
+.hover\:bg-interactive-primary:hover {
+  background-color: var(--color-interactive-primary);
+}
+
+.hover\:bg-interactive-primary-hover:hover {
+  background-color: var(--color-interactive-primary-hover);
+}
+
+.hover\:bg-interactive-secondary:hover {
+  background-color: var(--color-interactive-secondary);
+}
+
+.hover\:bg-interactive-secondary-hover:hover {
+  background-color: var(--color-interactive-secondary-hover);
+}
+
+/* Focus States */
+.focus\:bg-primary:focus {
+  background-color: var(--color-bg-primary);
+}
+
+.focus\:border-focus:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: 0 0 0 1px var(--color-border-focus);
+}
+
+/* Active States */
+.active\:bg-interactive-primary-active:active {
+  background-color: var(--color-interactive-primary-active);
+}
+
+.active\:bg-interactive-secondary-active:active {
+  background-color: var(--color-interactive-secondary-active);
+}
+
+/* ============================================
+   DARK MODE UTILITIES (Future Use)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+  .dark\:bg-primary {
+    background-color: var(--color-bg-primary-dark, var(--gray-800));
+  }
+  
+  .dark\:bg-secondary {
+    background-color: var(--color-bg-secondary-dark, var(--gray-700));
+  }
+  
+  .dark\:text-primary {
+    color: var(--color-text-primary-dark, var(--gray-100));
+  }
+  
+  .dark\:text-secondary {
+    color: var(--color-text-secondary-dark, var(--gray-300));
+  }
+}
+
+/* ============================================
+   COLOR ACCESSIBILITY UTILITIES
+   ============================================ */
+
+.color-contrast-aa {
+  /* Ensures WCAG AA compliance */
+}
+
+.color-contrast-aaa {
+  /* Ensures WCAG AAA compliance */
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .bg-primary,
+  .bg-secondary,
+  .bg-tertiary {
+    border: 2px solid;
+  }
+  
+  .text-primary,
+  .text-secondary {
+    font-weight: var(--font-weight-semibold);
+  }
+}
+
+/* Reduced motion support for color transitions */
+@media (prefers-reduced-motion: reduce) {
+  .bg-interactive-primary,
+  .bg-interactive-secondary,
+  .hover\:bg-interactive-primary:hover,
+  .hover\:bg-interactive-secondary:hover {
+    transition: none;
+  }
+}

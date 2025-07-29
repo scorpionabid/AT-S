@@ -1,0 +1,423 @@
+/**
+ * ATİS Shadow Token System
+ * Semantic shadow utilities built on CSS custom properties
+ */
+
+/* ============================================
+   BASIC SHADOW UTILITIES
+   ============================================ */
+
+.shadow-none {
+  box-shadow: none;
+}
+
+.shadow-xs {
+  box-shadow: var(--shadow-xs);
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+
+.shadow-2xl {
+  box-shadow: var(--shadow-2xl);
+}
+
+.shadow-inner {
+  box-shadow: var(--shadow-inner);
+}
+
+/* ============================================
+   SEMANTIC SHADOW UTILITIES
+   ============================================ */
+
+/* Component Shadows */
+.shadow-card {
+  box-shadow: var(--shadow-card);
+}
+
+.shadow-card-hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.shadow-modal {
+  box-shadow: var(--shadow-modal);
+}
+
+.shadow-dropdown {
+  box-shadow: var(--shadow-dropdown);
+}
+
+.shadow-focus {
+  box-shadow: var(--shadow-focus);
+}
+
+/* Interactive Shadow States */
+.shadow-card-interactive {
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--duration-200) var(--ease-out);
+}
+
+.shadow-card-interactive:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.shadow-card-interactive:active {
+  box-shadow: var(--shadow-sm);
+}
+
+/* ============================================
+   COLORED SHADOWS
+   ============================================ */
+
+/* Status Shadows */
+.shadow-success {
+  box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -2px rgba(34, 197, 94, 0.1);
+}
+
+.shadow-warning {
+  box-shadow: 0 4px 6px -1px rgba(234, 179, 8, 0.1), 0 2px 4px -2px rgba(234, 179, 8, 0.1);
+}
+
+.shadow-error {
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1), 0 2px 4px -2px rgba(239, 68, 68, 0.1);
+}
+
+.shadow-info {
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1), 0 2px 4px -2px rgba(59, 130, 246, 0.1);
+}
+
+/* Department Shadows */
+.shadow-finance {
+  box-shadow: 0 4px 6px -1px rgba(34, 197, 94, 0.1), 0 2px 4px -2px rgba(34, 197, 94, 0.1);
+}
+
+.shadow-admin {
+  box-shadow: 0 4px 6px -1px rgba(168, 85, 247, 0.1), 0 2px 4px -2px rgba(168, 85, 247, 0.1);
+}
+
+.shadow-facility {
+  box-shadow: 0 4px 6px -1px rgba(234, 88, 12, 0.1), 0 2px 4px -2px rgba(234, 88, 12, 0.1);
+}
+
+.shadow-assessment {
+  box-shadow: 0 4px 6px -1px rgba(168, 85, 247, 0.1), 0 2px 4px -2px rgba(168, 85, 247, 0.1);
+}
+
+.shadow-institutions {
+  box-shadow: 0 4px 6px -1px rgba(13, 148, 136, 0.1), 0 2px 4px -2px rgba(13, 148, 136, 0.1);
+}
+
+.shadow-reports {
+  box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1), 0 2px 4px -2px rgba(239, 68, 68, 0.1);
+}
+
+.shadow-surveys {
+  box-shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1), 0 2px 4px -2px rgba(14, 165, 233, 0.1);
+}
+
+/* ============================================
+   HOVER STATE SHADOWS
+   ============================================ */
+
+.hover\:shadow-none:hover {
+  box-shadow: none;
+}
+
+.hover\:shadow-xs:hover {
+  box-shadow: var(--shadow-xs);
+}
+
+.hover\:shadow-sm:hover {
+  box-shadow: var(--shadow-sm);
+}
+
+.hover\:shadow-md:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.hover\:shadow-lg:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.hover\:shadow-xl:hover {
+  box-shadow: var(--shadow-xl);
+}
+
+.hover\:shadow-2xl:hover {
+  box-shadow: var(--shadow-2xl);
+}
+
+.hover\:shadow-card:hover {
+  box-shadow: var(--shadow-card);
+}
+
+.hover\:shadow-card-hover:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* ============================================
+   FOCUS STATE SHADOWS
+   ============================================ */
+
+.focus\:shadow-focus:focus {
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+
+.focus\:shadow-focus-error:focus {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2);
+  outline: none;
+}
+
+.focus\:shadow-focus-success:focus {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+  outline: none;
+}
+
+.focus\:shadow-focus-warning:focus {
+  box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.2);
+  outline: none;
+}
+
+/* Combined Focus and Border */
+.focus\:shadow-focus-border:focus {
+  border-color: var(--color-border-focus);
+  box-shadow: var(--shadow-focus);
+  outline: none;
+}
+
+/* ============================================
+   SPECIAL EFFECT SHADOWS
+   ============================================ */
+
+/* Glow Effects */
+.shadow-glow-primary {
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+}
+
+.shadow-glow-success {
+  box-shadow: 0 0 20px rgba(34, 197, 94, 0.3);
+}
+
+.shadow-glow-warning {
+  box-shadow: 0 0 20px rgba(234, 179, 8, 0.3);
+}
+
+.shadow-glow-error {
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.3);
+}
+
+/* Elevated Shadows (for floating elements) */
+.shadow-floating {
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 20px 40px -7px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-floating-lg {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Inset Shadows for pressed states */
+.shadow-inset {
+  box-shadow: var(--shadow-inner);
+}
+
+.shadow-inset-deep {
+  box-shadow: inset 0 4px 8px 0 rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================
+   LAYOUT SPECIFIC SHADOWS
+   ============================================ */
+
+/* Sidebar Shadow */
+.shadow-sidebar {
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Header Shadow */
+.shadow-header {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation Shadows */
+.shadow-nav-item {
+  box-shadow: none;
+  transition: box-shadow var(--duration-200) var(--ease-out);
+}
+
+.shadow-nav-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-nav-item-active {
+  box-shadow: inset 3px 0 0 var(--color-interactive-primary);
+}
+
+/* ============================================
+   ANIMATION SHADOWS
+   ============================================ */
+
+/* Smooth Shadow Transitions */
+.shadow-transition {
+  transition: box-shadow var(--duration-200) var(--ease-out);
+}
+
+.shadow-transition-fast {
+  transition: box-shadow var(--duration-150) var(--ease-out);
+}
+
+.shadow-transition-slow {
+  transition: box-shadow var(--duration-300) var(--ease-out);
+}
+
+/* Bounce Shadow Animation */
+@keyframes shadow-bounce {
+  0%, 100% {
+    box-shadow: var(--shadow-md);
+  }
+  50% {
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.shadow-bounce {
+  animation: shadow-bounce 2s ease-in-out infinite;
+}
+
+/* Pulse Shadow Animation */
+@keyframes shadow-pulse {
+  0%, 100% {
+    box-shadow: var(--shadow-sm);
+  }
+  50% {
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.shadow-pulse {
+  animation: shadow-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* ============================================
+   ACCESSIBILITY SHADOWS
+   ============================================ */
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: high) {
+  .shadow-card,
+  .shadow-card-hover,
+  .shadow-dropdown,
+  .shadow-modal {
+    box-shadow: 0 0 0 2px currentColor;
+  }
+  
+  .shadow-focus {
+    box-shadow: 0 0 0 4px currentColor;
+  }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  .shadow-transition,
+  .shadow-transition-fast,
+  .shadow-transition-slow,
+  .shadow-card-interactive {
+    transition: none;
+  }
+  
+  .shadow-bounce,
+  .shadow-pulse {
+    animation: none;
+  }
+}
+
+/* ============================================
+   PRINT SHADOWS
+   ============================================ */
+
+@media print {
+  .shadow-xs,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl,
+  .shadow-card,
+  .shadow-card-hover,
+  .shadow-modal,
+  .shadow-dropdown {
+    box-shadow: none !important;
+    border: 1px solid var(--color-border-primary) !important;
+  }
+}
+
+/* ============================================
+   COMPONENT-SPECIFIC SHADOWS
+   ============================================ */
+
+/* Button Shadows */
+.btn-shadow {
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--duration-150) var(--ease-out);
+}
+
+.btn-shadow:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.btn-shadow:active {
+  box-shadow: var(--shadow-xs);
+}
+
+/* Input Shadows */
+.input-shadow {
+  box-shadow: var(--shadow-xs);
+  transition: box-shadow var(--duration-150) var(--ease-out);
+}
+
+.input-shadow:focus {
+  box-shadow: var(--shadow-focus);
+}
+
+/* Card Shadows with Interaction */
+.card-shadow {
+  box-shadow: var(--shadow-card);
+  transition: all var(--duration-200) var(--ease-out);
+}
+
+.card-shadow:hover {
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-1px);
+}
+
+/* Tooltip Shadows */
+.tooltip-shadow {
+  box-shadow: var(--shadow-lg);
+}
+
+/* Modal Shadows */
+.modal-shadow {
+  box-shadow: var(--shadow-modal);
+}
+
+/* Popover Shadows */
+.popover-shadow {
+  box-shadow: var(--shadow-dropdown);
+}
