@@ -3,66 +3,26 @@
  * Main entry point for all styles
  */
 
-/* Tailwind CSS Base */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
 /* ============================================
-   BASE LAYER - Foundation
+   IMPORTS - Must come first before any other CSS
    ============================================ */
 @import './base/reset.css';
 @import './base/variables.css';
 @import './base/typography.css';
-
-/* ============================================
-   TOKENS LAYER - Design System
-   ============================================ */
 @import './tokens/colors.css';
 @import './tokens/spacing.css';
 @import './tokens/shadows.css';
-
-/* ============================================
-   LAYOUT LAYER - Layout Systems
-   ============================================ */
 @import './layout/grid.css';
 @import './layout/containers.css';
 @import './layout/sidebar.css';
 @import './layout/header.css';
-
-/* ============================================
-   COMPONENTS LAYER - UI Components (To be created)
-   ============================================ */
-/* Atoms */
-/* @import './components/atoms/buttons.css'; */
-/* @import './components/atoms/inputs.css'; */
-/* @import './components/atoms/badges.css'; */
-
-/* Molecules */
-/* @import './components/molecules/cards.css'; */
-/* @import './components/molecules/forms.css'; */
-/* @import './components/molecules/navigation.css'; */
-
-/* Organisms */
-/* @import './components/organisms/dashboard.css'; */
-/* @import './components/organisms/charts.css'; */
-
-/* ============================================
-   UTILITIES LAYER - Utility Classes (To be created)
-   ============================================ */
-/* @import './utilities/loading.css'; */
-/* @import './utilities/animations.css'; */
-
-/* ============================================
-   THEMES LAYER - Theme Variations (To be created)
-   ============================================ */
-/* @import './themes/light.css'; */
-/* @import './themes/dark.css'; */
-
-/* ============================================
-   LEGACY IMPORTS - Temporary during migration
-   ============================================ */
+@import './components/atoms/buttons.css';
 @import './fixes.css';
-
-/* Legacy theme classes from theme.css (will be migrated) */
 @import './theme.css';
+
+/* ============================================
+   TAILWIND CSS - After all imports
+   ============================================ */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
