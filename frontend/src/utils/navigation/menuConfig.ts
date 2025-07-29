@@ -88,6 +88,7 @@ export const menuItems: MenuItem[] = [
         id: 'users-list',
         title: 'İstifadəçi Siyahısı',
         path: '/users',
+        type: 'button',
         icon: FiList,
         permission: 'users.read',
         exactMatch: true,
@@ -96,6 +97,7 @@ export const menuItems: MenuItem[] = [
         id: 'users-create',
         title: 'Yeni İstifadəçi',
         path: '/users/create',
+        type: 'button',
         icon: FiUserPlus,
         permission: 'users.create',
       }
@@ -107,6 +109,7 @@ export const menuItems: MenuItem[] = [
     id: 'institutions',
     title: 'Müəssisələr',
     path: '/institutions',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiGrid,
     permission: 'institutions.read',
     description: 'Təhsil müəssisələrinin idarəetməsi',
@@ -116,6 +119,7 @@ export const menuItems: MenuItem[] = [
         id: 'institutions-list',
         title: 'Müəssisə Siyahısı',
         path: '/institutions',
+        type: 'button',
         icon: FiList,
         permission: 'institutions.read',
         exactMatch: true,
@@ -124,6 +128,7 @@ export const menuItems: MenuItem[] = [
         id: 'institutions-hierarchy',
         title: 'İerarxiya',
         path: '/institutions/hierarchy',
+        type: 'button',
         icon: FiGitBranch,
         permission: 'institutions.read'
       },
@@ -131,6 +136,7 @@ export const menuItems: MenuItem[] = [
         id: 'institutions-create',
         title: 'Yeni Müəssisə',
         path: '/institutions/create',
+        type: 'button',
         icon: FiPlus,
         permission: 'institutions.create',
       }
@@ -142,6 +148,7 @@ export const menuItems: MenuItem[] = [
     id: 'departments',
     title: 'Şöbələr',
     path: '/departments',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiUsers,
     roles: ['superadmin', 'regionadmin'],
     description: 'Şöbələrin idarəetməsi və koordinasiyası',
@@ -151,6 +158,7 @@ export const menuItems: MenuItem[] = [
         id: 'departments-overview',
         title: 'Şöbələr Ümumi Baxış',
         path: '/departments',
+        type: 'button',
         icon: FiGrid,
         roles: ['superadmin', 'regionadmin'],
         exactMatch: true,
@@ -159,6 +167,7 @@ export const menuItems: MenuItem[] = [
         id: 'finance-department',
         title: 'Maliyyə Şöbəsi',
         path: '/departments/finance',
+        type: 'button',
         icon: FiTrendingUp,
         roles: ['superadmin', 'regionadmin', 'regionoperator_maliyye'],
       },
@@ -166,6 +175,7 @@ export const menuItems: MenuItem[] = [
         id: 'admin-department',
         title: 'İnzibati Şöbəsi',
         path: '/departments/administrative',
+        type: 'button',
         icon: FiSettings,
         roles: ['superadmin', 'regionadmin', 'regionoperator_inzibati'],
       },
@@ -173,6 +183,7 @@ export const menuItems: MenuItem[] = [
         id: 'facility-department',
         title: 'Təsərrüfat Şöbəsi',
         path: '/departments/facility',
+        type: 'button',
         icon: FiFolder,
         roles: ['superadmin', 'regionadmin', 'regionoperator_tesserrufat'],
       }
@@ -184,6 +195,7 @@ export const menuItems: MenuItem[] = [
     id: 'surveys',
     title: 'Anketlər',
     path: '/surveys',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiFileText,
     permission: 'surveys.read',
     description: 'Anket yaratma və idarəetmə',
@@ -193,6 +205,7 @@ export const menuItems: MenuItem[] = [
         id: 'surveys-list',
         title: 'Anket Siyahısı',
         path: '/surveys',
+        type: 'button',
         icon: FiList,
         permission: 'surveys.read',
         exactMatch: true,
@@ -201,6 +214,7 @@ export const menuItems: MenuItem[] = [
         id: 'surveys-create',
         title: 'Yeni Anket',
         path: '/surveys/create',
+        type: 'button',
         icon: FiPlus,
         permission: 'surveys.create',
       },
@@ -208,6 +222,7 @@ export const menuItems: MenuItem[] = [
         id: 'surveys-responses',
         title: 'Cavablar',
         path: '/surveys/responses',
+        type: 'button',
         icon: FiEye,
         permission: 'surveys.read',
       }
@@ -219,6 +234,7 @@ export const menuItems: MenuItem[] = [
     id: 'assessments',
     title: 'Qiymətləndirmələr',
     path: '/assessments',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiClipboard,
     permission: 'assessments.read',
     description: 'KSQ, BSQ və digər qiymətləndirmələr',
@@ -228,6 +244,7 @@ export const menuItems: MenuItem[] = [
         id: 'assessments-overview',
         title: 'Ümumi Baxış',
         path: '/assessments',
+        type: 'button',
         icon: FiEye,
         permission: 'assessments.read',
         exactMatch: true,
@@ -236,6 +253,7 @@ export const menuItems: MenuItem[] = [
         id: 'assessments-ksq',
         title: 'KSQ Nəticələri',
         path: '/assessments/ksq',
+        type: 'button',
         icon: FiAward,
         permission: 'assessments.read'
       },
@@ -243,6 +261,7 @@ export const menuItems: MenuItem[] = [
         id: 'assessments-bsq',
         title: 'BSQ Nəticələri',
         path: '/assessments/bsq',
+        type: 'button',
         icon: FiTrendingUp,
         permission: 'assessments.read'
       },
@@ -250,6 +269,7 @@ export const menuItems: MenuItem[] = [
         id: 'assessments-analytics',
         title: 'Analitika',
         path: '/assessments/analytics',
+        type: 'button',
         icon: FiBarChart,
         permission: 'assessments.read'
       }
@@ -261,6 +281,7 @@ export const menuItems: MenuItem[] = [
     id: 'school-management',
     title: 'Məktəb İdarəetməsi',
     path: '/school',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiBookOpen,
     roles: ['superadmin', 'regionadmin', 'sektoradmin', 'schooladmin', 'muavin_mudir', 'muellim'],
     description: 'Məktəb akademik funksiyalarının idarəetməsi',
@@ -270,6 +291,7 @@ export const menuItems: MenuItem[] = [
         id: 'school-attendance',
         title: 'Davamiyyət',
         path: '/attendance',
+        type: 'button',
         icon: FiUserCheck,
         roles: ['superadmin', 'schooladmin', 'muavin_mudir', 'muellim'],
         description: 'Sinif səviyyəsində davamiyyət idarəetməsi'
@@ -278,6 +300,7 @@ export const menuItems: MenuItem[] = [
         id: 'school-schedules',
         title: 'Cədvəllər',
         path: '/schedules',
+        type: 'button',
         icon: FiCalendar,
         roles: ['superadmin', 'schooladmin', 'muavin_mudir'],
         description: 'Dərs cədvəlləri və planlaşdırma'
@@ -286,6 +309,7 @@ export const menuItems: MenuItem[] = [
         id: 'school-teaching-loads',
         title: 'Dərs Yükləri',
         path: '/teaching-loads',
+        type: 'button',
         icon: FiClock,
         roles: ['superadmin', 'schooladmin', 'muavin_mudir'],
         description: 'Müəllim dərs yüklərinin idarəetməsi'
@@ -298,6 +322,7 @@ export const menuItems: MenuItem[] = [
     id: 'tasks',
     title: 'Tapşırıqlar',
     path: '/tasks',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiClipboard,
     permission: 'tasks.read',
     description: 'Tapşırıq idarəetməsi və izləmə',
@@ -307,6 +332,7 @@ export const menuItems: MenuItem[] = [
         id: 'tasks-list',
         title: 'Tapşırıq Siyahısı',
         path: '/tasks',
+        type: 'button',
         icon: FiList,
         permission: 'tasks.read',
         exactMatch: true,
@@ -315,6 +341,7 @@ export const menuItems: MenuItem[] = [
         id: 'tasks-create',
         title: 'Yeni Tapşırıq',
         path: '/tasks/create',
+        type: 'button',
         icon: FiPlus,
         permission: 'tasks.create',
       }
@@ -338,6 +365,7 @@ export const menuItems: MenuItem[] = [
     id: 'documents',
     title: 'Sənədlər',
     path: '/documents',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiFolder,
     permission: 'documents.read',
     description: 'Fayl paylaşım və sənəd idarəetməsi',
@@ -347,6 +375,7 @@ export const menuItems: MenuItem[] = [
         id: 'documents-list',
         title: 'Sənəd Siyahısı',
         path: '/documents',
+        type: 'button',
         icon: FiList,
         permission: 'documents.read',
         exactMatch: true,
@@ -355,6 +384,7 @@ export const menuItems: MenuItem[] = [
         id: 'documents-upload',
         title: 'Fayl Yüklə',
         path: '/documents/upload',
+        type: 'button',
         icon: FiPlus,
         permission: 'documents.create',
       }
@@ -366,6 +396,7 @@ export const menuItems: MenuItem[] = [
     id: 'reports',
     title: 'Hesabatlar',
     path: '/reports',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiBarChart,
     permission: 'reports.read',
     description: 'Sistem hesabatları və analitika',
@@ -375,6 +406,7 @@ export const menuItems: MenuItem[] = [
         id: 'reports-overview',
         title: 'Ümumi Hesabat',
         path: '/reports',
+        type: 'button',
         icon: FiEye,
         permission: 'reports.read',
         exactMatch: true,
@@ -383,6 +415,7 @@ export const menuItems: MenuItem[] = [
         id: 'reports-institutions',
         title: 'Müəssisə Hesabatları',
         path: '/reports/institutions',
+        type: 'button',
         icon: FiGrid,
         permission: 'reports.read'
       },
@@ -390,6 +423,7 @@ export const menuItems: MenuItem[] = [
         id: 'reports-surveys',
         title: 'Anket Hesabatları',
         path: '/reports/surveys',
+        type: 'button',
         icon: FiTrendingUp,
         permission: 'reports.read'
       },
@@ -397,6 +431,7 @@ export const menuItems: MenuItem[] = [
         id: 'reports-custom',
         title: 'Xüsusi Hesabat',
         path: '/reports/custom',
+        type: 'button',
         icon: FiSettings,
         permission: 'reports.create',
       }
@@ -408,6 +443,7 @@ export const menuItems: MenuItem[] = [
     id: 'roles',
     title: 'Rollar',
     path: '/roles',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiShield,
     permission: 'roles.read',
     roles: ['superadmin'],
@@ -418,6 +454,7 @@ export const menuItems: MenuItem[] = [
         id: 'roles-list',
         title: 'Rol Siyahısı',
         path: '/roles',
+        type: 'button',
         icon: FiList,
         permission: 'roles.read',
         roles: ['superadmin'],
@@ -427,6 +464,7 @@ export const menuItems: MenuItem[] = [
         id: 'roles-create',
         title: 'Yeni Rol',
         path: '/roles/create',
+        type: 'button',
         icon: FiPlus,
         permission: 'roles.create',
         roles: ['superadmin'],
@@ -439,6 +477,7 @@ export const menuItems: MenuItem[] = [
     id: 'settings',
     title: 'Tənzimləmələr',
     path: '/settings',
+    type: 'hybrid', // Both navigable and expandable
     icon: FiSettings,
     description: 'Sistem və istifadəçi tənzimləmələri',
     category: 'Settings',
@@ -447,6 +486,7 @@ export const menuItems: MenuItem[] = [
         id: 'settings-profile',
         title: 'Profil',
         path: '/settings/profile',
+        type: 'button',
         icon: FiUsers,
         description: 'Şəxsi profil tənzimləmələri'
       },
@@ -454,6 +494,7 @@ export const menuItems: MenuItem[] = [
         id: 'settings-system',
         title: 'Sistem',
         path: '/settings/system',
+        type: 'button',
         icon: FiSettings,
         roles: ['superadmin'],
         description: 'Sistem tənzimləmələri'
@@ -462,6 +503,7 @@ export const menuItems: MenuItem[] = [
         id: 'settings-regional',
         title: 'Regional',
         path: '/settings/regional',
+        type: 'button',
         icon: FiGrid,
         roles: ['regionadmin'],
         description: 'Regional tənzimləmələr'

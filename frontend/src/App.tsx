@@ -34,6 +34,14 @@ import DepartmentsPage from './pages/DepartmentsPage';
 import FinanceDepartmentPage from './pages/departments/FinanceDepartmentPage';
 import AdministrativeDepartmentPage from './pages/departments/AdministrativeDepartmentPage';
 import FacilityDepartmentPage from './pages/departments/FacilityDepartmentPage';
+import KSQResultsPage from './pages/assessments/KSQResultsPage';
+import InstitutionHierarchyPage from './pages/institutions/InstitutionHierarchyPage';
+import ReportsInstitutionsPage from './pages/reports/ReportsInstitutionsPage';
+import ReportsSurveysPage from './pages/reports/ReportsSurveysPage';
+import ReportsCustomPage from './pages/reports/ReportsCustomPage';
+import ProfileSettingsPage from './pages/settings/ProfileSettingsPage';
+import SystemSettingsPage from './pages/settings/SystemSettingsPage';
+import RegionalSettingsPage from './pages/settings/RegionalSettingsPage';
 
 // Test components
 import SimpleLoginTest from './components/test/SimpleLoginTest';
@@ -125,6 +133,15 @@ const App: React.FC = () => {
                             </ProtectedRoute>
                           } 
                         />
+                        
+                        <Route 
+                          path="/institutions/hierarchy" 
+                          element={
+                            <ProtectedRoute requiredRoles={[...ROLE_GROUPS.CAN_MANAGE_USERS]}>
+                              <InstitutionHierarchyPage />
+                            </ProtectedRoute>
+                          } 
+                        />
 
                         <Route 
                           path="/departments" 
@@ -171,6 +188,15 @@ const App: React.FC = () => {
                         />
                         
                         <Route 
+                          path="/assessments/ksq" 
+                          element={
+                            <ProtectedRoute requiredRoles={[...ROLE_GROUPS.ALL_ADMINS]}>
+                              <KSQResultsPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
                           path="/reports" 
                           element={
                             <ProtectedRoute requiredRoles={[...ROLE_GROUPS.ALL_ADMINS]}>
@@ -180,10 +206,64 @@ const App: React.FC = () => {
                         />
                         
                         <Route 
+                          path="/reports/institutions" 
+                          element={
+                            <ProtectedRoute requiredRoles={[...ROLE_GROUPS.ALL_ADMINS]}>
+                              <ReportsInstitutionsPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/reports/surveys" 
+                          element={
+                            <ProtectedRoute requiredRoles={[...ROLE_GROUPS.ALL_ADMINS]}>
+                              <ReportsSurveysPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/reports/custom" 
+                          element={
+                            <ProtectedRoute requiredRoles={[...ROLE_GROUPS.ALL_ADMINS]}>
+                              <ReportsCustomPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
                           path="/settings" 
                           element={
                             <ProtectedRoute requiredRoles={[...ROLE_GROUPS.SYSTEM_LEVEL]}>
                               <SettingsPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/settings/profile" 
+                          element={
+                            <ProtectedRoute>
+                              <ProfileSettingsPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/settings/system" 
+                          element={
+                            <ProtectedRoute requiredRoles={['superadmin']}>
+                              <SystemSettingsPage />
+                            </ProtectedRoute>
+                          } 
+                        />
+                        
+                        <Route 
+                          path="/settings/regional" 
+                          element={
+                            <ProtectedRoute requiredRoles={['regionadmin']}>
+                              <RegionalSettingsPage />
                             </ProtectedRoute>
                           } 
                         />

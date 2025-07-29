@@ -1,0 +1,315 @@
+/* ATİS Professional Theme System */
+
+:root {
+  /* Primary Brand Colors */
+  --color-primary-50: #eff6ff;
+  --color-primary-100: #dbeafe;
+  --color-primary-200: #bfdbfe;
+  --color-primary-300: #93c5fd;
+  --color-primary-400: #60a5fa;
+  --color-primary-500: #3b82f6;
+  --color-primary-600: #2563eb;
+  --color-primary-700: #1d4ed8;
+  --color-primary-800: #1e40af;
+  --color-primary-900: #1e3a8a;
+
+  /* Status Colors */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-500: #ef4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+
+  --color-info-50: #f0f9ff;
+  --color-info-100: #e0f2fe;
+  --color-info-500: #06b6d4;
+  --color-info-600: #0891b2;
+  --color-info-700: #0e7490;
+
+  /* Neutral Colors */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+
+  /* Department Specific Colors */
+  --color-finance: #059669;      /* Green */
+  --color-admin: #7c3aed;        /* Purple */
+  --color-facility: #ea580c;     /* Orange */
+  --color-assessment: #8b5cf6;   /* Violet */
+  --color-institutions: #0d9488; /* Teal */
+  --color-reports: #dc2626;      /* Red */
+  --color-surveys: #0ea5e9;      /* Sky */
+
+  /* Typography */
+  --font-heading: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Fira Code', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+
+  /* Spacing Scale */
+  --space-xs: 0.25rem;   /* 4px */
+  --space-sm: 0.5rem;    /* 8px */
+  --space-md: 1rem;      /* 16px */
+  --space-lg: 1.5rem;    /* 24px */
+  --space-xl: 2rem;      /* 32px */
+  --space-2xl: 3rem;     /* 48px */
+  --space-3xl: 4rem;     /* 64px */
+
+  /* Border Radius */
+  --radius-sm: 0.375rem; /* 6px */
+  --radius-md: 0.5rem;   /* 8px */
+  --radius-lg: 0.75rem;  /* 12px */
+  --radius-xl: 1rem;     /* 16px */
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+  /* Z-Index Scale */
+  --z-base: 0;
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-fixed: 300;
+  --z-modal-backdrop: 400;
+  --z-modal: 500;
+  --z-popover: 600;
+  --z-tooltip: 700;
+  --z-toast: 800;
+  --z-max: 9999;
+}
+
+/* Professional Component Classes */
+.atis-card {
+  @apply bg-white rounded-lg border border-gray-200 shadow-sm;
+}
+
+.atis-card-hover {
+  @apply transition-all duration-200 hover:shadow-md hover:border-gray-300;
+}
+
+.atis-button-primary {
+  @apply bg-blue-600 text-white px-4 py-2 rounded-md font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
+}
+
+.atis-button-secondary {
+  @apply bg-gray-100 text-gray-700 px-4 py-2 rounded-md font-medium hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors duration-200;
+}
+
+.atis-button-outline {
+  @apply border border-gray-300 text-gray-700 px-4 py-2 rounded-md font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200;
+}
+
+.atis-input {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200;
+}
+
+.atis-select {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white transition-colors duration-200;
+}
+
+.atis-textarea {
+  @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none transition-colors duration-200;
+}
+
+.atis-label {
+  @apply block text-sm font-medium text-gray-700 mb-1;
+}
+
+.atis-text-heading {
+  @apply text-gray-900 font-semibold;
+}
+
+.atis-text-body {
+  @apply text-gray-600;
+}
+
+.atis-text-muted {
+  @apply text-gray-500;
+}
+
+/* Status Badge Classes */
+.atis-badge-success {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800;
+}
+
+.atis-badge-warning {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800;
+}
+
+.atis-badge-error {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800;
+}
+
+.atis-badge-info {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800;
+}
+
+.atis-badge-neutral {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800;
+}
+
+/* Department Color Classes */
+.atis-finance {
+  @apply text-green-600 bg-green-50 border-green-200;
+}
+
+.atis-admin {
+  @apply text-purple-600 bg-purple-50 border-purple-200;
+}
+
+.atis-facility {
+  @apply text-orange-600 bg-orange-50 border-orange-200;
+}
+
+.atis-assessment {
+  @apply text-violet-600 bg-violet-50 border-violet-200;
+}
+
+.atis-institutions {
+  @apply text-teal-600 bg-teal-50 border-teal-200;
+}
+
+.atis-reports {
+  @apply text-red-600 bg-red-50 border-red-200;
+}
+
+.atis-surveys {
+  @apply text-sky-600 bg-sky-50 border-sky-200;
+}
+
+/* Loading States */
+.atis-loading-spinner {
+  @apply inline-block w-4 h-4 border-2 border-gray-300 border-t-blue-600 rounded-full animate-spin;
+}
+
+.atis-loading-skeleton {
+  @apply bg-gray-200 animate-pulse rounded;
+}
+
+.atis-loading-shimmer {
+  @apply relative overflow-hidden bg-gray-200 rounded;
+}
+
+.atis-loading-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Page Layout Classes */
+.atis-page-header {
+  @apply bg-white border-b border-gray-200 pb-4 mb-6;
+}
+
+.atis-page-title {
+  @apply text-2xl font-bold text-gray-900 mb-1;
+}
+
+.atis-page-subtitle {
+  @apply text-gray-600;
+}
+
+.atis-section-header {
+  @apply text-lg font-semibold text-gray-900 mb-4;
+}
+
+/* Table Classes */
+.atis-table {
+  @apply w-full border-collapse;
+}
+
+.atis-table th {
+  @apply px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-b border-gray-200;
+}
+
+.atis-table td {
+  @apply px-4 py-3 text-sm text-gray-900 border-b border-gray-200;
+}
+
+.atis-table tbody tr:hover {
+  @apply bg-gray-50;
+}
+
+/* Form Layout Classes */
+.atis-form-grid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+.atis-form-grid-2 {
+  @apply grid grid-cols-1 md:grid-cols-2 gap-4;
+}
+
+.atis-form-grid-3 {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-4;
+}
+
+.atis-form-group {
+  @apply space-y-1;
+}
+
+/* Responsive Utilities */
+.atis-container {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.atis-container-narrow {
+  @apply max-w-4xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+/* Animation Classes */
+.atis-transition {
+  @apply transition-all duration-200 ease-in-out;
+}
+
+.atis-fade-in {
+  @apply animate-fade-in;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Focus Ring Utilities */
+.atis-focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+}
+
+.atis-focus-ring-inset {
+  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset;
+}

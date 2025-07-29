@@ -11,7 +11,7 @@ const FinanceDepartmentPage: React.FC = () => {
       <StandardPageLayout 
         title="Maliyyə Şöbəsi"
         subtitle="Büdcə izləmə və maliyyə hesabatları"
-        icon={<FiDollarSign className="w-6 h-6 text-green-600" />}
+        icon={<FiDollarSign className="w-6 h-6 atis-finance" />}
       >
         <div className="space-y-6">
           {/* Statistics Cards */}

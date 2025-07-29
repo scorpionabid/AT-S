@@ -5,7 +5,7 @@
  */
 
 import React, { useCallback, ReactNode, memo, useState, useRef, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useLayout } from '../../contexts/LayoutContext';
 import { useAuth } from '../../contexts/AuthContext';
@@ -34,10 +34,11 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
   const { theme } = useTheme();
   const styles = useThemedStyles();
   const location = useLocation();
+  const navigate = useNavigate();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
-  // Get navigation items and badges from simplified hook
-  const { navigationItems, badges } = useSimplifiedNavigation();
+  // Get navigation items from simplified hook
+  const { navigationItems } = useSimplifiedNavigation();
 
   // Hover handlers for desktop sidebar expansion
   const handleMouseEnter = useCallback(() => {
@@ -65,6 +66,22 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
     });
   }, []);
 
+  // Handle hybrid navigation (both navigate and expand)
+  const handleHybridClick = useCallback((item: MenuItem) => {
+    // Always toggle expansion for hybrid items
+    toggleExpanded(item.id);
+    
+    // Navigate to the item's path if it exists
+    if (item.path) {
+      navigate(item.path);
+    }
+    
+    // Close mobile sidebar if needed
+    if (screenSize === 'mobile') {
+      closeMobile();
+    }
+  }, [toggleExpanded, navigate, screenSize, closeMobile]);
+
   // Auto-expand active parent menu
   useEffect(() => {
     navigationItems.forEach(item => {
@@ -90,7 +107,7 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
     width: isExpanded ? 'var(--sidebar-width)' : 'var(--sidebar-collapsed-width)',
     backgroundColor: theme.colors.background.elevated,
     borderRight: `1px solid ${theme.colors.border.default}`,
-    zIndex: '500', // Sabit z-index dəyəri təyin edildi,
+    zIndex: 'var(--z-sidebar)',
     transition: 'width var(--transition-sidebar), background-color var(--transition-base), border-color var(--transition-base)',
     display: 'flex',
     flexDirection: 'column' as const,
@@ -145,7 +162,7 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
     scrollbarWidth: 'thin' as const
   };
 
-  const navItemStyles = (isActive: boolean, hasChildren: boolean = false) => ({
+  const navItemStyles = (isActive: boolean) => ({
     display: 'flex',
     alignItems: 'center',
     width: '100%',
@@ -256,42 +273,87 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
     const Icon = item.icon;
 
     if (item.children && item.children.length > 0) {
+      // Handle different navigation types for parent items with children
+      if (item.type === 'hybrid' && item.path) {
+        // Hybrid: Both navigate and expand submenu
+        return (
+          <div key={item.id}>
+            <button
+              style={navItemStyles(isActive)}
+              onClick={() => handleHybridClick(item)}
+              aria-expanded={isItemExpanded}
+            >
+              <Icon style={navIconStyles} />
+              <span style={navTextStyles}>{item.title}</span>
+              <ChevronRight 
+                style={{
+                  ...chevronStyles,
+                  transform: isItemExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
+                }} 
+              />
+            </button>
+            
+            {isItemExpanded && (
+              <div style={submenuStyles}>
+                {item.children.map(child => renderNavItem(child, level + 1))}
+              </div>
+            )}
+          </div>
+        );
+      } else {
+        // Menu: Only expand submenu (no navigation)
+        return (
+          <div key={item.id}>
+            <button
+              style={navItemStyles(isActive)}
+              onClick={() => toggleExpanded(item.id)}
+              aria-expanded={isItemExpanded}
+            >
+              <Icon style={navIconStyles} />
+              <span style={navTextStyles}>{item.title}</span>
+              <ChevronRight 
+                style={{
+                  ...chevronStyles,
+                  transform: isItemExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
+                }} 
+              />
+            </button>
+            
+            {isItemExpanded && (
+              <div style={submenuStyles}>
+                {item.children.map(child => renderNavItem(child, level + 1))}
+              </div>
+            )}
+          </div>
+        );
+      }
+    }
+
+    // For items without children (leaf items)
+    if (item.path) {
       return (
-        <div key={item.id}>
-          <button
-            style={navItemStyles(isActive, true)}
-            onClick={() => toggleExpanded(item.id)}
-            aria-expanded={isItemExpanded}
-          >
-            <Icon style={navIconStyles} />
-            <span style={navTextStyles}>{item.title}</span>
-            <ChevronRight 
-              style={{
-                ...chevronStyles,
-                transform: isItemExpanded ? 'rotate(90deg)' : 'rotate(0deg)'
-              }} 
-            />
-          </button>
-          
-          {isItemExpanded && (
-            <div style={submenuStyles}>
-              {item.children.map(child => renderNavItem(child, level + 1))}
-            </div>
-          )}
-        </div>
+        <Link
+          key={item.id}
+          to={item.path}
+          style={navItemStyles(isActive)}
+          onClick={screenSize === 'mobile' ? closeMobile : undefined}
+        >
+          <Icon style={navIconStyles} />
+          <span style={navTextStyles}>{item.title}</span>
+        </Link>
       );
     }
 
+    // For items without path (should rarely happen)
     return (
-      <Link
+      <button
         key={item.id}
-        to={item.path}
         style={navItemStyles(isActive)}
-        onClick={screenSize === 'mobile' ? closeMobile : undefined}
+        disabled
       >
         <Icon style={navIconStyles} />
         <span style={navTextStyles}>{item.title}</span>
-      </Link>
+      </button>
     );
   };
 
