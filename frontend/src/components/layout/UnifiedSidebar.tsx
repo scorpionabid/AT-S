@@ -98,108 +98,32 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
 
   const isExpanded = (isCollapsed && !isHovered) ? false : true;
 
-  // Sidebar styles using ThemedStyleSystem
-  const sidebarStyles = {
-    position: 'fixed' as const,
-    top: 0,
-    left: 0,
-    height: '100vh',
-    width: isExpanded ? 'var(--sidebar-width)' : 'var(--sidebar-collapsed-width)',
-    backgroundColor: theme.colors.background.elevated,
-    borderRight: `1px solid ${theme.colors.border.default}`,
-    zIndex: 'var(--z-sidebar)',
-    transition: 'width var(--transition-sidebar), background-color var(--transition-base), border-color var(--transition-base)',
-    display: 'flex',
-    flexDirection: 'column' as const,
-    overflow: 'hidden',
-    boxShadow: styles.shadow('sm'),
-    ...(screenSize === 'mobile' && {
-      transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-      width: 'var(--sidebar-width)',
-      zIndex: 'var(--z-modal-backdrop)'
-    })
-  };
+  // Use modular CSS classes instead of inline styles
+  const sidebarClasses = `
+    sidebar
+    ${isCollapsed ? 'sidebar-collapsed' : ''}
+    ${screenSize === 'mobile' ? (isMobileOpen ? 'sidebar-mobile-open' : 'sidebar-mobile') : ''}
+    ${theme.name ? `sidebar-theme-${theme.name}` : ''}
+  `.trim().replace(/\s+/g, ' ');
 
-  const logoContainerStyles = {
-    height: 'var(--header-height)',
-    display: 'flex',
-    alignItems: 'center',
-    padding: `0 ${theme.spacing[6]}`,
-    borderBottom: `1px solid ${theme.colors.border.muted}`,
-    backgroundColor: theme.colors.background.primary,
-    transition: `background-color ${theme.animation.duration.colors}`
-  };
+  // Use modular CSS classes for header and logo
+  const headerClasses = 'sidebar-header';
+  const logoClasses = 'sidebar-logo';
+  const logoIconClasses = 'sidebar-logo-icon';
+  const logoTextClasses = 'sidebar-logo-text';
 
-  const logoStyles = {
-    fontSize: theme.typography.fontSize.xl,
-    fontWeight: theme.typography.fontWeight.bold,
-    color: theme.colors.interactive.primary,
-    textDecoration: 'none',
-    transition: `color ${theme.animation.duration.colors}`,
-    display: 'flex',
-    alignItems: 'center',
-    gap: theme.spacing[2]
-  };
-
-  const logoIconStyles = {
-    width: '32px',
-    height: '32px',
-    backgroundColor: theme.colors.interactive.primary,
-    borderRadius: theme.borderRadius.md,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: theme.colors.text.inverse,
-    fontSize: theme.typography.fontSize.lg,
-    fontWeight: theme.typography.fontWeight.bold
-  };
-
-  const navContainerStyles = {
-    flex: 1,
-    overflowY: 'auto' as const,
-    overflowX: 'hidden' as const,
-    padding: theme.spacing[2],
-    scrollbarWidth: 'thin' as const
-  };
-
-  const navItemStyles = (isActive: boolean) => ({
-    display: 'flex',
-    alignItems: 'center',
-    width: '100%',
-    padding: `${theme.spacing[3]} ${theme.spacing[4]}`,
-    margin: `${theme.spacing[1]} 0`,
-    border: 'none',
-    borderRadius: theme.borderRadius.md,
-    backgroundColor: isActive ? theme.colors.interactive.primary : 'transparent',
-    color: isActive ? theme.colors.text.inverse : theme.colors.text.primary,
-    fontSize: theme.typography.fontSize.sm,
-    fontWeight: isActive ? theme.typography.fontWeight.semibold : theme.typography.fontWeight.normal,
-    textDecoration: 'none',
-    cursor: 'pointer',
-    transition: `all ${theme.animation.duration.colors}`,
-    justifyContent: isExpanded ? 'flex-start' : 'center',
-    position: 'relative' as const,
-    ':hover': {
-      backgroundColor: isActive ? theme.colors.interactive.primaryHover : theme.colors.background.tertiary,
-      color: isActive ? theme.colors.text.inverse : theme.colors.text.primary
-    }
-  });
-
-  const navIconStyles = {
-    width: '20px',
-    height: '20px',
-    marginRight: isExpanded ? theme.spacing[3] : '0',
-    flexShrink: 0,
-    transition: `margin-right ${theme.animation.duration.colors}`
-  };
-
-  const navTextStyles = {
-    opacity: isExpanded ? 1 : 0,
-    transition: `opacity ${theme.animation.duration.colors}`,
-    whiteSpace: 'nowrap' as const,
-    overflow: 'hidden',
-    flex: 1
-  };
+  // Use modular CSS classes for navigation
+  const navClasses = 'sidebar-nav';
+  const navListClasses = 'sidebar-nav-list';
+  const navItemClasses = 'sidebar-nav-item';
+  
+  const getNavLinkClasses = (isActive: boolean) => `
+    sidebar-nav-link
+    ${isActive ? 'sidebar-nav-link-active' : ''}
+  `.trim().replace(/\s+/g, ' ');
+  
+  const navIconClasses = 'sidebar-nav-icon';
+  const navTextClasses = 'sidebar-nav-text';
 
   const chevronStyles = {
     width: '16px',
@@ -364,29 +288,30 @@ const UnifiedSidebar: React.FC<SidebarProps> = memo(({ className = '' }) => {
 
       {/* Sidebar */}
       <aside
-        style={sidebarStyles}
-        className={className}
+        className={`${sidebarClasses} ${className}`}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
       >
         {/* Logo */}
-        <div style={logoContainerStyles}>
-          <Link to="/dashboard" style={logoStyles}>
-            <div style={logoIconStyles}>A</div>
-            {isExpanded && <span>ATİS</span>}
+        <div className={headerClasses}>
+          <Link to="/dashboard" className={logoClasses}>
+            <div className={logoIconClasses}>A</div>
+            {isExpanded && <span className={logoTextClasses}>ATİS</span>}
           </Link>
           
           {/* Mobile close button */}
           {screenSize === 'mobile' && (
-            <button style={mobileCloseButtonStyles} onClick={closeMobile}>
+            <button className="sidebar-toggle" onClick={closeMobile}>
               <X size={20} />
             </button>
           )}
         </div>
 
         {/* Navigation */}
-        <nav style={navContainerStyles}>
-          {navigationItems.map(item => renderNavItem(item))}
+        <nav className={navClasses}>
+          <ul className={navListClasses}>
+            {navigationItems.map(item => renderNavItem(item))}
+          </ul>
         </nav>
 
         {/* Desktop collapse toggle */}
