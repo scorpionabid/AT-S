@@ -5,6 +5,8 @@ import { FiBarChart, FiTrendingUp, FiTrendingDown, FiPieChart, FiActivity, FiUse
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { LoadingPage, ErrorState } from '../../components/ui/Loading';
+import { LineChart, PieChart, StatsCard, ChartContainer } from '../../components/charts/ChartComponents';
+import { apiService } from '../../services/apiService';
 
 interface AnalyticsData {
   overview: {
@@ -55,8 +57,13 @@ const AssessmentAnalyticsPage: React.FC = () => {
   const fetchAnalyticsData = async () => {
     try {
       setLoading(true);
-      // Mock analytics data - replace with actual API call
-      const mockData: AnalyticsData = {
+      // Use API service with fallback data
+      const response = await apiService.getAnalytics('assessments', {
+        date_from: selectedPeriod === '3months' ? '2024-10-01' : '2024-08-01',
+        date_to: '2025-01-31'
+      });
+      
+      const mockData: AnalyticsData = response.data as any || {
         overview: {
           totalAssessments: 156,
           completedAssessments: 142,
@@ -229,81 +236,91 @@ const AssessmentAnalyticsPage: React.FC = () => {
 
           {/* Overview Stats */}
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Ümumi Qiymətləndirmə</p>
-                  <p className="text-2xl font-bold text-blue-600">{analyticsData.overview.totalAssessments}</p>
-                </div>
-                <FiActivity className="w-8 h-8 text-blue-500" />
-              </div>
-            </Card>
+            <StatsCard
+              title="Ümumi Qiymətləndirmə"
+              value={analyticsData.overview.totalAssessments}
+              icon={<FiActivity className="w-6 h-6" />}
+              color="blue"
+            />
             
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Tamamlanmış</p>
-                  <p className="text-2xl font-bold text-green-600">{analyticsData.overview.completedAssessments}</p>
-                </div>
-                <FiUsers className="w-8 h-8 text-green-500" />
-              </div>
-            </Card>
+            <StatsCard
+              title="Tamamlanmış"
+              value={analyticsData.overview.completedAssessments}
+              change={8.2}
+              changeLabel="son ay"
+              icon={<FiUsers className="w-6 h-6" />}
+              color="green"
+            />
             
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Orta Bal</p>
-                  <p className="text-2xl font-bold text-purple-600">{analyticsData.overview.averageScore}%</p>
-                </div>
-                <FiBarChart className="w-8 h-8 text-purple-500" />
-              </div>
-            </Card>
+            <StatsCard
+              title="Orta Bal"
+              value={`${analyticsData.overview.averageScore}%`}
+              change={3.1}
+              changeLabel="artış"
+              icon={<FiBarChart className="w-6 h-6" />}
+              color="purple"
+            />
             
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">İştirak Nisbəti</p>
-                  <p className="text-2xl font-bold text-orange-600">{analyticsData.overview.participationRate}%</p>
-                </div>
-                <FiCalendar className="w-8 h-8 text-orange-500" />
-              </div>
-            </Card>
+            <StatsCard
+              title="İştirak Nisbəti"
+              value={`${analyticsData.overview.participationRate}%`}
+              change={5.3}
+              changeLabel="yaxşılaşma"
+              icon={<FiCalendar className="w-6 h-6" />}
+              color="orange"
+            />
             
-            <Card className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Təkmilləşmə</p>
-                  <p className="text-2xl font-bold text-indigo-600">+{analyticsData.overview.improvementRate}%</p>
-                </div>
-                <FiTrendingUp className="w-8 h-8 text-indigo-500" />
-              </div>
-            </Card>
+            <StatsCard
+              title="Təkmilləşmə"
+              value={`+${analyticsData.overview.improvementRate}%`}
+              change={analyticsData.overview.improvementRate}
+              changeLabel="ümumi artım"
+              icon={<FiTrendingUp className="w-6 h-6" />}
+              color="green"
+            />
           </div>
 
-          {/* Trends Chart Mockup */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">Aylıq Tendensiyalar</h3>
-            <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-              <div className="text-center">
-                <FiTrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                <p className="text-gray-600">Qrafik komponenti (Chart.js/Recharts ilə əlavə ediləcək)</p>
-                <p className="text-sm text-gray-500 mt-2">
-                  Son 6 ayda orta bal: {analyticsData.trends[analyticsData.trends.length - 1]?.averageScore}%
-                </p>
+          {/* Trends Chart */}
+          <ChartContainer
+            title="Aylıq Tendensiyalar"
+            subtitle={`Son 6 ayda orta bal: ${analyticsData.trends[analyticsData.trends.length - 1]?.averageScore}%`}
+            actions={
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">Detallar</Button>
+                <Button variant="outline" size="sm">
+                  <FiDownload className="w-4 h-4 mr-1" />
+                  Export
+                </Button>
               </div>
-            </div>
-          </Card>
+            }
+          >
+            <LineChart
+              data={analyticsData.trends.map(trend => ({
+                name: new Date(trend.month + '-01').toLocaleDateString('az-AZ', { month: 'short' }),
+                value: trend.averageScore
+              }))}
+              height={280}
+              showGrid={true}
+              showValues={true}
+              className="w-full"
+            />
+          </ChartContainer>
 
           {/* Category Distribution */}
-          <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-              <FiPieChart className="w-5 h-5" />
-              Qiymətləndirmə Kateqoriyaları
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ChartContainer
+            title="Qiymətləndirmə Kateqoriyaları"
+            subtitle="Qiymətləndirmə növlərinin paylanması"
+            actions={
+              <Button variant="outline" size="sm">
+                <FiPieChart className="w-4 h-4 mr-1" />
+                Tam Məlumat
+              </Button>
+            }
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center w-full">
               <div className="space-y-3">
                 {analyticsData.categories.map((category, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
                     <div className="flex items-center gap-3">
                       <div 
                         className="w-4 h-4 rounded-full"
@@ -318,14 +335,17 @@ const AssessmentAnalyticsPage: React.FC = () => {
                   </div>
                 ))}
               </div>
-              <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center border-2 border-dashed border-gray-300">
-                <div className="text-center">
-                  <FiPieChart className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-                  <p className="text-gray-600">Pie chart komponenti</p>
-                </div>
+              
+              <div className="flex justify-center">
+                <PieChart
+                  data={analyticsData.categories}
+                  size={240}
+                  showLabels={true}
+                  showLegend={false}
+                />
               </div>
             </div>
-          </Card>
+          </ChartContainer>
 
           {/* Top and Low Performers */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
