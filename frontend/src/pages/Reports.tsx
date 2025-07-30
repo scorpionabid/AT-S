@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { reportsService } from '../services/reportsService';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
+import { FiBarChart2 } from 'react-icons/fi';
+import { StatsGrid, ContentCard, TabNavigation, type StatCard, type Tab } from '../components/ui';
 import type { 
   OverviewStats, 
   InstitutionalPerformance, 
@@ -95,385 +98,147 @@ const Reports: React.FC = () => {
   const renderOverviewStats = () => {
     if (!overviewStats) return null;
 
-    return (
-      <div className="reports-content">
-        <div className="stats-grid">
-          {/* User Statistics */}
-          <div className="stat-card">
-            <div className="stat-header">
-              <h3>👥 İstifadəçi Statistikası</h3>
-              <span className="stat-badge">{overviewStats.user_statistics.total_users}</span>
-            </div>
-            <div className="stat-details">
-              <div className="stat-item">
-                <span className="label">Aktiv:</span>
-                <span className="value">{overviewStats.user_statistics.active_users}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">Yeni (30 gün):</span>
-                <span className="value">{overviewStats.user_statistics.new_users}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">Aktivlik dərəcəsi:</span>
-                <span className="value">{overviewStats.user_statistics.engagement_rate}%</span>
-              </div>
-            </div>
-          </div>
+    const statsData: StatCard[] = [
+      {
+        title: 'İstifadəçi Statistikası',
+        value: overviewStats.user_statistics.total_users,
+        icon: '👥',
+        color: 'blue',
+        change: `Aktiv: ${overviewStats.user_statistics.active_users}, Yeni: ${overviewStats.user_statistics.new_users}`
+      },
+      {
+        title: 'Təşkilat Statistikası',
+        value: overviewStats.institution_statistics.total_institutions,
+        icon: '🏢',
+        color: 'green',
+        change: `Aktiv: ${overviewStats.institution_statistics.active_institutions}`
+      },
+      {
+        title: 'Sorğu Statistikası',
+        value: overviewStats.survey_statistics.total_surveys,
+        icon: '📊',
+        color: 'purple',
+        change: `Dərc edilmiş: ${overviewStats.survey_statistics.published_surveys}`
+      }
+    ];
 
-          {/* Institution Statistics */}
-          <div className="stat-card">
-            <div className="stat-header">
-              <h3>🏢 Təşkilat Statistikası</h3>
-              <span className="stat-badge">{overviewStats.institution_statistics.total_institutions}</span>
-            </div>
-            <div className="stat-details">
-              <div className="stat-item">
-                <span className="label">Aktiv:</span>
-                <span className="value">{overviewStats.institution_statistics.active_institutions}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">Yeni (30 gün):</span>
-                <span className="value">{overviewStats.institution_statistics.new_institutions}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Survey Statistics */}
-          <div className="stat-card">
-            <div className="stat-header">
-              <h3>📊 Sorğu Statistikası</h3>
-              <span className="stat-badge">{overviewStats.survey_statistics.total_surveys}</span>
-            </div>
-            <div className="stat-details">
-              <div className="stat-item">
-                <span className="label">Dərc edilmiş:</span>
-                <span className="value">{overviewStats.survey_statistics.published_surveys}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">Tamamlanmış:</span>
-                <span className="value">{overviewStats.survey_statistics.completed_surveys}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">Cavab dərəcəsi:</span>
-                <span className="value">{overviewStats.survey_statistics.response_rate}%</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Performance Metrics */}
-          <div className="stat-card">
-            <div className="stat-header">
-              <h3>⚡ Performans Metrikleri</h3>
-              <span className="stat-badge quality">
-                {overviewStats.performance_metrics.data_quality_score}
-              </span>
-            </div>
-            <div className="stat-details">
-              <div className="stat-item">
-                <span className="label">Sistem Uptime:</span>
-                <span className="value">{overviewStats.performance_metrics.system_uptime}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">Xəta dərəcəsi:</span>
-                <span className="value">{overviewStats.performance_metrics.error_rate}</span>
-              </div>
-              <div className="stat-item">
-                <span className="label">İstifadəçi məmnuniyyəti:</span>
-                <span className="value">{overviewStats.performance_metrics.user_satisfaction}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Growth Trends Chart */}
-        <div className="chart-section">
-          <h3>📈 Artım Trendləri</h3>
-          <div className="trends-chart">
-            {overviewStats.growth_trends.map((trend, index) => (
-              <div key={index} className="trend-item">
-                <div className="trend-date">{new Date(trend.period).toLocaleDateString('az-AZ')}</div>
-                <div className="trend-metrics">
-                  <div className="metric">
-                    <span className="metric-label">İstifadəçi</span>
-                    <span className="metric-value">{trend.users}</span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Təşkilat</span>
-                    <span className="metric-value">{trend.institutions}</span>
-                  </div>
-                  <div className="metric">
-                    <span className="metric-label">Sorğu</span>
-                    <span className="metric-value">{trend.surveys}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
+    return <StatsGrid stats={statsData} />;
   };
 
   const renderInstitutionalPerformance = () => {
-    if (!institutionalPerformance) return null;
-
     return (
-      <div className="reports-content">
-        <div className="performance-section">
-          <h3>🏆 Təşkilat Reytinqi</h3>
-          <div className="rankings-table">
-            <div className="table-header">
-              <span>Rank</span>
-              <span>Təşkilat</span>
-              <span>Tip</span>
-              <span>Aktiv İstifadəçi</span>
-              <span>Aktivlik Skoru</span>
-            </div>
-            {institutionalPerformance.institution_rankings.map((institution, index) => (
-              <div key={institution.id} className="table-row">
-                <span className="rank">#{index + 1}</span>
-                <span className="name">{institution.name}</span>
-                <span className="type">{institution.type}</span>
-                <span className="users">{institution.active_users}</span>
-                <span className="score">{institution.engagement_score}</span>
-              </div>
-            ))}
-          </div>
+      <ContentCard title="Təşkilat Performansı" loading={!institutionalPerformance}>
+        <div className="text-sm text-neutral-600">
+          Bu bölmə həyata keçirilir...
         </div>
-
-        <div className="engagement-metrics">
-          <h3>📊 İstifadəçi Aktivliyi</h3>
-          <div className="metrics-grid">
-            <div className="metric-card">
-              <span className="metric-label">Orta Session Müddəti</span>
-              <span className="metric-value">{institutionalPerformance.user_engagement.average_session_duration}</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Günlük Aktiv İstifadəçi</span>
-              <span className="metric-value">{institutionalPerformance.user_engagement.daily_active_users}</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Həftəlik Saxlama Dərəcəsi</span>
-              <span className="metric-value">{institutionalPerformance.user_engagement.weekly_retention_rate}</span>
-            </div>
-            <div className="metric-card">
-              <span className="metric-label">Funksiya Mənimsəmə Dərəcəsi</span>
-              <span className="metric-value">{institutionalPerformance.user_engagement.feature_adoption_rate}</span>
-            </div>
-          </div>
-        </div>
-      </div>
+      </ContentCard>
     );
   };
 
   const renderSurveyAnalytics = () => {
-    if (!surveyAnalytics) return null;
-
     return (
-      <div className="reports-content">
-        <div className="survey-overview">
-          <h3>📋 Sorğu Baxışı</h3>
-          <div className="overview-cards">
-            <div className="overview-card">
-              <span className="card-label">Ümumi Sorğu</span>
-              <span className="card-value">{surveyAnalytics.survey_overview.total_surveys}</span>
-            </div>
-            <div className="overview-card">
-              <span className="card-label">Cavab Dərəcəsi</span>
-              <span className="card-value">{surveyAnalytics.survey_overview.response_rate}</span>
-            </div>
-            <div className="overview-card">
-              <span className="card-label">Tamamlanma Dərəcəsi</span>
-              <span className="card-value">{surveyAnalytics.survey_overview.completion_rate}</span>
-            </div>
-            <div className="overview-card">
-              <span className="card-label">Orta Müddət</span>
-              <span className="card-value">{surveyAnalytics.survey_overview.average_time}</span>
-            </div>
-          </div>
+      <ContentCard title="Sorğu Analitikası" loading={!surveyAnalytics}>
+        <div className="text-sm text-neutral-600">
+          Bu bölmə həyata keçirilir...
         </div>
-
-        <div className="response-rates-section">
-          <h3>📊 Cavab Dərəcələri</h3>
-          <div className="rates-grid">
-            <div className="rates-category">
-              <h4>Təşkilat Tipinə görə</h4>
-              {Object.entries(surveyAnalytics.response_rates.by_institution_type).map(([type, rate]) => (
-                <div key={type} className="rate-item">
-                  <span className="rate-label">{type}</span>
-                  <span className="rate-value">{rate}</span>
-                </div>
-              ))}
-            </div>
-            <div className="rates-category">
-              <h4>Regiona görə</h4>
-              {Object.entries(surveyAnalytics.response_rates.by_region).map(([region, rate]) => (
-                <div key={region} className="rate-item">
-                  <span className="rate-label">{region}</span>
-                  <span className="rate-value">{rate}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
+      </ContentCard>
     );
   };
 
   const renderUserActivity = () => {
-    if (!userActivity) return null;
-
     return (
-      <div className="reports-content">
-        <div className="activity-summary">
-          <h3>👤 İstifadəçi Aktivlik Xülasəsi</h3>
-          <div className="summary-metrics">
-            <div className="summary-card">
-              <span className="summary-label">Ümumi Aktivlik</span>
-              <span className="summary-value">{userActivity.user_activity_summary.total_activities}</span>
-            </div>
-            <div className="summary-card">
-              <span className="summary-label">Günlük Orta</span>
-              <span className="summary-value">{userActivity.user_activity_summary.daily_average}</span>
-            </div>
-          </div>
+      <ContentCard title="İstifadəçi Aktivliyi" loading={!userActivity}>
+        <div className="text-sm text-neutral-600">
+          Bu bölmə həyata keçirilir...
         </div>
-
-        <div className="activity-patterns">
-          <h3>🕐 Giriş Nümunələri</h3>
-          <div className="patterns-info">
-            <div className="pattern-item">
-              <span className="pattern-label">Pik Saatlar:</span>
-              <span className="pattern-value">{userActivity.login_patterns.peak_hours.join(', ')}</span>
-            </div>
-            <div className="pattern-item">
-              <span className="pattern-label">Giriş Tezliyi:</span>
-              <span className="pattern-value">{userActivity.login_patterns.login_frequency}</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="feature-usage">
-          <h3>🔧 Funksiya İstifadəsi</h3>
-          <div className="usage-bars">
-            {Object.entries(userActivity.feature_usage).map(([feature, usage]) => (
-              <div key={feature} className="usage-bar">
-                <span className="feature-name">{feature}</span>
-                <div className="bar-container">
-                  <div className="bar-fill" style={{ width: usage }}></div>
-                </div>
-                <span className="usage-percent">{usage}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      </ContentCard>
     );
   };
 
   return (
-    <div className="p-6">
-      <div className="page-header">
-        <div className="page-header-content">
-          <div className="page-header-left">
-            <h1 className="page-header-title flex items-center gap-3">
-              📊 Hesabatlar və Analitika
-            </h1>
-            <p className="page-header-subtitle">
-              Sistem performansı və istifadəçi aktivliyi haqqında dəqiq hesabatlar
-            </p>
+    <StandardPageLayout
+      title="Hesabatlar"
+      subtitle="Sistem məlumatları və analitika"
+      icon={<FiBarChart2 className="w-6 h-6 text-blue-600" />}
+    >
+      <div className="dashboard-container">
+        {/* Header Controls */}
+        <ContentCard
+          title="Filtr və Export"
+          subtitle="Hesabat parametrləri"
+        >
+          <div className="flex flex-wrap gap-4 items-center">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium">Tarix aralığı:</label>
+              <input
+                type="date"
+                value={dateRange.start_date}
+                onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
+                className="px-3 py-2 border border-neutral-300 rounded-md text-sm"
+              />
+              <span>-</span>
+              <input
+                type="date"
+                value={dateRange.end_date}
+                onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
+                className="px-3 py-2 border border-neutral-300 rounded-md text-sm"
+              />
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={() => handleExportReport('csv')}
+                disabled={loading}
+                className="px-3 py-2 bg-primary-500 text-white rounded-md text-sm hover:bg-primary-600 disabled:opacity-50"
+              >
+                📄 CSV
+              </button>
+              <button
+                onClick={() => handleExportReport('json')}
+                disabled={loading}
+                className="px-3 py-2 bg-neutral-500 text-white rounded-md text-sm hover:bg-neutral-600 disabled:opacity-50"
+              >
+                📋 JSON
+              </button>
+              <button
+                onClick={() => handleExportReport('pdf')}
+                disabled={loading}
+                className="px-3 py-2 bg-primary-500 text-white rounded-md text-sm hover:bg-primary-600 disabled:opacity-50"
+              >
+                📑 PDF
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        </ContentCard>
 
-      {/* Filters Section */}
-      <div className="filters-section">
-        <div className="date-filter">
-          <label>Tarix aralığı:</label>
-          <input
-            type="date"
-            value={dateRange.start_date}
-            onChange={(e) => setDateRange(prev => ({ ...prev, start_date: e.target.value }))}
-            className="date-input"
-          />
-          <span>-</span>
-          <input
-            type="date"
-            value={dateRange.end_date}
-            onChange={(e) => setDateRange(prev => ({ ...prev, end_date: e.target.value }))}
-            className="date-input"
-          />
-        </div>
+        {/* Tabs Navigation */}
+        <TabNavigation
+          tabs={[
+            { id: 'overview', label: 'Ümumi Baxış', icon: '📈' },
+            { id: 'institutional', label: 'Təşkilat Performansı', icon: '🏢' },
+            { id: 'surveys', label: 'Sorğu Analitikası', icon: '📊' },
+            { id: 'users', label: 'İstifadəçi Aktivliyi', icon: '👥' },
+          ]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
 
-        <div className="export-actions">
-          <button
-            onClick={() => handleExportReport('csv')}
-            disabled={loading}
-            className="export-btn csv"
-          >
-            📄 CSV Export
-          </button>
-          <button
-            onClick={() => handleExportReport('json')}
-            disabled={loading}
-            className="export-btn json"
-          >
-            📋 JSON Export
-          </button>
-          <button
-            onClick={() => handleExportReport('pdf')}
-            disabled={loading}
-            className="export-btn pdf"
-          >
-            📑 PDF Export
-          </button>
-        </div>
-      </div>
-
-      {/* Tabs Navigation */}
-      <div className="reports-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'overview' ? 'active' : ''}`}
-          onClick={() => setActiveTab('overview')}
-        >
-          📈 Ümumi Baxış
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'institutional' ? 'active' : ''}`}
-          onClick={() => setActiveTab('institutional')}
-        >
-          🏢 Təşkilat Performansı
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'surveys' ? 'active' : ''}`}
-          onClick={() => setActiveTab('surveys')}
-        >
-          📊 Sorğu Analitikası
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
-          onClick={() => setActiveTab('users')}
-        >
-          👥 İstifadəçi Aktivliyi
-        </button>
-      </div>
-
-      {/* Content Area */}
-      <div className="reports-container">
+        {/* Content Area */}
         {error && (
-          <div className="error-message">
-            <span className="error-icon">⚠️</span>
-            <span>{error}</span>
-            <button onClick={fetchReportData} className="retry-btn">
-              Yenidən cəhd et
-            </button>
+          <div className="dashboard-error">
+            <div className="error-content">
+              <div className="error-title">⚠️ Xəta baş verdi</div>
+              <div className="error-message">{error}</div>
+              <button onClick={fetchReportData} className="error-button">
+                Yenidən cəhd et
+              </button>
+            </div>
           </div>
         )}
 
         {loading ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Hesabat məlumatları yüklənir...</p>
+          <div className="dashboard-loading">
+            <div>Hesabat məlumatları yüklənir...</div>
           </div>
         ) : (
           <>
@@ -484,7 +249,7 @@ const Reports: React.FC = () => {
           </>
         )}
       </div>
-    </div>
+    </StandardPageLayout>
   );
 };
 

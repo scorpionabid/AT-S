@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import StandardPageLayout from '../components/layout/StandardPageLayout';
+import { FiSettings } from 'react-icons/fi';
 import type { 
   SystemConfig, 
   SystemHealth, 
@@ -593,71 +595,88 @@ const Settings: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="page-header">
-        <div className="page-header-content">
-          <div className="page-header-left">
-            <h1 className="page-header-title flex items-center gap-3">
-              ⚙️ Sistem Tənzimləmələri
-            </h1>
-            <p className="page-header-subtitle">
-              Sistem konfiqurasiyası və bakım əməliyyatları
-            </p>
+    <StandardPageLayout
+      title="Sistem Tənzimləmələri"
+      subtitle="Sistem konfiqurasiyası və bakım əməliyyatları"
+      icon={<FiSettings className="w-6 h-6 text-blue-600" />}
+    >
+      <div className="dashboard-container">
+        {/* Messages */}
+        {error && (
+          <div className="dashboard-error">
+            <div className="error-content">
+              <div className="error-title">⚠️ Xəta</div>
+              <div className="error-message">{error}</div>
+              <button onClick={() => setError(null)} className="error-button">
+                Bağla
+              </button>
+            </div>
           </div>
+        )}
+
+        {success && (
+          <div className="bg-success-50 border border-success-200 rounded-md p-3 mb-6">
+            <div className="flex items-center gap-2">
+              <span>✅</span>
+              <span className="text-success-800">{success}</span>
+              <button 
+                onClick={() => setSuccess(null)} 
+                className="ml-auto text-success-600 hover:text-success-800"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Tabs Navigation */}
+        <div className="flex border-b border-neutral-200 mb-6">
+          <button
+            className={`px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'general' 
+                ? 'border-primary-500 text-primary-600' 
+                : 'border-transparent text-neutral-600 hover:text-neutral-900'
+            }`}
+            onClick={() => setActiveTab('general')}
+          >
+            🔧 Ümumi
+          </button>
+          <button
+            className={`px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'security' 
+                ? 'border-primary-500 text-primary-600' 
+                : 'border-transparent text-neutral-600 hover:text-neutral-900'
+            }`}
+            onClick={() => setActiveTab('security')}
+          >
+            🔒 Təhlükəsizlik
+          </button>
+          <button
+            className={`px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'health' 
+                ? 'border-primary-500 text-primary-600' 
+                : 'border-transparent text-neutral-600 hover:text-neutral-900'
+            }`}
+            onClick={() => setActiveTab('health')}
+          >
+            🏥 Sistem Sağlamlığı
+          </button>
+          <button
+            className={`px-4 py-2 border-b-2 transition-colors ${
+              activeTab === 'schedules' 
+                ? 'border-primary-500 text-primary-600' 
+                : 'border-transparent text-neutral-600 hover:text-neutral-900'
+            }`}
+            onClick={() => setActiveTab('schedules')}
+          >
+            📅 Planlanmış Hesabatlar
+          </button>
         </div>
-      </div>
 
-      {/* Messages */}
-      {error && (
-        <div className="alert alert-error">
-          <span className="alert-icon">⚠️</span>
-          <span>{error}</span>
-          <button onClick={() => setError(null)} className="alert-close">×</button>
-        </div>
-      )}
-
-      {success && (
-        <div className="alert alert-success">
-          <span className="alert-icon">✅</span>
-          <span>{success}</span>
-          <button onClick={() => setSuccess(null)} className="alert-close">×</button>
-        </div>
-      )}
-
-      {/* Tabs Navigation */}
-      <div className="settings-tabs">
-        <button
-          className={`tab-btn ${activeTab === 'general' ? 'active' : ''}`}
-          onClick={() => setActiveTab('general')}
-        >
-          🔧 Ümumi
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'security' ? 'active' : ''}`}
-          onClick={() => setActiveTab('security')}
-        >
-          🔒 Təhlükəsizlik
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'health' ? 'active' : ''}`}
-          onClick={() => setActiveTab('health')}
-        >
-          🏥 Sistem Sağlamlığı
-        </button>
-        <button
-          className={`tab-btn ${activeTab === 'schedules' ? 'active' : ''}`}
-          onClick={() => setActiveTab('schedules')}
-        >
-          📅 Planlanmış Hesabatlar
-        </button>
-      </div>
-
-      {/* Content Area */}
-      <div className="settings-container">
+        {/* Content Area */}
         {loading && !systemConfig ? (
-          <div className="loading-container">
-            <div className="loading-spinner"></div>
-            <p>Tənzimləmələr yüklənir...</p>
+          <div className="dashboard-loading">
+            <div>Tənzimləmələr yüklənir...</div>
           </div>
         ) : (
           <>
@@ -668,7 +687,7 @@ const Settings: React.FC = () => {
           </>
         )}
       </div>
-    </div>
+    </StandardPageLayout>
   );
 };
 

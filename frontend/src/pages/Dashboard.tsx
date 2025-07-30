@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { StatsGrid, ContentCard, type StatCard } from '../components/ui';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { dashboardServiceUnified } from '../services';
@@ -125,16 +126,7 @@ const DashboardHome: React.FC = () => {
     return roleNames[userRole] || userRole || 'İstifadəçi';
   };
 
-  const getDisplayStats = () => {
-    if (stats.loading) {
-      return [
-        { title: 'Yüklənir...', value: '...', icon: '⏳', color: 'blue', change: '' },
-        { title: 'Yüklənir...', value: '...', icon: '⏳', color: 'green', change: '' },
-        { title: 'Yüklənir...', value: '...', icon: '⏳', color: 'purple', change: '' },
-        { title: 'Yüklənir...', value: '...', icon: '⏳', color: 'orange', change: '' }
-      ];
-    }
-
+  const getDisplayStats = (): StatCard[] => {
     if (currentRole === 'superadmin') {
       return [
         {
@@ -213,54 +205,25 @@ const DashboardHome: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-secondary-50 p-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-900 mb-2">{getWelcomeMessage()}, {user?.username}!</h1>
-        <p className="text-neutral-600">
-          ATİS sistemində son vəziyyət və fəaliyyətlər • Rol: {getRoleDisplayName()}
-        </p>
-      </div>
+    <div className="dashboard-container">
+      <div className="dashboard-grid">
+        <div className="header-title-section">
+          <h1 className="text-h1">{getWelcomeMessage()}, {user?.username}!</h1>
+          <p className="text-secondary">
+            ATİS sistemində son vəziyyət və fəaliyyətlər • Rol: {getRoleDisplayName()}
+          </p>
+        </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {displayStats.map((stat, index) => (
-          <div key={index} className={`
-            bg-white rounded-xl p-6 shadow-card border border-neutral-200 hover:shadow-card-elevated transition-shadow duration-200
-            ${stat.color === 'blue' && 'border-l-4 border-l-primary-500'}
-            ${stat.color === 'green' && 'border-l-4 border-l-success-500'}
-            ${stat.color === 'purple' && 'border-l-4 border-l-purple-500'}
-            ${stat.color === 'orange' && 'border-l-4 border-l-warning-500'}
-          `}>
-            <div className="flex items-center justify-between mb-4">
-              <div className={`
-                w-12 h-12 rounded-lg flex items-center justify-center text-2xl
-                ${stat.color === 'blue' && 'bg-primary-50 text-primary-600'}
-                ${stat.color === 'green' && 'bg-success-50 text-success-600'}
-                ${stat.color === 'purple' && 'bg-purple-50 text-purple-600'}
-                ${stat.color === 'orange' && 'bg-warning-50 text-warning-600'}
-              `}>
-                {stat.icon}
-              </div>
-              {stat.change && (
-                <span className="text-sm font-medium text-success-600 bg-success-50 px-2 py-1 rounded-full">
-                  {stat.change}
-                </span>
-              )}
-            </div>
-            <h3 className="text-2xl font-bold text-neutral-900 mb-1">{stat.value}</h3>
-            <p className="text-sm text-neutral-600">{stat.title}</p>
-          </div>
-        ))}
-      </div>
+        {/* Statistics Cards */}
+        <StatsGrid stats={displayStats} loading={stats.loading} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Quick Actions */}
-        <div className="bg-white rounded-xl p-6 shadow-card border border-neutral-200">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Tez Əməliyyatlar</h3>
-            <p className="text-sm text-neutral-600">Ən çox istifadə olunan funksiyalar</p>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
+        <div className="charts-container">
+          {/* Quick Actions */}
+          <ContentCard
+            title="Tez Əməliyyatlar"
+            subtitle="Ən çox istifadə olunan funksiyalar"
+          >
+            <div className="grid grid-cols-2 gap-4">
             {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
               <Link to="/users" className="flex flex-col items-center p-4 rounded-lg bg-primary-50 hover:bg-primary-100 transition-colors duration-200 text-center group">
                 <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">👥</span>
@@ -300,123 +263,121 @@ const DashboardHome: React.FC = () => {
                 <span className="text-sm font-medium text-neutral-700">Tənzimləmələr</span>
               </Link>
             )}
-          </div>
-        </div>
+            </div>
+          </ContentCard>
 
-        {/* Recent Activities */}
-        <div className="bg-white rounded-xl p-6 shadow-card border border-neutral-200">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Son Fəaliyyətlər</h3>
-            <p className="text-sm text-neutral-600">Sistemdə son dəyişikliklər</p>
-          </div>
-          <div className="space-y-4">
-            {stats.loading ? (
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-50">
-                <div className="w-8 h-8 rounded-full bg-neutral-200 flex items-center justify-center">
-                  <span className="text-sm">⏳</span>
-                </div>
-                <div>
-                  <p className="text-sm text-neutral-600">Fəaliyyətlər yüklənir...</p>
-                </div>
+          {/* Recent Activities */}
+          <ContentCard
+            title="Son Fəaliyyətlər"
+            subtitle="Sistemdə son dəyişikliklər"
+            loading={stats.loading}
+          >
+            {stats.recentActivities && stats.recentActivities.length > 0 ? (
+              <div className="activities-list">
+                {stats.recentActivities.map((activity) => (
+                  <div key={activity.id} className="activity-item">
+                    <div className="activity-header">
+                      <div className={`
+                        activity-icon
+                        ${activity.type === 'survey' && 'bg-primary-100 text-primary-600'}
+                        ${activity.type === 'report' && 'bg-success-100 text-success-600'}
+                        ${activity.type === 'user' && 'bg-warning-100 text-warning-600'}
+                        ${activity.type === 'system' && 'bg-neutral-100 text-neutral-600'}
+                      `}>
+                        {activity.type === 'survey' && '📊'}
+                        {activity.type === 'report' && '📈'}
+                        {activity.type === 'user' && '👤'}
+                        {activity.type === 'system' && '⚙️'}
+                      </div>
+                      <div className="activity-content">
+                        <div className="activity-title">
+                          <span>{typeof activity.user === 'string' ? activity.user : activity.user?.username || activity.user?.name || 'N/A'}</span> {activity.action}
+                        </div>
+                        <div className="activity-description">{activity.time}</div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : stats.recentActivities && stats.recentActivities.length > 0 ? (
-              stats.recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-neutral-50 transition-colors duration-200">
-                  <div className={`
-                    w-8 h-8 rounded-full flex items-center justify-center text-sm
-                    ${activity.type === 'survey' && 'bg-primary-100 text-primary-600'}
-                    ${activity.type === 'report' && 'bg-success-100 text-success-600'}
-                    ${activity.type === 'user' && 'bg-warning-100 text-warning-600'}
-                    ${activity.type === 'system' && 'bg-neutral-100 text-neutral-600'}
-                  `}>
-                    {activity.type === 'survey' && '📊'}
-                    {activity.type === 'report' && '📈'}
-                    {activity.type === 'user' && '👤'}
-                    {activity.type === 'system' && '⚙️'}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-neutral-900">
-                      <span className="font-medium">{typeof activity.user === 'string' ? activity.user : activity.user?.username || activity.user?.name || 'N/A'}</span> {activity.action}
-                    </p>
-                    <p className="text-xs text-neutral-500">{activity.time}</p>
-                  </div>
-                </div>
-              ))
             ) : (
-              <div className="flex items-center space-x-3 p-3 rounded-lg bg-neutral-50">
-                <div className="w-8 h-8 rounded-full bg-info-100 text-info-600 flex items-center justify-center">
-                  <span className="text-sm">ℹ️</span>
-                </div>
-                <div>
-                  <p className="text-sm text-neutral-600">Hələlik fəaliyyət qeydə alınmayıb</p>
-                  <p className="text-xs text-neutral-500">--</p>
+              <div className="activities-list">
+                <div className="activity-item">
+                  <div className="activity-header">
+                    <div className="activity-icon bg-info-100 text-info-600">
+                      <span>ℹ️</span>
+                    </div>
+                    <div className="activity-content">
+                      <div className="activity-title">Hələlik fəaliyyət qeydə alınmayıb</div>
+                      <div className="activity-description">--</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
-          </div>
+          </ContentCard>
+
         </div>
 
         {/* System Status */}
-        <div className="bg-white rounded-xl p-6 shadow-card border border-neutral-200">
-          <div className="mb-6">
-            <h3 className="text-lg font-semibold text-neutral-900 mb-2">Sistem Statusu</h3>
-            <p className="text-sm text-neutral-600">Sistemin hazırkı vəziyyəti</p>
+        <ContentCard
+          title="Sistem Statusu"
+          subtitle="Sistemin hazırkı vəziyyəti"
+        >
+          <div className="status-grid">
+            <div className="status-item">
+              <div className={`
+                status-indicator
+                ${stats.systemStatus.database.status === 'healthy' && 'status-indicator-healthy'}
+                ${stats.systemStatus.database.status === 'warning' && 'status-indicator-warning'}
+                ${stats.systemStatus.database.status === 'error' && 'status-indicator-error'}
+                ${stats.systemStatus.database.status === 'unknown' && 'status-indicator-unknown'}
+              `}></div>
+              <div>
+                <div className="status-label">Database Bağlantısı</div>
+                <div className="text-xs text-neutral-600">{stats.systemStatus.database.label}</div>
+              </div>
+            </div>
+            <div className="status-item">
+              <div className={`
+                status-indicator
+                ${stats.systemStatus.api.status === 'healthy' && 'status-indicator-healthy'}
+                ${stats.systemStatus.api.status === 'warning' && 'status-indicator-warning'}
+                ${stats.systemStatus.api.status === 'error' && 'status-indicator-error'}
+                ${stats.systemStatus.api.status === 'unknown' && 'status-indicator-unknown'}
+              `}></div>
+              <div>
+                <div className="status-label">API Servisi</div>
+                <div className="text-xs text-neutral-600">{stats.systemStatus.api.label}</div>
+              </div>
+            </div>
+            <div className="status-item">
+              <div className={`
+                status-indicator
+                ${stats.systemStatus.memory.status === 'healthy' && 'status-indicator-healthy'}
+                ${stats.systemStatus.memory.status === 'warning' && 'status-indicator-warning'}
+                ${stats.systemStatus.memory.status === 'error' && 'status-indicator-error'}
+                ${stats.systemStatus.memory.status === 'unknown' && 'status-indicator-unknown'}
+              `}></div>
+              <div>
+                <div className="status-label">Yaddaş İstifadəsi</div>
+                <div className="text-xs text-neutral-600">{stats.systemStatus.memory.label}</div>
+              </div>
+            </div>
+            <div className="status-item">
+              <div className={`
+                status-indicator
+                ${stats.systemStatus.storage.status === 'healthy' && 'status-indicator-healthy'}
+                ${stats.systemStatus.storage.status === 'warning' && 'status-indicator-warning'}
+                ${stats.systemStatus.storage.status === 'error' && 'status-indicator-error'}
+                ${stats.systemStatus.storage.status === 'unknown' && 'status-indicator-unknown'}
+              `}></div>
+              <div>
+                <div className="status-label">Yaddaş</div>
+                <div className="text-xs text-neutral-600">{stats.systemStatus.storage.label}</div>
+              </div>
+            </div>
           </div>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
-              <div className="flex items-center space-x-3">
-                <div className={`
-                  w-3 h-3 rounded-full
-                  ${stats.systemStatus.database.status === 'healthy' && 'bg-success-500'}
-                  ${stats.systemStatus.database.status === 'warning' && 'bg-warning-500'}
-                  ${stats.systemStatus.database.status === 'error' && 'bg-error-500'}
-                  ${stats.systemStatus.database.status === 'unknown' && 'bg-neutral-400'}
-                `}></div>
-                <span className="text-sm font-medium text-neutral-700">Database Bağlantısı</span>
-              </div>
-              <span className="text-sm text-neutral-600">{stats.systemStatus.database.label}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
-              <div className="flex items-center space-x-3">
-                <div className={`
-                  w-3 h-3 rounded-full
-                  ${stats.systemStatus.api.status === 'healthy' && 'bg-success-500'}
-                  ${stats.systemStatus.api.status === 'warning' && 'bg-warning-500'}
-                  ${stats.systemStatus.api.status === 'error' && 'bg-error-500'}
-                  ${stats.systemStatus.api.status === 'unknown' && 'bg-neutral-400'}
-                `}></div>
-                <span className="text-sm font-medium text-neutral-700">API Servisi</span>
-              </div>
-              <span className="text-sm text-neutral-600">{stats.systemStatus.api.label}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
-              <div className="flex items-center space-x-3">
-                <div className={`
-                  w-3 h-3 rounded-full
-                  ${stats.systemStatus.memory.status === 'healthy' && 'bg-success-500'}
-                  ${stats.systemStatus.memory.status === 'warning' && 'bg-warning-500'}
-                  ${stats.systemStatus.memory.status === 'error' && 'bg-error-500'}
-                  ${stats.systemStatus.memory.status === 'unknown' && 'bg-neutral-400'}
-                `}></div>
-                <span className="text-sm font-medium text-neutral-700">Yaddaş İstifadəsi</span>
-              </div>
-              <span className="text-sm text-neutral-600">{stats.systemStatus.memory.label}</span>
-            </div>
-            <div className="flex items-center justify-between p-3 rounded-lg bg-neutral-50">
-              <div className="flex items-center space-x-3">
-                <div className={`
-                  w-3 h-3 rounded-full
-                  ${stats.systemStatus.storage.status === 'healthy' && 'bg-success-500'}
-                  ${stats.systemStatus.storage.status === 'warning' && 'bg-warning-500'}
-                  ${stats.systemStatus.storage.status === 'error' && 'bg-error-500'}
-                  ${stats.systemStatus.storage.status === 'unknown' && 'bg-neutral-400'}
-                `}></div>
-                <span className="text-sm font-medium text-neutral-700">Yaddaş</span>
-              </div>
-              <span className="text-sm text-neutral-600">{stats.systemStatus.storage.label}</span>
-            </div>
-          </div>
-        </div>
+        </ContentCard>
       </div>
     </div>
   );
