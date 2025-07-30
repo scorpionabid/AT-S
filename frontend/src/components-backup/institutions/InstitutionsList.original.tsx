@@ -7,7 +7,7 @@ import InstitutionEditForm from './InstitutionEditForm';
 import InstitutionHierarchyView from './InstitutionHierarchyView';
 import InstitutionDetails from './InstitutionDetails';
 import InstitutionDepartments from './InstitutionDepartments';
-import InstitutionCardSkeleton from '../common/InstitutionCardSkeleton';
+import { InstitutionCardSkeleton } from '../../ui/Loading';
 import ErrorDisplay from '../common/ErrorDisplay';
 import { NoResultsEmptyState, ErrorEmptyState } from '../common/EmptyState';
 import { Icon, ActionIcon, StatusIcon, InstitutionTypeIcon, ICONS } from '../common/IconSystem';

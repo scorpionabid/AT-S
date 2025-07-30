@@ -1,547 +1,317 @@
 // ====================
-// ATİS Modal Components - Tailwind Migration
-// Unified modal and overlay system with accessibility
+// ATİS Unified Modal Component
+// Eliminates modal duplication across components
 // ====================
 
-import React, { forwardRef, useEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { cva, type VariantProps } from 'class-variance-authority';
-import { cn } from '../../utils/cn';
+import React from 'react';
 
-// ====================
-// Portal Component
-// ====================
-
-interface PortalProps {
+// Modal component props interface
+export interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  showCloseButton?: boolean;
+  closeOnOverlayClick?: boolean;
+  closeOnEscape?: boolean;
+  className?: string;
+  overlayClassName?: string;
+  contentClassName?: string;
   children: React.ReactNode;
-  container?: Element | null;
 }
 
-const Portal: React.FC<PortalProps> = ({ children, container }) => {
-  const [mounted, setMounted] = useState(false);
-  const defaultContainer = useRef<HTMLDivElement | null>(null);
+// Modal header props
+export interface ModalHeaderProps {
+  title?: string;
+  onClose?: () => void;
+  showCloseButton?: boolean;
+  className?: string;
+  children?: React.ReactNode;
+}
 
-  useEffect(() => {
-    if (!defaultContainer.current) {
-      defaultContainer.current = document.createElement('div');
-      defaultContainer.current.id = 'modal-portal';
-      document.body.appendChild(defaultContainer.current);
-    }
-    setMounted(true);
+// Modal footer props
+export interface ModalFooterProps {
+  className?: string;
+  children: React.ReactNode;
+}
 
-    return () => {
-      if (defaultContainer.current && document.body.contains(defaultContainer.current)) {
-        document.body.removeChild(defaultContainer.current);
-      }
-    };
-  }, []);
+// Modal body props
+export interface ModalBodyProps {
+  className?: string;
+  children: React.ReactNode;
+}
 
-  if (!mounted) return null;
-
-  const targetContainer = container || defaultContainer.current;
-  return targetContainer ? createPortal(children, targetContainer) : null;
+// Size mappings
+const SIZE_CLASSES = {
+  sm: 'modal-sm',     // max-width: 400px
+  md: 'modal-md',     // max-width: 600px (default)
+  lg: 'modal-lg',     // max-width: 800px
+  xl: 'modal-xl',     // max-width: 1200px
+  full: 'modal-full'  // full screen
 };
 
-// ====================
-// Overlay Component
-// ====================
+/**
+ * Unified Modal Component
+ * 
+ * Features:
+ * - Consistent styling using unified CSS system
+ * - Keyboard navigation (ESC to close)
+ * - Click outside to close
+ * - Multiple size options
+ * - Accessibility support
+ * - Portal rendering for proper z-index
+ */
+export const Modal: React.FC<ModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  size = 'md',
+  showCloseButton = true,
+  closeOnOverlayClick = true,
+  closeOnEscape = true,
+  className = '',
+  overlayClassName = '',
+  contentClassName = '',
+  children
+}) => {
+  // Handle escape key
+  React.useEffect(() => {
+    if (!isOpen || !closeOnEscape) return;
 
-const overlayVariants = cva(
-  'fixed inset-0 transition-all duration-200 ease-out',
-  {
-    variants: {
-      variant: {
-        default: 'bg-black/50 backdrop-blur-sm',
-        dark: 'bg-black/70 backdrop-blur-md',
-        light: 'bg-white/80 backdrop-blur-sm',
-        blur: 'bg-neutral-900/20 backdrop-blur-lg',
-      },
-    },
-    defaultVariants: {
-      variant: 'default',
-    },
-  }
-);
-
-interface OverlayProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof overlayVariants> {
-  /** 
-   * Whether to close on overlay click 
-   */
-  closeOnClick?: boolean;
-  /** 
-   * Callback when overlay is clicked 
-   */
-  onClose?: () => void;
-}
-
-const Overlay = forwardRef<HTMLDivElement, OverlayProps>(
-  ({ 
-    className, 
-    variant,
-    closeOnClick = true,
-    onClose,
-    children,
-    ...props 
-  }, ref) => {
-    const handleClick = (e: React.MouseEvent) => {
-      if (closeOnClick && e.target === e.currentTarget && onClose) {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
         onClose();
       }
     };
 
-    return (
-      <div
-        ref={ref}
-        className={cn(overlayVariants({ variant }), 'z-modal-backdrop', className)}
-        onClick={handleClick}
-        {...props}
-      >
-        {children}
-      </div>
-    );
-  }
-);
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [isOpen, closeOnEscape, onClose]);
 
-Overlay.displayName = 'Overlay';
-
-// ====================
-// Modal Component
-// ====================
-
-const modalVariants = cva(
-  'relative bg-white rounded-lg shadow-modal transition-all duration-200 ease-out',
-  {
-    variants: {
-      size: {
-        xs: 'max-w-xs w-full mx-4',
-        sm: 'max-w-sm w-full mx-4',
-        md: 'max-w-md w-full mx-4',
-        lg: 'max-w-lg w-full mx-4',
-        xl: 'max-w-screen-lg w-full mx-4',
-        '2xl': 'max-w-screen-lg w-full mx-4',
-        '3xl': 'max-w-3xl w-full mx-4',
-        '4xl': 'max-w-screen-lg w-full mx-4',
-        '5xl': 'max-w-5xl w-full mx-4',
-        full: 'max-w-[95vw] max-h-[95vh] w-full mx-4',
-      },
-      position: {
-        center: 'flex items-center justify-center min-h-screen p-4',
-        top: 'flex items-start justify-center pt-16 pb-4',
-        bottom: 'flex items-end justify-center pb-4',
-      },
-    },
-    defaultVariants: {
-      size: 'md',
-      position: 'center',
-    },
-  }
-);
-
-export interface ModalProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof modalVariants> {
-  /** 
-   * Whether modal is open 
-   */
-  open: boolean;
-  /** 
-   * Callback when modal should close 
-   */
-  onClose?: () => void;
-  /** 
-   * Whether to close on overlay click 
-   */
-  closeOnOverlayClick?: boolean;
-  /** 
-   * Whether to close on escape key 
-   */
-  closeOnEscape?: boolean;
-  /** 
-   * Overlay variant 
-   */
-  overlayVariant?: VariantProps<typeof overlayVariants>['variant'];
-  /** 
-   * Portal container 
-   */
-  container?: Element | null;
-  /** 
-   * Initial focus element ref 
-   */
-  initialFocusRef?: React.RefObject<HTMLElement>;
-  /** 
-   * Return focus element ref 
-   */
-  returnFocusRef?: React.RefObject<HTMLElement>;
-}
-
-const Modal = forwardRef<HTMLDivElement, ModalProps>(
-  ({ 
-    className,
-    size,
-    position,
-    open,
-    onClose,
-    closeOnOverlayClick = true,
-    closeOnEscape = true,
-    overlayVariant = 'default',
-    container,
-    initialFocusRef,
-    returnFocusRef,
-    children,
-    ...props 
-  }, ref) => {
-    const modalRef = useRef<HTMLDivElement>(null);
-    const previouslyFocusedElement = useRef<HTMLElement | null>(null);
-
-    // Handle escape key
-    useEffect(() => {
-      if (!open || !closeOnEscape) return;
-
-      const handleEscape = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && onClose) {
-          onClose();
-        }
-      };
-
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
-    }, [open, closeOnEscape, onClose]);
-
-    // Handle focus management
-    useEffect(() => {
-      if (!open) return;
-
-      // Store previously focused element
-      previouslyFocusedElement.current = document.activeElement as HTMLElement;
-
-      // Focus initial element or modal
-      const elementToFocus = initialFocusRef?.current || modalRef.current;
-      if (elementToFocus) {
-        elementToFocus.focus();
-      }
-
-      // Prevent body scroll
+  // Prevent body scroll when modal is open
+  React.useEffect(() => {
+    if (isOpen) {
       document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
 
-      return () => {
-        // Restore body scroll
-        document.body.style.overflow = '';
-
-        // Return focus to previously focused element
-        const elementToReturn = returnFocusRef?.current || previouslyFocusedElement.current;
-        if (elementToReturn && document.body.contains(elementToReturn)) {
-          elementToReturn.focus();
-        }
-      };
-    }, [open, initialFocusRef, returnFocusRef]);
-
-    // Handle focus trap
-    useEffect(() => {
-      if (!open) return;
-
-      const handleTab = (e: KeyboardEvent) => {
-        if (e.key !== 'Tab') return;
-
-        const modal = modalRef.current;
-        if (!modal) return;
-
-        const focusableElements = modal.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        );
-        const firstElement = focusableElements[0] as HTMLElement;
-        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement;
-
-        if (e.shiftKey) {
-          if (document.activeElement === firstElement) {
-            e.preventDefault();
-            lastElement?.focus();
-          }
-        } else {
-          if (document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement?.focus();
-          }
-        }
-      };
-
-      document.addEventListener('keydown', handleTab);
-      return () => document.removeEventListener('keydown', handleTab);
-    }, [open]);
-
-    if (!open) return null;
-
-    return (
-      <Portal container={container}>
-        <Overlay
-          variant={overlayVariant}
-          closeOnClick={closeOnOverlayClick}
-          onClose={onClose}
-          className={cn(modalVariants({ position }))}
-        >
-          <div
-            ref={modalRef}
-            className={cn(modalVariants({ size }), 'z-modal', className)}
-            role="dialog"
-            aria-modal="true"
-            tabIndex={-1}
-            {...props}
-          >
-            {children}
-          </div>
-        </Overlay>
-      </Portal>
-    );
-  }
-);
-
-Modal.displayName = 'Modal';
-
-// ====================
-// Modal Sub-components
-// ====================
-
-interface ModalHeaderProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  /** 
-   * Show close button 
-   */
-  showCloseButton?: boolean;
-  /** 
-   * Close button callback 
-   */
-  onClose?: () => void;
-}
-
-const ModalHeader = forwardRef<HTMLDivElement, ModalHeaderProps>(
-  ({ className, children, showCloseButton = true, onClose, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn(
-        'flex items-center justify-between p-6 border-b border-neutral-200',
-        className
-      )}
-      {...props}
-    >
-      <div className="flex-1 min-w-0">
-        {children}
-      </div>
-      {showCloseButton && onClose && (
-        <button
-          onClick={onClose}
-          className="ml-4 p-1 rounded-md text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-colors"
-          aria-label="Close modal"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      )}
-    </div>
-  )
-);
-
-ModalHeader.displayName = 'ModalHeader';
-
-interface ModalTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
-  children: React.ReactNode;
-  level?: 1 | 2 | 3 | 4 | 5 | 6;
-}
-
-const ModalTitle = forwardRef<HTMLHeadingElement, ModalTitleProps>(
-  ({ className, children, level = 3, ...props }, ref) => {
-    const Heading = `h${level}` as keyof JSX.IntrinsicElements;
-    
-    return (
-      <Heading
-        ref={ref}
-        className={cn(
-          'text-lg font-semibold text-neutral-900 leading-6',
-          className
-        )}
-        {...props}
-      >
-        {children}
-      </Heading>
-    );
-  }
-);
-
-ModalTitle.displayName = 'ModalTitle';
-
-interface ModalDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
-  children: React.ReactNode;
-}
-
-const ModalDescription = forwardRef<HTMLParagraphElement, ModalDescriptionProps>(
-  ({ className, children, ...props }, ref) => (
-    <p
-      ref={ref}
-      className={cn('mt-1 text-sm text-neutral-600', className)}
-      {...props}
-    >
-      {children}
-    </p>
-  )
-);
-
-ModalDescription.displayName = 'ModalDescription';
-
-interface ModalContentProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-}
-
-const ModalContent = forwardRef<HTMLDivElement, ModalContentProps>(
-  ({ className, children, ...props }, ref) => (
-    <div
-      ref={ref}
-      className={cn('p-6', className)}
-      {...props}
-    >
-      {children}
-    </div>
-  )
-);
-
-ModalContent.displayName = 'ModalContent';
-
-interface ModalFooterProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-  justify?: 'start' | 'center' | 'end' | 'between';
-}
-
-const ModalFooter = forwardRef<HTMLDivElement, ModalFooterProps>(
-  ({ className, children, justify = 'end', ...props }, ref) => {
-    const justifyClasses = {
-      start: 'justify-start',
-      center: 'justify-center',
-      end: 'justify-end',
-      between: 'justify-between',
+    return () => {
+      document.body.style.overflow = '';
     };
+  }, [isOpen]);
 
-    return (
-      <div
-        ref={ref}
-        className={cn(
-          'flex items-center gap-3 px-6 py-4 border-t border-neutral-200 bg-neutral-50',
-          justifyClasses[justify],
-          className
-        )}
-        {...props}
+  // Handle overlay click
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget && closeOnOverlayClick) {
+      onClose();
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div 
+      className={`modal-overlay ${overlayClassName}`}
+      onClick={handleOverlayClick}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
+    >
+      <div 
+        className={`modal-content ${SIZE_CLASSES[size]} ${contentClassName} ${className}`}
+        onClick={(e) => e.stopPropagation()}
       >
-        {children}
+        {(title || showCloseButton) && (
+          <ModalHeader
+            title={title}
+            onClose={onClose}
+            showCloseButton={showCloseButton}
+          />
+        )}
+        
+        <div className="modal-body">
+          {children}
+        </div>
       </div>
-    );
-  }
+    </div>
+  );
+};
+
+/**
+ * Modal Header Component
+ */
+export const ModalHeader: React.FC<ModalHeaderProps> = ({
+  title,
+  onClose,
+  showCloseButton = true,
+  className = '',
+  children
+}) => (
+  <div className={`modal-header ${className}`}>
+    {title && (
+      <h2 id="modal-title" className="modal-title">
+        {title}
+      </h2>
+    )}
+    {children}
+    {showCloseButton && onClose && (
+      <button
+        onClick={onClose}
+        className="modal-close btn-base btn-ghost btn-icon"
+        aria-label="Bağla"
+        type="button"
+      >
+        ×
+      </button>
+    )}
+  </div>
 );
 
-ModalFooter.displayName = 'ModalFooter';
+/**
+ * Modal Body Component
+ */
+export const ModalBody: React.FC<ModalBodyProps> = ({
+  className = '',
+  children
+}) => (
+  <div className={`modal-body ${className}`}>
+    {children}
+  </div>
+);
 
-// ====================
-// Specialized Modal Components
-// ====================
+/**
+ * Modal Footer Component
+ */
+export const ModalFooter: React.FC<ModalFooterProps> = ({
+  className = '',
+  children
+}) => (
+  <div className={`modal-footer ${className}`}>
+    {children}
+  </div>
+);
 
-interface ConfirmModalProps extends Omit<ModalProps, 'children'> {
-  /** 
-   * Confirmation title 
-   */
+/**
+ * Confirmation Modal Component
+ * Pre-configured modal for common confirmation dialogs
+ */
+export interface ConfirmationModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
   title: string;
-  /** 
-   * Confirmation message 
-   */
   message: string;
-  /** 
-   * Confirm button text 
-   */
   confirmText?: string;
-  /** 
-   * Cancel button text 
-   */
   cancelText?: string;
-  /** 
-   * Confirm button variant 
-   */
-  confirmVariant?: 'primary' | 'error' | 'warning';
-  /** 
-   * Confirm callback 
-   */
-  onConfirm?: () => void;
-  /** 
-   * Cancel callback 
-   */
-  onCancel?: () => void;
-  /** 
-   * Loading state 
-   */
+  variant?: 'danger' | 'warning' | 'info';
   loading?: boolean;
 }
 
-const ConfirmModal = forwardRef<HTMLDivElement, ConfirmModalProps>(
-  ({ 
-    title,
-    message,
-    confirmText = 'Təsdiq et',
-    cancelText = 'Ləğv et',
-    confirmVariant = 'primary',
-    onConfirm,
-    onCancel,
-    loading = false,
-    ...props 
-  }, ref) => {
-    return (
-      <Modal ref={ref} size="sm" {...props}>
-        <ModalHeader onClose={onCancel}>
-          <ModalTitle>{title}</ModalTitle>
-        </ModalHeader>
-        <ModalContent>
-          <p className="text-neutral-700">{message}</p>
-        </ModalContent>
-        <ModalFooter>
+export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmText = 'Təsdiq et',
+  cancelText = 'Ləğv et',
+  variant = 'danger',
+  loading = false
+}) => {
+  const buttonVariant = variant === 'danger' ? 'btn-danger' : 
+                       variant === 'warning' ? 'btn-warning' : 'btn-primary';
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={title}
+      size="sm"
+      className="confirmation-modal"
+    >
+      <div className="confirmation-content">
+        <p className="confirmation-message">{message}</p>
+        
+        <div className="form-button-group">
           <button
-            onClick={onCancel}
+            onClick={onClose}
+            className="btn-base btn-secondary"
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-neutral-700 bg-white border border-neutral-300 rounded-md hover:bg-neutral-50 focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50"
+            type="button"
           >
             {cancelText}
           </button>
           <button
             onClick={onConfirm}
+            className={`btn-base ${buttonVariant}`}
             disabled={loading}
-            className={cn(
-              'px-4 py-2 text-sm font-medium text-white rounded-md focus:ring-2 focus:ring-offset-2 disabled:opacity-50',
-              confirmVariant === 'primary' && 'bg-primary-600 hover:bg-primary-700 focus:ring-primary-500',
-              confirmVariant === 'error' && 'bg-error-600 hover:bg-error-700 focus:ring-error-500',
-              confirmVariant === 'warning' && 'bg-warning-600 hover:bg-warning-700 focus:ring-warning-500'
-            )}
+            type="button"
           >
-            {loading ? (
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Gözləyin...</span>
-              </div>
-            ) : (
-              confirmText
-            )}
+            {loading ? 'Yüklənir...' : confirmText}
           </button>
-        </ModalFooter>
-      </Modal>
-    );
-  }
+        </div>
+      </div>
+    </Modal>
+  );
+};
+
+/**
+ * Form Modal Component
+ * Pre-configured modal for forms with consistent styling
+ */
+export interface FormModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
+  loading?: boolean;
+}
+
+export const FormModal: React.FC<FormModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+  size = 'lg',
+  loading = false
+}) => (
+  <Modal
+    isOpen={isOpen}
+    onClose={onClose}
+    title={title}
+    size={size}
+    className="form-modal"
+    closeOnOverlayClick={!loading}
+    closeOnEscape={!loading}
+  >
+    {children}
+  </Modal>
 );
 
-ConfirmModal.displayName = 'ConfirmModal';
+/**
+ * Hook for modal state management
+ * Provides consistent modal state handling
+ */
+export const useModal = (initialState: boolean = false) => {
+  const [isOpen, setIsOpen] = React.useState(initialState);
 
-export {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalContent,
-  ModalFooter,
-  ConfirmModal,
-  Overlay,
-  Portal,
-  modalVariants,
-  overlayVariants,
+  const openModal = React.useCallback(() => setIsOpen(true), []);
+  const closeModal = React.useCallback(() => setIsOpen(false), []);
+  const toggleModal = React.useCallback(() => setIsOpen(prev => !prev), []);
+
+  return {
+    isOpen,
+    openModal,
+    closeModal,
+    toggleModal,
+    modalProps: {
+      isOpen,
+      onClose: closeModal
+    }
+  };
 };
+
+// Default export for backward compatibility
+export default Modal;

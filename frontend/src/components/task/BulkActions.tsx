@@ -16,7 +16,7 @@ import {
   Download,
   AlertTriangle
 } from 'lucide-react';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '../ui/ModalUnified';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '../ui/Modal';
 import { Card } from '../ui/Card';
 import { TaskStatus, TaskPriority } from '../../types/shared';
 import { taskUtils } from '../../services/taskServiceUnified';

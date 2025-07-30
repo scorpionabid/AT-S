@@ -17,7 +17,7 @@ import {
   Upload
 } from 'lucide-react';
 import { Card } from '../ui/Card';
-import { Modal } from '../ui/ModalUnified';
+import { Modal } from '../ui/Modal';
 import { useTaskFilters } from '../../hooks/useTaskFilters';
 import { TaskType, TaskPriority, TaskStatus } from '../../types/shared';
 

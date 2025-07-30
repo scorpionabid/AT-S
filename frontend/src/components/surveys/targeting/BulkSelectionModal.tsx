@@ -7,7 +7,7 @@ import {
   FiCheck,
   FiUsers
 } from 'react-icons/fi';
-import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../ui/ModalUnified';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '../../ui/Modal';
 import { Card, CardHeader, CardTitle, CardContent } from '../../ui/Card';
 import { Button } from '../../ui/Button';
 import { useToast } from '../../../contexts/ToastContext';

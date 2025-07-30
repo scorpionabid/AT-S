@@ -4,7 +4,7 @@
 // ====================
 
 import React, { useState, useCallback } from 'react';
-import { Modal } from '../ui/ModalUnified';
+import { Modal } from '../ui/Modal';
 import { useToast } from '../../contexts/ToastContext';
 import { useAuth } from '../../contexts/AuthContext';
 
