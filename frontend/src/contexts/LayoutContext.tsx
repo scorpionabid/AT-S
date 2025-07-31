@@ -150,24 +150,15 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   
   // Desktop collapse functionality
   const toggleCollapse = useCallback(() => {
-    console.log('toggleCollapse called. Current isCollapsed:', isCollapsed, 'screenSize:', screenSize);
     if (screenSize === 'desktop') {
-      console.log('Toggling isCollapsed from', isCollapsed, 'to', !isCollapsed);
       setIsCollapsed(prev => !prev);
-    } else {
-      console.log('Not on desktop, not toggling collapse');
     }
   }, [isCollapsed, screenSize]);
   
   // Mobile/tablet sidebar functionality
   const toggleMobile = () => {
-    console.log('toggleMobile called. Current isMobileOpen:', isMobileOpen, 'screenSize:', screenSize);
     if (screenSize === 'mobile' || screenSize === 'tablet') {
-      console.log('Setting isMobileOpen to:', !isMobileOpen);
-      setIsMobileOpen(prev => {
-        console.log('isMobileOpen state updated to:', !prev);
-        return !prev;
-      });
+      setIsMobileOpen(prev => !prev);
     }
   };
   
@@ -179,12 +170,8 @@ export const LayoutProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Hover functionality for desktop sidebar
   const setHover = useCallback((hovered: boolean) => {
-    console.log('🎯 LayoutContext setHover called:', { hovered, screenSize, currentIsHovered: isHovered });
     if (screenSize === 'desktop') {
-      console.log('✅ LayoutContext updating isHovered to:', hovered);
       setIsHovered(hovered);
-    } else {
-      console.log('❌ LayoutContext NOT updating isHovered - not on desktop');
     }
   }, [screenSize, isHovered]);
   

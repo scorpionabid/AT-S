@@ -14,7 +14,7 @@ import { isPathActive, MenuItem } from '../../utils/navigation/menuConfig';
 // Remove hardcoded navigation items - will use menuConfig instead
 
 const Sidebar: React.FC = () => {
-  const { isCollapsed, toggleCollapse, screenSize, isMobileOpen, toggleMobile, closeMobile } = useLayout();
+  const { isCollapsed, toggleCollapse, screenSize, isMobileOpen, toggleMobile, closeMobile, setHovered } = useLayout();
   const { user } = useAuth();
   const location = useLocation();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
@@ -40,22 +40,75 @@ const Sidebar: React.FC = () => {
 
   const handleMouseEnter = useCallback(() => {
     if (screenSize === 'desktop' && isCollapsed) {
-      // Hover functionality can be added here if needed
+      setHovered(true);
     }
-  }, [screenSize, isCollapsed]);
+  }, [screenSize, isCollapsed, setHovered]);
 
   const handleMouseLeave = useCallback(() => {
     if (screenSize === 'desktop') {
-      // Hover functionality can be added here if needed
+      setHovered(false);
+      // Auto-collapse sidebar if it's expanded (not originally collapsed)
+      if (!isCollapsed) {
+        toggleCollapse();
+      }
     }
-  }, [screenSize]);
+  }, [screenSize, setHovered, isCollapsed, toggleCollapse]);
 
   const renderNavItem = (item: MenuItem, level = 0): React.JSX.Element => {
-    const isActive = isPathActive(item.path || '', location.pathname);
+    const isActive = isPathActive(location.pathname, item.path || '', item.exactMatch);
     const isItemExpanded = expandedItems.has(item.id);
     const Icon = item.icon;
 
     if (item.children && item.children.length > 0) {
+      // Handle hybrid items (both navigable and expandable)
+      if (item.type === 'hybrid' && item.path) {
+        return (
+          <li key={item.id} className="sidebar-nav-item">
+            <div className="sidebar-nav-hybrid">
+              {/* Main navigation link */}
+              <Link
+                to={item.path}
+                className={`sidebar-nav-link sidebar-nav-hybrid-main ${isActive ? 'sidebar-nav-link-active' : ''}`}
+                onClick={(e) => {
+                  // Auto-collapse sidebar after navigation
+                  if (screenSize === 'mobile') {
+                    closeMobile();
+                  } else if (screenSize === 'desktop') {
+                    // Always collapse after navigation, regardless of current state
+                    if (!isCollapsed) {
+                      toggleCollapse();
+                    }
+                    // Reset hover state
+                    setHovered(false);
+                  }
+                }}
+              >
+                <Icon className="sidebar-nav-icon" />
+                <span className="sidebar-nav-text">{item.title}</span>
+              </Link>
+              
+              {/* Submenu toggle button */}
+              <button
+                className="sidebar-nav-expand-btn"
+                onClick={() => toggleExpanded(item.id)}
+                aria-expanded={isItemExpanded}
+              >
+                <ChevronRight 
+                  className={`sidebar-nav-expand ${isItemExpanded ? 'sidebar-nav-expand-open' : ''}`}
+                />
+              </button>
+            </div>
+            
+            {isItemExpanded && (
+              <ul className="sidebar-submenu sidebar-submenu-list sidebar-submenu-open">
+                {item.children.map(child => renderNavItem(child, level + 1))}
+              </ul>
+            )}
+          </li>
+        );
+      }
+      
+      // Handle menu-only items (not navigable, only expandable)
       return (
         <li key={item.id} className="sidebar-nav-item">
           <button
@@ -85,7 +138,19 @@ const Sidebar: React.FC = () => {
           <Link
             to={item.path}
             className={`sidebar-nav-link ${isActive ? 'sidebar-nav-link-active' : ''}`}
-            onClick={screenSize === 'mobile' ? closeMobile : undefined}
+            onClick={(e) => {
+              // Auto-collapse sidebar after navigation
+              if (screenSize === 'mobile') {
+                closeMobile();
+              } else if (screenSize === 'desktop') {
+                // Always collapse after navigation, regardless of current state
+                if (!isCollapsed) {
+                  toggleCollapse();
+                }
+                // Reset hover state
+                setHovered(false);
+              }
+            }}
           >
             <Icon className="sidebar-nav-icon" />
             <span className="sidebar-nav-text">{item.title}</span>

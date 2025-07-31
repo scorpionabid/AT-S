@@ -442,7 +442,7 @@ export class StyleSystem {
   // Generate card styles
   static card(
     variant: keyof typeof variants.card = 'default',
-    padding: keyof typeof tokens.spacing = '6'
+    padding: keyof typeof tokens.spacing = 6
   ): React.CSSProperties {
     return {
       ...variants.card[variant],
@@ -524,7 +524,7 @@ export class StyleSystem {
   // Generate responsive grid
   static grid(
     columns: number = 1,
-    gap: keyof typeof tokens.spacing = '4',
+    gap: keyof typeof tokens.spacing = 4,
     responsive: boolean = true
   ): React.CSSProperties {
     return {
@@ -555,7 +555,7 @@ export class StyleSystem {
 
   // Generate border styles
   static border(
-    width: keyof typeof tokens.borderWidth = '1',
+    width: keyof typeof tokens.borderWidth = 1,
     color: string = tokens.colors.gray[300],
     radius?: keyof typeof tokens.borderRadius
   ): React.CSSProperties {
@@ -588,10 +588,12 @@ export class StyleSystem {
   ): React.CSSProperties {
     return {
       outline: 'none',
-      '&:focus': {
-        outline: `${width} solid ${color}`,
-        outlineOffset: '2px'
-      }
+      // '&:focus' pseudo-selector isn't valid in React.CSSProperties
+      // Use these properties instead
+      outlineWidth: width,
+      outlineStyle: 'solid',
+      outlineColor: color,
+      outlineOffset: '2px'
     };
   }
 
@@ -699,7 +701,7 @@ export const styles = {
   text: StyleSystem.text,
   
   // Quick layout styles
-  flex: (direction: 'row' | 'column' = 'row', align: 'start' | 'center' | 'end' = 'center', gap: keyof typeof tokens.spacing = '4') =>
+  flex: (direction: 'row' | 'column' = 'row', align: 'start' | 'center' | 'end' = 'center', gap: keyof typeof tokens.spacing = 4) =>
     StyleSystem.layout('flex', direction, align, 'start', gap),
   
   grid: StyleSystem.grid,

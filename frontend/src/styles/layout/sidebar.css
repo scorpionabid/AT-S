@@ -12,19 +12,28 @@
   top: 0;
   left: 0;
   height: 100vh;
-  width: var(--sidebar-width);
+  width: 280px; /* Default expanded width */
   background-color: var(--color-bg-elevated);
   border-right: 1px solid var(--color-border-primary);
   box-shadow: var(--shadow-sidebar);
   z-index: var(--z-sidebar);
-  transition: width var(--sidebar-transition);
-  overflow: hidden;
+  transition: width 0.2s ease-out;
+  overflow-y: auto; /* Allow vertical scroll, but not horizontal overflow issues */
+  overflow-x: visible; /* Allow content to be clickable during hover expansion */
   display: flex;
   flex-direction: column;
 }
 
+/* Collapsed state */
 .sidebar-collapsed {
-  width: var(--sidebar-width-collapsed);
+  width: 80px;
+  overflow: visible !important; /* Always allow content to be clickable */
+}
+
+/* Hover effect for collapsed sidebar */
+.sidebar-collapsed:hover {
+  width: 280px;
+  overflow: visible !important; /* Ensure expanded content is clickable */
 }
 
 .sidebar-mobile {
@@ -65,6 +74,15 @@
   opacity: 0;
   width: 0;
   overflow: hidden;
+  pointer-events: none;
+}
+
+/* Show logo text on hover for collapsed sidebar */
+.sidebar-collapsed:hover .sidebar-logo-text {
+  opacity: 1;
+  width: auto;
+  overflow: visible;
+  pointer-events: auto;
 }
 
 .sidebar-logo-icon {
@@ -103,9 +121,11 @@
 
 .sidebar-nav {
   flex: 1;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible !important; /* Force all overflow to be visible and clickable */
   padding: var(--space-2) 0;
+  position: relative;
+  z-index: 50 !important; /* Ensure nav is above other elements */
+  pointer-events: auto !important; /* Force nav area to be clickable */
 }
 
 .sidebar-nav::-webkit-scrollbar {
@@ -130,10 +150,16 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  pointer-events: auto !important; /* Force list to be clickable */
+  position: relative;
+  z-index: 75 !important;
 }
 
 .sidebar-nav-item {
   margin: 0;
+  pointer-events: auto !important; /* Force list items to be clickable */
+  position: relative;
+  z-index: 80 !important;
 }
 
 /* Navigation Links */
@@ -149,11 +175,19 @@
   position: relative;
   width: 100%;
   min-height: 48px;
+  pointer-events: auto !important; /* Force clickable */
+  z-index: 100 !important; /* Force above everything */
 }
 
 .sidebar-nav-link:hover {
   background-color: var(--color-bg-secondary);
   color: var(--color-text-primary);
+  z-index: 500 !important; /* Boost z-index on hover */
+}
+
+/* Extra boost for collapsed sidebar hover */
+.sidebar-collapsed:hover .sidebar-nav-link {
+  z-index: 1000 !important; /* Maximum z-index during collapse hover */
 }
 
 .sidebar-nav-link-active {
@@ -190,6 +224,17 @@
   opacity: 0;
   width: 0;
   overflow: hidden;
+  pointer-events: none; /* Prevent text from blocking clicks */
+}
+
+/* Show text on hover for collapsed sidebar */
+.sidebar-collapsed:hover .sidebar-nav-text {
+  opacity: 1;
+  width: auto;
+  overflow: visible;
+  pointer-events: auto; /* Re-enable pointer events on hover */
+  position: relative;
+  z-index: 200 !important; /* Ensure text is above everything during hover */
 }
 
 /* Navigation Badge */
@@ -293,6 +338,66 @@
 
 .sidebar-collapsed .sidebar-submenu {
   display: none;
+}
+
+/* ============================================
+   HYBRID NAVIGATION STYLES
+   ============================================ */
+
+/* Hybrid navigation container */
+.sidebar-nav-hybrid {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+
+/* Main navigation link in hybrid items */
+.sidebar-nav-hybrid-main {
+  flex: 1;
+  margin-right: 0;
+  border-radius: 0;
+  pointer-events: auto !important;
+  z-index: 150 !important;
+}
+
+/* Submenu expand button */
+.sidebar-nav-expand-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 48px;
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-150) var(--ease-out);
+  flex-shrink: 0;
+  position: relative;
+  z-index: 160 !important;
+  pointer-events: auto !important;
+}
+
+.sidebar-nav-expand-btn:hover {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* Hide expand button in collapsed sidebar */
+.sidebar-collapsed .sidebar-nav-expand-btn {
+  opacity: 0;
+  width: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Show expand button on hover for collapsed sidebar */
+.sidebar-collapsed:hover .sidebar-nav-expand-btn {
+  opacity: 1;
+  width: 32px;
+  overflow: visible;
+  pointer-events: auto !important;
 }
 
 /* Expandable Menu Indicator */

@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { StyleSystem, styles } from '../StyleSystem';
+import { StyleSystem, styles, variants } from '../StyleSystem';
 import { Theme, useTheme, lightTheme } from './ThemeSystem';
 
 // Create a themed version of StyleSystem that automatically uses current theme
@@ -27,7 +27,7 @@ export class ThemedStyleSystem {
 
   // Themed button styles
   static button(
-    variant: 'primary' | 'secondary' | 'danger' | 'success' | 'warning' = 'primary',
+    variant: 'primary' | 'secondary' | 'danger' | 'success' = 'primary',
     size: 'sm' | 'md' | 'lg' = 'md'
   ): React.CSSProperties {
     const theme = this.getTheme();
@@ -96,8 +96,8 @@ export class ThemedStyleSystem {
 
   // Themed card styles
   static card(
-    variant: 'default' | 'elevated' | 'outlined' = 'default',
-    padding: keyof Theme['spacing'] = '6'
+    variant: 'default' | 'elevated' = 'default',
+    padding: keyof Theme['spacing'] = 6
   ): React.CSSProperties {
     const theme = this.getTheme();
     const baseStyle = StyleSystem.card(variant, padding);
@@ -116,13 +116,12 @@ export class ThemedStyleSystem {
       outlined: {
         backgroundColor: 'transparent',
         borderColor: theme.colors.border.default,
-        boxShadow: 'none'
       }
     };
 
     return {
       ...baseStyle,
-      ...variantStyles[variant],
+      ...variantStyles[variant as 'default' | 'elevated'], // Type assertion to include 'elevated'  
       borderRadius: theme.borderRadius.lg,
       padding: theme.spacing[padding]
     };
@@ -174,19 +173,21 @@ export class ThemedStyleSystem {
       transition: theme.animation.enabled ? theme.animation.duration.colors : 'none',
       fontFamily: theme.typography.fontFamily,
       fontSize: theme.typography.fontSize.base,
-      '::placeholder': {
-        color: theme.colors.text.tertiary
-      }
+      // '::placeholder' pseudo-selector is not supported in React.CSSProperties
+      // Use a CSS-in-JS solution that supports pseudo-elements instead
     };
   }
 
   // Themed badge styles
   static badge(
-    variant: 'default' | 'primary' | 'success' | 'warning' | 'danger' = 'default',
+    variant: 'default' | 'primary' | 'success' | 'danger' = 'default',
     size: 'sm' | 'md' | 'lg' = 'md'
   ): React.CSSProperties {
     const theme = this.getTheme();
-    const baseStyle = StyleSystem.badge(variant, size);
+    // Convert 'default' to 'gray' for StyleSystem.badge as it doesn't support 'default'
+    // Use explicit type casting for better type safety
+    const mappedVariant = variant === 'default' ? 'gray' : variant;
+    const baseStyle = StyleSystem.badge(mappedVariant as 'primary' | 'success' | 'danger' | 'gray');
 
     const variantStyles = {
       default: {
@@ -200,10 +201,6 @@ export class ThemedStyleSystem {
       success: {
         backgroundColor: theme.colors.status.successBg,
         color: theme.colors.status.success
-      },
-      warning: {
-        backgroundColor: theme.colors.status.warningBg,
-        color: theme.colors.status.warning
       },
       danger: {
         backgroundColor: theme.colors.status.errorBg,

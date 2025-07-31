@@ -353,6 +353,7 @@ export const menuItems: MenuItem[] = [
     id: 'approvals',
     title: 'Təsdiqləmələr',
     path: '/approvals',
+    type: 'button', // Direct navigation
     icon: FiCheckCircle,
     permission: 'approvals.read',
     description: 'Məlumat təsdiqləmə və workflow',

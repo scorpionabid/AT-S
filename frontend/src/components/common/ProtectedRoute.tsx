@@ -22,6 +22,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     );
   }
 
+  // Debug: Log authentication state
+  console.log('🔒 ProtectedRoute check:', {
+    isAuthenticated,
+    user: user ? {
+      id: user.id,
+      name: user.name,
+      roles: user.roles,
+      role: user.role
+    } : null,
+    requiredRoles,
+    currentPath: location.pathname,
+    hasRequiredRoles: requiredRoles.length === 0 ? 'No roles required' : 'Checking roles...'
+  });
+
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
@@ -34,9 +48,21 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
       typeof role === 'string' ? role : role.name
     );
 
+    console.log('🔍 Role check details:', {
+      userRoles,
+      userRoleNames,
+      requiredRoles,
+      requireAll
+    });
+
     const hasRequiredRoles = requireAll
       ? requiredRoles.every(role => userRoleNames.includes(role))
       : requiredRoles.some(role => userRoleNames.includes(role));
+
+    console.log('🎯 Role check result:', {
+      hasRequiredRoles,
+      userHasAnyRequired: userRoleNames.some(role => requiredRoles.includes(role))
+    });
     
     if (!hasRequiredRoles) {
       return (
