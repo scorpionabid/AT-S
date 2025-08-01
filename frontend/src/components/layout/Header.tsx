@@ -130,7 +130,26 @@ const Header: React.FC = () => {
           {/* Breadcrumbs */}
           <div className="header-breadcrumbs">
             <div className="header-breadcrumb-item">
-              <span className="header-breadcrumb-current">Dashboard</span>
+              <span className="header-breadcrumb-current">
+                {(() => {
+                  // Check if user is superadmin
+                  const isSuperAdmin = (typeof user?.role === 'string' && user.role === 'superadmin') ||
+                                      (typeof user?.role === 'object' && user.role?.name === 'superadmin') ||
+                                      (user?.roles && user.roles.includes('superadmin'));
+                  
+                  if (isSuperAdmin) {
+                    return 'ATİS';
+                  }
+                  
+                  // Check if user has an institution
+                  if (user?.institution?.name) {
+                    return user.institution.name;
+                  }
+                  
+                  // Fallback to Dashboard
+                  return 'Dashboard';
+                })()}
+              </span>
             </div>
           </div>
         </div>
@@ -232,11 +251,11 @@ const Header: React.FC = () => {
               aria-label="İstifadəçi menyusu"
             >
               <div className="header-user-avatar">
-                {user?.profile?.full_name?.charAt(0) || 'U'}
+                {user?.profile?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U'}
               </div>
               {screenSize !== 'mobile' && (
                 <div className="header-user-info">
-                  <div className="header-user-name">{typeof user?.role === 'string' ? user.role : user?.role?.display_name || 'İstifadəçi'}</div>
+                  <div className="header-user-name">{(user?.profile?.first_name && user?.profile?.last_name) ? `${user.profile.first_name} ${user.profile.last_name}` : (user?.username || 'İstifadəçi')}</div>
                   <div className="header-user-role">{typeof user?.role === 'string' ? user.role : user?.role?.display_name || 'Rol'}</div>
                 </div>
               )}

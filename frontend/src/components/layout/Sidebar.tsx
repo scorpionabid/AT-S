@@ -217,10 +217,10 @@ const Sidebar: React.FC = () => {
         <div className="sidebar-footer">
           <div className="sidebar-user">
             <div className="sidebar-user-avatar">
-              {user?.profile?.full_name?.charAt(0) || 'U'}
+              {user?.profile?.first_name?.charAt(0) || user?.username?.charAt(0) || 'U'}
             </div>
             <div className="sidebar-user-info">
-              <div className="sidebar-user-name">{typeof user?.role === 'string' ? user.role : user?.role?.display_name || 'İstifadəçi'}</div>
+              <div className="sidebar-user-name">{(user?.profile?.first_name && user?.profile?.last_name) ? `${user.profile.first_name} ${user.profile.last_name}` : (user?.username || 'İstifadəçi')}</div>
               <div className="sidebar-user-role">{typeof user?.role === 'string' ? user.role : user?.role?.display_name || 'Rol'}</div>
             </div>
           </div>
