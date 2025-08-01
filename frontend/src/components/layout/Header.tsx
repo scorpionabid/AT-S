@@ -232,12 +232,12 @@ const Header: React.FC = () => {
               aria-label="İstifadəçi menyusu"
             >
               <div className="header-user-avatar">
-                {user?.name?.charAt(0) || 'U'}
+                {user?.profile?.full_name?.charAt(0) || 'U'}
               </div>
               {screenSize !== 'mobile' && (
                 <div className="header-user-info">
-                  <div className="header-user-name">{user?.name || 'İstifadəçi'}</div>
-                  <div className="header-user-role">{user?.role || 'Rol'}</div>
+                  <div className="header-user-name">{typeof user?.role === 'string' ? user.role : user?.role?.display_name || 'İstifadəçi'}</div>
+                  <div className="header-user-role">{typeof user?.role === 'string' ? user.role : user?.role?.display_name || 'Rol'}</div>
                 </div>
               )}
               <ChevronDown 
