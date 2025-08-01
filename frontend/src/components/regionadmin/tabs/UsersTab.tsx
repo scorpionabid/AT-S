@@ -1,10 +1,10 @@
 import React from 'react';
-import RegionAdminUsersList from '../users/RegionAdminUsersList';
+import UsersList from '../../users/UsersList';
 
 const UsersTab: React.FC = () => {
   return (
     <div className="users-tab">
-      <RegionAdminUsersList />
+      <UsersList />
     </div>
   );
 };

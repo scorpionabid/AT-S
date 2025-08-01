@@ -3,43 +3,13 @@ import { api } from '../../services/api';
 import { useDebounce } from '../../hooks/useDebounce';
 import { useRoleBasedData, useRegionalData } from '../../hooks/useRoleBasedData';
 import { useAuth } from '../../contexts/AuthContext';
+import { User, UsersResponse, Institution } from '../../types/users';
+import UserCard from './UserCard';
 import UserCreateForm from './UserCreateForm';
 import UserEditForm from './UserEditForm';
 import UserDeleteConfirm from './UserDeleteConfirm';
 import UserStatusConfirm from './UserStatusConfirm';
 import UserViewModal from './UserViewModal';
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  role: {
-    id: number | null;
-    name: string | null;
-    display_name: string | null;
-    level: number | null;
-  } | null;
-  role_display_name: string | null;
-  is_active: boolean;
-  last_login_at: string | null;
-  institution: {
-    id: number | null;
-    name: string | null;
-  };
-  created_at: string;
-}
-
-interface UsersResponse {
-  users: User[];
-  meta: {
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number;
-    to: number;
-  };
-}
 
 const UsersList: React.FC = () => {
   const { user: currentUser } = useAuth();
@@ -54,7 +24,7 @@ const UsersList: React.FC = () => {
   const [createdToDate, setCreatedToDate] = useState('');
   const [lastLoginFromDate, setLastLoginFromDate] = useState('');
   const [lastLoginToDate, setLastLoginToDate] = useState('');
-  const [institutions, setInstitutions] = useState<{id: number, name: string, type: string}[]>([]);
+  const [institutions, setInstitutions] = useState<Institution[]>([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
@@ -112,13 +82,13 @@ const UsersList: React.FC = () => {
   // 🚀 NEW: Regional institutions fetching - avtomatik olaraq user scope tətbiq edir
   const {
     data: institutionsData
-  } = useRegionalData<{institutions?: {id: number, name: string, type: string}[]} | {id: number, name: string, type: string}[]>('institutions');
+  } = useRegionalData<{institutions?: Institution[]} | Institution[]>('institutions');
 
   // Set institutions from role-based data
   useEffect(() => {
     if (institutionsData) {
       // Handle different response formats
-      let institutionsArray: {id: number, name: string, type: string}[] = [];
+      let institutionsArray: Institution[] = [];
       
       try {
         if (Array.isArray(institutionsData)) {
@@ -465,78 +435,17 @@ const UsersList: React.FC = () => {
         </div>
       </div>
 
-      <div className="users-table-container">
-        <table className="users-table">
-          <thead>
-            <tr>
-              <th>İstifadəçi</th>
-              <th>Email</th>
-              <th>Rol</th>
-              <th>Təşkilat</th>
-              <th>Status</th>
-              <th>Son Giriş</th>
-              <th>Əməliyyatlar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {users.map((user) => (
-              <tr key={user.id}>
-                <td>
-                  <div className="user-cell">
-                    <div className="user-avatar">
-                      {user.username.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="user-info">
-                      <span className="username">{user.username}</span>
-                      <span className="user-id">ID: {user.id}</span>
-                    </div>
-                  </div>
-                </td>
-                <td>{user.email}</td>
-                <td>
-                  <span className={`role-badge ${user.role?.name || 'no-role'}`}>
-                    {getRoleDisplayName(user.role)}
-                  </span>
-                </td>
-                <td>{user.institution?.name || 'Təyin edilməyib'}</td>
-                <td>
-                  <button
-                    onClick={() => handleStatusToggle(user)}
-                    className={`status-toggle ${user.is_active ? 'active' : 'inactive'}`}
-                  >
-                    {user.is_active ? '✅ Aktiv' : '❌ Deaktiv'}
-                  </button>
-                </td>
-                <td>{formatDate(user.last_login_at)}</td>
-                <td>
-                  <div className="actions">
-                    <button 
-                      className="action-button view" 
-                      title="Məlumatları gör"
-                      onClick={() => handleUserView(user)}
-                    >
-                      👁️
-                    </button>
-                    <button 
-                      className="action-button edit" 
-                      title="Redaktə et"
-                      onClick={() => setEditingUserId(user.id)}
-                    >
-                      ✏️
-                    </button>
-                    <button 
-                      className="action-button delete" 
-                      title="Sil"
-                      onClick={() => handleUserDelete(user)}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="users-grid">
+        {users.map((user) => (
+          <UserCard
+            key={user.id}
+            user={user}
+            onView={handleUserView}
+            onEdit={(user) => setEditingUserId(user.id)}
+            onDelete={handleUserDelete}
+            onStatusToggle={handleStatusToggle}
+          />
+        ))}
       </div>
 
       {users.length === 0 && !loading && (

@@ -1,18 +1,5 @@
 import React from 'react';
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  is_active: boolean;
-}
-
-interface UserDeleteConfirmProps {
-  user: User;
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading?: boolean;
-}
+import { User, UserDeleteConfirmProps } from '../../types/users';
 
 const UserDeleteConfirm: React.FC<UserDeleteConfirmProps> = ({ 
   user, 

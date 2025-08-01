@@ -18,6 +18,7 @@
 @import './layout/header.css';
 @import './components/atoms/buttons.css';
 @import './components/organisms/dashboard.css';
+@import './components/pages/users.css';
 @import './fixes.css';
 @import './theme.css';
 

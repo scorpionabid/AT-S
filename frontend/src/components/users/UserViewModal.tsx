@@ -1,38 +1,5 @@
 import React from 'react';
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  role: {
-    id: number | null;
-    name: string | null;
-    display_name: string | null;
-    level: number | null;
-  } | null;
-  role_display_name: string | null;
-  is_active: boolean;
-  last_login_at: string | null;
-  institution: {
-    id: number | null;
-    name: string | null;
-  };
-  created_at: string;
-  profile?: {
-    first_name?: string;
-    last_name?: string;
-    full_name?: string;
-    contact_phone?: string;
-  } | null;
-}
-
-interface UserViewModalProps {
-  user: User;
-  onClose: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-  onStatusToggle: () => void;
-}
+import { User, UserViewModalProps } from '../../types/users';
 
 const UserViewModal: React.FC<UserViewModalProps> = ({ 
   user, onClose, onEdit, onDelete, onStatusToggle 

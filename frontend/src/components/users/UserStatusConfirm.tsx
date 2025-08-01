@@ -1,18 +1,5 @@
 import React from 'react';
-
-interface User {
-  id: number;
-  username: string;
-  email: string;
-  is_active: boolean;
-}
-
-interface UserStatusConfirmProps {
-  user: User;
-  onConfirm: () => void;
-  onCancel: () => void;
-  loading?: boolean;
-}
+import { User, UserStatusConfirmProps } from '../../types/users';
 
 const UserStatusConfirm: React.FC<UserStatusConfirmProps> = ({ 
   user, 
