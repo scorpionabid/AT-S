@@ -186,9 +186,12 @@ export interface Role {
   id: number;
   name: string;
   display_name: string;
-  description?: string;
+  description: string;
   level: number;
-  permissions: Permission[];
+  guard_name: string;
+  permissions: string[];
+  created_at: string;
+  updated_at: string;
   users_count?: number;
 }
 

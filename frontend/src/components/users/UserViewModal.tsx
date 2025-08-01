@@ -1,5 +1,6 @@
 import React from 'react';
 import { User, UserViewModalProps } from '../../types/users';
+import { roleServiceDynamic } from '../../services/roleServiceDynamic';
 
 const UserViewModal: React.FC<UserViewModalProps> = ({ 
   user, onClose, onEdit, onDelete, onStatusToggle 
@@ -18,15 +19,8 @@ const UserViewModal: React.FC<UserViewModalProps> = ({
   const getRoleDisplayName = (role: User['role']) => {
     if (!role || !role.name) return 'Təyin edilməyib';
     
-    const roleNames: { [key: string]: string } = {
-      'superadmin': 'Super Administrator',
-      'regionadmin': 'Regional Administrator',
-      'schooladmin': 'School Administrator',
-      'müəllim': 'Müəllim',
-      'regionoperator': 'Regional Operator'
-    };
-    
-    return role.display_name || roleNames[role.name] || role.name;
+    // Use dynamic role service for consistent display names
+    return role.display_name || roleServiceDynamic.getRoleDisplayName(role.name) || role.name;
   };
 
   const getFullName = () => {

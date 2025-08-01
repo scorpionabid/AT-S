@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { Role } from '../../types/shared';
 import RoleCreateForm from './RoleCreateForm';
 import RoleEditForm from './RoleEditForm';
-
-interface Role {
-  id: number;
-  name: string;
-  display_name: string;
-  description: string;
-  level: number;
-  guard_name: string;
-  permissions: string[];
-  created_at: string;
-  updated_at: string;
-}
 
 interface RolesResponse {
   roles: Role[];

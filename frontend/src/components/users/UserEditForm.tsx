@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
-
-interface Role {
-  id: number;
-  name: string;
-  display_name: string;
-}
+import { roleServiceDynamic, Role } from '../../services/roleServiceDynamic';
 
 interface Institution {
   id: number;
@@ -137,10 +132,12 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ userId, onClose, onSuccess 
 
   const fetchRoles = async () => {
     try {
-      const response = await api.get('/roles');
-      setRoles(response.data.roles || []);
+      // Use dynamic role service to get all roles for editing
+      const allRoles = await roleServiceDynamic.getAllRoles();
+      setRoles(allRoles);
     } catch (error) {
       console.error('Roles fetch error:', error);
+      setRoles([]);
     }
   };
 
@@ -268,14 +265,8 @@ const UserEditForm: React.FC<UserEditFormProps> = ({ userId, onClose, onSuccess 
   };
 
   const getRoleDisplayName = (role: Role) => {
-    const roleNames: { [key: string]: string } = {
-      'superadmin': 'Super Administrator',
-      'regionadmin': 'Regional Administrator',
-      'schooladmin': 'School Administrator',
-      'müəllim': 'Müəllim',
-      'regionoperator': 'Regional Operator'
-    };
-    return roleNames[role.name] || role.display_name || role.name;
+    // Use the role service for consistent display names
+    return roleServiceDynamic.getRoleDisplayName(role.name) || role.display_name || role.name;
   };
 
   if (initialLoading) {

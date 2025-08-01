@@ -13,23 +13,12 @@ export const hasPermission = (user: User | null, permission: string): boolean =>
 
 /**
  * Check if user has specific role
+ * @deprecated Use roleUtils.hasRole instead to avoid duplication
  */
 export const hasRole = (user: User | null, role: string): boolean => {
-  if (!user) return false;
-  
-  // Handle different role structures
-  let userRoles: string[] = [];
-  
-  if (typeof user.role === 'string') {
-    userRoles = [getStandardizedRole(user.role)];
-  } else if (typeof user.role === 'object' && user.role?.name) {
-    userRoles = [getStandardizedRole(user.role.name)];
-  } else if (user.roles && Array.isArray(user.roles)) {
-    userRoles = user.roles.map(r => getStandardizedRole(typeof r === 'string' ? r : r.name));
-  }
-  
-  const standardizedRole = getStandardizedRole(role);
-  return userRoles.includes(standardizedRole);
+  // Delegate to roleUtils to avoid duplication
+  const { hasRole: roleUtilsHasRole } = require('./roleUtils');
+  return roleUtilsHasRole(user, role);
 };
 
 /**
@@ -230,10 +219,13 @@ export const getPermissionDisplayName = (permission: string): string => {
 /**
  * Check if user has any role from a list
  */
+/**
+ * @deprecated Use roleUtils.hasAnyRole instead to avoid duplication
+ */
 export const hasAnyRole = (user: User | null, roles: string[]): boolean => {
-  if (!user) return false;
-  
-  return roles.some(role => hasRole(user, role));
+  // Delegate to roleUtils to avoid duplication
+  const { hasAnyRole: roleUtilsHasAnyRole } = require('./roleUtils');
+  return roleUtilsHasAnyRole(user, roles);
 };
 
 /**

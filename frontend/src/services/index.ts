@@ -74,10 +74,13 @@ export type {
 export { authService } from './authService';
 export { default as userServiceLegacy } from './userService';
 export { default as institutionServiceLegacy } from './institutionService';
-export { default as roleServiceLegacy } from './roleService';
+export { roleServiceDynamic as roleServiceLegacy } from './roleServiceDynamic';
 export { default as surveyService } from './surveyService';
 // export { dashboardService as dashboardServiceLegacy } from './dashboardService'; // Removed - use dashboardServiceUnified
 export { default as reportsService } from './reportsService';
+
+// Dynamic role service (modern replacement for legacy role service)
+export { roleServiceDynamic, roleServiceDynamic as roleServiceModern } from './roleServiceDynamic';
 
 // Specialized services (already optimized or unique functionality)
 export { default as approvalService } from './approvalService';

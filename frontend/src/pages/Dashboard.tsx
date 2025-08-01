@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { dashboardServiceUnified } from '../services';
 import type { DashboardStats } from '../services';
+import { hasAnyRole, hasRole } from '../utils/auth/roleUtils';
+import { ROLES } from '../constants/roles';
 import SuperAdminDashboardUnified from '../components/admin/SuperAdminDashboardUnified';
 import RegionAdminDashboardUnified from '../components/regionadmin/RegionAdminDashboardUnified';
 import { DashboardFactory, DashboardType } from '../components/dashboard/DashboardFactory';
@@ -224,7 +226,7 @@ const DashboardHome: React.FC = () => {
             subtitle="Ən çox istifadə olunan funksiyalar"
           >
             <div className="grid grid-cols-2 gap-4">
-            {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
+            {hasAnyRole(user, [ROLES.SUPERADMIN, ROLES.REGION_ADMIN]) && (
               <Link to="/users" className="flex flex-col items-center p-4 rounded-lg bg-primary-50 hover:bg-primary-100 transition-colors duration-200 text-center group">
                 <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">👥</span>
                 <span className="text-sm font-medium text-primary-700">İstifadəçilər</span>
@@ -236,14 +238,14 @@ const DashboardHome: React.FC = () => {
               <span className="text-sm font-medium text-secondary-700">Sorğular</span>
             </Link>
             
-            {(user?.role === 'superadmin' || user?.role === 'regionadmin' || user?.role === 'schooladmin') && (
+            {hasAnyRole(user, [ROLES.SUPERADMIN, ROLES.REGION_ADMIN, ROLES.SCHOOL_ADMIN]) && (
               <Link to="/reports" className="flex flex-col items-center p-4 rounded-lg bg-success-50 hover:bg-success-100 transition-colors duration-200 text-center group">
                 <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">📈</span>
                 <span className="text-sm font-medium text-success-700">Hesabatlar</span>
               </Link>
             )}
             
-            {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
+            {hasAnyRole(user, [ROLES.SUPERADMIN, ROLES.REGION_ADMIN]) && (
               <Link to="/institutions" className="flex flex-col items-center p-4 rounded-lg bg-warning-50 hover:bg-warning-100 transition-colors duration-200 text-center group">
                 <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">🏢</span>
                 <span className="text-sm font-medium text-warning-700">Təşkilatlar</span>
@@ -257,7 +259,7 @@ const DashboardHome: React.FC = () => {
               </Link>
             )}
             
-            {(user?.role === 'superadmin' || user?.role === 'regionadmin') && (
+            {hasAnyRole(user, [ROLES.SUPERADMIN, ROLES.REGION_ADMIN]) && (
               <Link to="/settings" className="flex flex-col items-center p-4 rounded-lg bg-neutral-50 hover:bg-neutral-100 transition-colors duration-200 text-center group">
                 <span className="text-2xl mb-2 group-hover:scale-110 transition-transform duration-200">⚙️</span>
                 <span className="text-sm font-medium text-neutral-700">Tənzimləmələr</span>

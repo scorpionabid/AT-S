@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
+import { roleServiceDynamic } from '../../services/roleServiceDynamic';
 import { FiUser, FiSettings, FiLogOut, FiChevronDown } from 'react-icons/fi';
 // Removed SCSS module import - using Tailwind CSS classes
 
@@ -13,18 +14,15 @@ const ProfileDropdown: React.FC<ProfileDropdownProps> = ({ className = '' }) => 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const getRoleDisplayName = (role: string | { name: string; display_name: string } | null) => {
-    const roleNames: { [key: string]: string } = {
-      'superadmin': 'Super Administrator',
-      'regionadmin': 'Regional Administrator',  
-      'schooladmin': 'School Administrator',
-      'sektoradmin': 'Sektor Administrator',
-      'müəllim': 'Müəllim',
-      'regionoperator': 'Regional Operator'
-    };
-    
     if (!role) return 'İstifadəçi';
+    
+    if (typeof role === 'object' && role.display_name) {
+      return role.display_name;
+    }
+    
     const roleName = typeof role === 'string' ? role : role.name;
-    return roleNames[roleName] || roleName;
+    // Use dynamic role service for consistent display names
+    return roleServiceDynamic.getRoleDisplayName(roleName) || roleName;
   };
 
   const handleToggle = () => {

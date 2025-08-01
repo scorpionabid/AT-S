@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
+import { ROLES } from '../../constants/roles';
 
 interface Permission {
   id: number;
@@ -196,7 +197,7 @@ const RoleEditForm: React.FC<RoleEditFormProps> = ({ roleId, onClose, onSuccess 
   };
 
   const isSystemRole = () => {
-    return role?.name === 'superadmin' || role?.level === 1;
+    return role?.name === ROLES.SUPERADMIN || role?.level === 1;
   };
 
   if (fetchLoading) {

@@ -221,13 +221,24 @@ export const LEGACY_ROLE_MAPPINGS: Record<string, string> = {
 
 /**
  * Helper function to get standardized role name
+ * @deprecated Use roleServiceDynamic.getRoleDisplayName() instead
  */
 export function getStandardizedRole(role: string): string {
   return LEGACY_ROLE_MAPPINGS[role] || role;
 }
 
 /**
+ * Get role display name - delegates to roleServiceDynamic
+ * @deprecated Import roleServiceDynamic directly instead
+ */
+export function getRoleDisplayName(role: string): string {
+  // This will be imported by roleServiceDynamic to avoid circular dependencies
+  return ROLE_DISPLAY_NAMES[role] || role;
+}
+
+/**
  * Helper function to check if user has required role
+ * @deprecated Use roleUtils.hasRole instead for better user object handling
  */
 export function hasRole(userRole: string, requiredRoles: string[]): boolean {
   const standardizedUserRole = getStandardizedRole(userRole);

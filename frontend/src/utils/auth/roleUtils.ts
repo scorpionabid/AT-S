@@ -82,18 +82,28 @@ export const getUserRoleLevel = (user: User | null): number => {
   if (!user) return 0;
   
   const roleHierarchy = {
-    'superadmin': 6,
-    'regionadmin': 5,
+    'superadmin': 1,
+    'regionadmin': 2,
+    'regionoperator': 3,
     'sektoradmin': 4,
-    'məktəbadmin': 3,
-    'müəllim': 2,
-    'şagird': 1
+    'schooladmin': 5,
+    'muavin_mudir': 6,
+    'ubr_müəllimi': 6,
+    'təsərrüfat_məsulu': 6,
+    'psixoloq': 6,
+    'muellim': 6,
+    // Legacy support
+    'məktəbadmin': 5,
+    'mektebadmin': 5,
+    'müavin_müdir': 6,
+    'müəllim': 6,
+    'şagird': 7
   };
   
   const userRoles = getUserRoles(user);
-  const levels = userRoles.map(role => roleHierarchy[role] || 0);
+  const levels = userRoles.map(role => roleHierarchy[role] || 999);
   
-  return Math.max(...levels, 0);
+  return Math.min(...levels, 999); // Lower level number = higher authority
 };
 
 /**
@@ -105,21 +115,15 @@ export const canManageUser = (currentUser: User | null, targetUser: User | null)
   const currentUserLevel = getUserRoleLevel(currentUser);
   const targetUserLevel = getUserRoleLevel(targetUser);
   
-  return currentUserLevel > targetUserLevel;
+  return currentUserLevel < targetUserLevel; // Lower level = higher authority
 };
 
 /**
  * Get role display name
+ * @deprecated Use roleServiceDynamic.getRoleDisplayName() instead for dynamic roles
  */
 export const getRoleDisplayName = (role: string): string => {
-  const roleDisplayNames = {
-    'superadmin': 'Super Administrator',
-    'regionadmin': 'Region Administrator',
-    'sektoradmin': 'Sector Administrator',
-    'məktəbadmin': 'School Administrator',
-    'müəllim': 'Teacher',
-    'şagird': 'Student'
-  };
-  
-  return roleDisplayNames[role] || role;
+  // Import ROLE_DISPLAY_NAMES to avoid duplication
+  const { ROLE_DISPLAY_NAMES } = require('../../constants/roles');
+  return ROLE_DISPLAY_NAMES[role] || role;
 };

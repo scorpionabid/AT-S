@@ -4,6 +4,7 @@ import { useDebounce } from '../../hooks/useDebounce';
 import { useRoleBasedData, useRegionalData } from '../../hooks/useRoleBasedData';
 import { useAuth } from '../../contexts/AuthContext';
 import { User, UsersResponse, Institution } from '../../types/users';
+import { roleServiceDynamic, Role } from '../../services/roleServiceDynamic';
 import UserCard from './UserCard';
 import UserCreateForm from './UserCreateForm';
 import UserEditForm from './UserEditForm';
@@ -25,6 +26,8 @@ const UsersList: React.FC = () => {
   const [lastLoginFromDate, setLastLoginFromDate] = useState('');
   const [lastLoginToDate, setLastLoginToDate] = useState('');
   const [institutions, setInstitutions] = useState<Institution[]>([]);
+  const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
@@ -118,6 +121,40 @@ const UsersList: React.FC = () => {
     }
   }, [institutionsData]);
 
+  // Load available roles dynamically
+  useEffect(() => {
+    const loadRoles = async () => {
+      setRolesLoading(true);
+      try {
+        const roles = await roleServiceDynamic.getAssignableRoles(currentUser?.role || '');
+        setAvailableRoles(roles);
+      } catch (error) {
+        console.error('❌ Error loading roles:', error);
+        setAvailableRoles([]);
+      } finally {
+        setRolesLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      loadRoles();
+    }
+  }, [currentUser]);
+
+  // Subscribe to role changes for real-time updates
+  useEffect(() => {
+    const unsubscribe = roleServiceDynamic.subscribe((updatedRoles) => {
+      // Update roles when they change (e.g., new role created)
+      if (currentUser) {
+        roleServiceDynamic.getAssignableRoles(currentUser.role || '').then(roles => {
+          setAvailableRoles(roles);
+        });
+      }
+    });
+
+    return unsubscribe;
+  }, [currentUser]);
+
   const handleStatusToggle = (user: User) => {
     setStatusChangingUser(user);
   };
@@ -174,15 +211,8 @@ const UsersList: React.FC = () => {
   const getRoleDisplayName = (role: User['role']) => {
     if (!role || !role.name) return 'Təyin edilməyib';
     
-    const roleNames: { [key: string]: string } = {
-      'superadmin': 'Super Administrator',
-      'regionadmin': 'Regional Administrator',
-      'schooladmin': 'School Administrator',
-      'müəllim': 'Müəllim',
-      'regionoperator': 'Regional Operator'
-    };
-    
-    return role.display_name || roleNames[role.name] || role.name;
+    // Use dynamic role service for consistent display names
+    return role.display_name || roleServiceDynamic.getRoleDisplayName(role.name) || role.name;
   };
 
   const handleCreateSuccess = () => {
@@ -330,10 +360,15 @@ const UsersList: React.FC = () => {
               className="filter-select"
             >
               <option value="">İstənəc rol</option>
-              <option value="superadmin">Super Administrator</option>
-              <option value="regionadmin">Regional Administrator</option>
-              <option value="schooladmin">School Administrator</option>
-              <option value="müəllim">Müəllim</option>
+              {rolesLoading ? (
+                <option disabled>Rollari yükləyin...</option>
+              ) : (
+                availableRoles.map(role => (
+                  <option key={role.id} value={role.name}>
+                    {role.display_name}
+                  </option>
+                ))
+              )}
             </select>
           </div>
 

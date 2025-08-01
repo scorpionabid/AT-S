@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../../services/api';
-
-interface Role {
-  id: number;
-  name: string;
-  display_name: string;
-  level: number;
-}
+import { roleServiceDynamic, Role } from '../../services/roleServiceDynamic';
 
 interface Institution {
   id: number;
@@ -153,11 +147,15 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ onClose, onSuccess }) =
   const fetchRoles = async () => {
     try {
       console.log('🎭 Fetching roles for UserCreateForm...');
-      const response = await api.get('/roles');
-      console.log('   - Roles response:', response.data);
-      const roles = response.data.roles || response.data.data || [];
-      console.log('   - Parsed roles:', roles);
-      setAllRoles(roles);
+      
+      // Use dynamic role service to get assignable roles
+      const userRoleName = typeof currentUser?.role === 'string' ? currentUser.role :
+                          (currentUser?.role && typeof currentUser.role === 'object' && currentUser.role.name) ||
+                          (currentUser?.roles && currentUser.roles[0]) || '';
+      
+      const assignableRoles = await roleServiceDynamic.getAssignableRoles(userRoleName);
+      console.log('   - Assignable roles:', assignableRoles);
+      setAllRoles(assignableRoles);
     } catch (error) {
       console.error('❌ Roles fetch error:', error);
       // If user doesn't have permission to access roles, set empty array
@@ -302,14 +300,8 @@ const UserCreateForm: React.FC<UserCreateFormProps> = ({ onClose, onSuccess }) =
   };
 
   const getRoleDisplayName = (role: Role) => {
-    const roleNames: { [key: string]: string } = {
-      'superadmin': 'Super Administrator',
-      'regionadmin': 'Regional Administrator',
-      'schooladmin': 'School Administrator',
-      'müəllim': 'Müəllim',
-      'regionoperator': 'Regional Operator'
-    };
-    return roleNames[role.name] || role.display_name || role.name;
+    // Use the role service for consistent display names
+    return roleServiceDynamic.getRoleDisplayName(role.name) || role.display_name || role.name;
   };
 
   return (

@@ -45,7 +45,7 @@ class RoleSeeder extends Seeder
                 'level' => 5
             ],
             [
-                'name' => 'müavin_müdir',
+                'name' => 'muavin_mudir',
                 'display_name' => 'Deputy Director',
                 'description' => 'School deputy management',
                 'level' => 6
@@ -69,7 +69,7 @@ class RoleSeeder extends Seeder
                 'level' => 6
             ],
             [
-                'name' => 'müəllim',
+                'name' => 'muellim',
                 'display_name' => 'Müəllim',
                 'description' => 'Teacher',
                 'level' => 6

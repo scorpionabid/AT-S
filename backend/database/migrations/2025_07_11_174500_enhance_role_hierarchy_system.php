@@ -148,7 +148,7 @@ return new class extends Migration
                     'protected' => true
                 ]
             ],
-            'müəllim' => [
+            'muellim' => [
                 'role_category' => 'system',
                 'hierarchy_scope' => [
                     'scope' => 'classroom'
