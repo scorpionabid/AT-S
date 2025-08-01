@@ -45,7 +45,13 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       <div className="page-container">
         <Sidebar />
         
-        <div className="main-container">
+        <div className={`main-container ${
+          screenSize === 'mobile' 
+            ? 'main-container-no-sidebar' 
+            : isCollapsed 
+              ? 'main-container-collapsed' 
+              : ''
+        }`}>
           <Header />
           
           {/* Main Content Area */}
