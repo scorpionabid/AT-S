@@ -4,6 +4,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { SuperAdminDashboard } from "@/components/dashboard/SuperAdminDashboard";
 import { useToast } from "@/hooks/use-toast";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 // Mock user data - in a real app this would come from authentication context
 const mockUsers = {
@@ -133,26 +134,29 @@ const Index = () => {
 
   // Show main dashboard layout
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar
-        userRole={currentUser.role}
-        currentUser={currentUser.name}
-        onNavigate={handleNavigate}
-        onLogout={handleLogout}
-      />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <DashboardHeader
-          title={getDashboardTitle()}
-          subtitle={getDashboardSubtitle()}
+    <SidebarProvider>
+      <div className="flex h-screen bg-background w-full">
+        <Sidebar
           userRole={currentUser.role}
-          userName={currentUser.name}
-          notificationCount={5}
+          currentUser={currentUser.name}
+          onNavigate={handleNavigate}
+          onLogout={handleLogout}
+          currentPath={currentPath}
         />
-        <main className="flex-1 overflow-y-auto bg-surface p-6">
-          {renderDashboardContent()}
-        </main>
+        <SidebarInset className="flex-1 flex flex-col overflow-hidden">
+          <DashboardHeader
+            title={getDashboardTitle()}
+            subtitle={getDashboardSubtitle()}
+            userRole={currentUser.role}
+            userName={currentUser.name}
+            notificationCount={5}
+          />
+          <main className="flex-1 overflow-y-auto bg-surface p-6">
+            {renderDashboardContent()}
+          </main>
+        </SidebarInset>
       </div>
-    </div>
+    </SidebarProvider>
   );
 };
 
