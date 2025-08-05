@@ -25,7 +25,9 @@ import {
   ClipboardIcon,
   FilesIcon,
   ChevronRightIcon,
-  DownloadIcon
+  DownloadIcon,
+  BabyIcon,
+  LinkIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -74,6 +76,7 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
         { icon: ShieldIcon, label: "Rollar", path: "/roles" },
         { icon: BuildingIcon, label: "Departmentlər", path: "/departments" },
         { icon: SchoolIcon, label: "Müəssisələr", path: "/institutions" },
+        { icon: BabyIcon, label: "Məktəbəqədər müəssisələr", path: "/preschools" },
       ]
     },
     {
@@ -85,19 +88,24 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
       ]
     },
     {
-      groupLabel: "Sorğu və Tapşırıq Sistemi",
+      groupLabel: "Sorğu Sistemi",
       items: [
         { 
           icon: ClipboardListIcon, 
-          label: "Sorğular üçün təsdiq", 
+          label: "Sorğular", 
           hasSubmenu: true,
           submenu: [
-            { label: "Aktiv Sorğular", path: "/surveys/active" },
-            { label: "Sorğu Şablonları", path: "/surveys/templates" },
-            { label: "Sorğu Nəticələri", path: "/surveys/results" },
+            { label: "Sorğular", path: "/surveys" },
+            { label: "Təsdiq", path: "/surveys/approval" },
+            { label: "Sorğu nəticələri", path: "/surveys/results" },
             { label: "Arxiv", path: "/surveys/archive" },
           ]
         },
+      ]
+    },
+    {
+      groupLabel: "Tapşırıq İdarəetməsi",
+      items: [
         { icon: FileTextIcon, label: "Tapşırıqlar", path: "/tasks" },
       ]
     },
@@ -121,8 +129,8 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
       groupLabel: "Sənəd və Məlumat İdarəetməsi",
       items: [
         { icon: FolderIcon, label: "Sənədlər", path: "/documents" },
-        { icon: FilesIcon, label: "Şablonlar", path: "/templates" },
         { icon: DownloadIcon, label: "Hesabatlar", path: "/reports" },
+        { icon: LinkIcon, label: "Linklər", path: "/links" },
       ]
     },
     {
