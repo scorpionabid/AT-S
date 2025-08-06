@@ -42,8 +42,57 @@ export default function Users() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-center py-8 text-muted-foreground">
-              İstifadəçi məlumatları yüklənir...
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 border border-border rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-primary">SA</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">Sistem Administrator</div>
+                    <div className="text-sm text-muted-foreground">admin@edu.gov.az</div>
+                    <div className="text-xs text-primary">SuperAdmin</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">Düzəliş et</Button>
+                  <Button variant="destructive" size="sm">Deaktiv et</Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 border border-border rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-secondary/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-secondary">BRA</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">Bakı Regional Admin</div>
+                    <div className="text-sm text-muted-foreground">baki@edu.gov.az</div>
+                    <div className="text-xs text-secondary">RegionAdmin - Bakı</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">Düzəliş et</Button>
+                  <Button variant="destructive" size="sm">Deaktiv et</Button>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between p-3 border border-border rounded-md">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-medium text-green-600">ŞRA</span>
+                  </div>
+                  <div>
+                    <div className="font-medium">Şəki Regional Admin</div>
+                    <div className="text-sm text-muted-foreground">seki@edu.gov.az</div>
+                    <div className="text-xs text-green-600">RegionAdmin - Şəki-Zaqatala</div>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm">Düzəliş et</Button>
+                  <Button variant="destructive" size="sm">Deaktiv et</Button>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>

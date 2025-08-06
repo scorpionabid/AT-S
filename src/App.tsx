@@ -18,6 +18,9 @@ import SurveyApproval from "./pages/SurveyApproval";
 import SurveyResults from "./pages/SurveyResults";
 import SurveyArchive from "./pages/SurveyArchive";
 import Tasks from "./pages/Tasks";
+import Documents from "./pages/Documents";
+import Links from "./pages/Links";
+import Reports from "./pages/Reports";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +45,9 @@ const App = () => (
           <Route path="/surveys/results" element={<SurveyResults />} />
           <Route path="/surveys/archive" element={<SurveyArchive />} />
           <Route path="/tasks" element={<Tasks />} />
+          <Route path="/documents" element={<Documents />} />
+          <Route path="/links" element={<Links />} />
+          <Route path="/reports" element={<Reports />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
