@@ -18,6 +18,9 @@ use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\InstitutionController;
 use App\Http\Controllers\InstitutionHierarchyController;
 use App\Http\Controllers\InstitutionDepartmentController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\HealthController;
+use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\NavigationController;
 use App\Http\Controllers\RegionAdmin\RegionAdminDashboardController;
 use App\Http\Controllers\RegionAdmin\RegionAdminInstitutionController;
@@ -44,6 +47,7 @@ use App\Http\Controllers\InventoryTransactionController;
 use App\Http\Controllers\InventoryMaintenanceController;
 use App\Http\Controllers\InventoryAnalyticsController;
 use App\Http\Controllers\TeacherPerformanceController;
+use App\Http\Controllers\TestWebSocketController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -64,7 +68,29 @@ Route::prefix('setup')->group(function () {
 });
 
 // Protected routes
+// Health check endpoints (no auth required)
+Route::get('health', [HealthController::class, 'health']);
+Route::get('ping', [HealthController::class, 'ping']);
+Route::get('version', [HealthController::class, 'version']);
+
+// Application configuration endpoints (no auth required)
+Route::get('config/app', [ConfigController::class, 'getAppConfig']);
+Route::get('config/constants', [ConfigController::class, 'getConstants']);
+
 Route::middleware('auth:sanctum')->group(function () {
+    // Profile management endpoints
+    Route::prefix('profile')->group(function () {
+        Route::get('/', [ProfileController::class, 'show']);
+        Route::put('/', [ProfileController::class, 'update']);
+        Route::post('/avatar', [ProfileController::class, 'uploadAvatar']);
+        Route::delete('/avatar', [ProfileController::class, 'removeAvatar']);
+        Route::get('/activity', [ProfileController::class, 'getActivity']);
+        Route::put('/password', [ProfileController::class, 'updatePassword']);
+    });
+
+    // System stats (authenticated)
+    Route::get('system/stats', [HealthController::class, 'stats']);
+    Route::get('config/navigation', [ConfigController::class, 'getNavigation']);
     // Auth routes
     Route::post('logout', [AuthController::class, 'logout']);
     Route::get('me', [AuthController::class, 'me']);
@@ -804,3 +830,13 @@ Route::get('shared/{token}', [App\Http\Controllers\DocumentShareController::clas
 
 // Public document access via refactored controller
 Route::get('documents/public/{token}', [DocumentController::class, 'accessPublic'])->name('documents.public');
+
+// WebSocket Test Routes (for development/testing)
+Route::prefix('test/websocket')->group(function () {
+    Route::get('info', [TestWebSocketController::class, 'connectionInfo']);
+    Route::post('notification', [TestWebSocketController::class, 'testNotification'])->middleware('auth:sanctum');
+    Route::post('task', [TestWebSocketController::class, 'testTaskAssignment'])->middleware('auth:sanctum');
+    Route::post('survey', [TestWebSocketController::class, 'testSurveyCreation'])->middleware('auth:sanctum');
+    Route::post('login', [TestWebSocketController::class, 'testUserLogin'])->middleware('auth:sanctum');
+    Route::post('all', [TestWebSocketController::class, 'testAll'])->middleware('auth:sanctum');
+});

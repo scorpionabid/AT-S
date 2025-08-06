@@ -163,3 +163,4 @@ yarn.lock
 
 # Local files
 *.local
+tools/

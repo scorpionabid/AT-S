@@ -188,6 +188,22 @@ class User extends Authenticatable
     }
 
     /**
+     * Get the notifications received by this user.
+     */
+    public function receivedNotifications(): HasMany
+    {
+        return $this->hasMany(Notification::class);
+    }
+
+    /**
+     * Get the unread notifications for this user.
+     */
+    public function unreadNotifications(): HasMany
+    {
+        return $this->receivedNotifications()->where('is_read', false);
+    }
+
+    /**
      * Get the user's storage quota.
      */
     public function storageQuota(): HasOne
