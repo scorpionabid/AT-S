@@ -65,7 +65,7 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
     {
       groupLabel: "Ana İdarəetmə",
       items: [
-        { icon: HomeIcon, label: "Ana səhifə", path: "/dashboard" },
+        { icon: HomeIcon, label: "Ana səhifə", path: "/" },
         { icon: BellIcon, label: "Bildirişlər", path: "/notifications" },
       ]
     },
@@ -146,7 +146,7 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
 
   const getOtherRoleMenuStructure = () => {
     const baseItems = [
-      { icon: HomeIcon, label: "Ana səhifə", path: "/dashboard" },
+      { icon: HomeIcon, label: "Ana səhifə", path: "/" },
       { icon: BellIcon, label: "Bildirişlər", path: "/notifications" },
     ];
 
@@ -184,7 +184,10 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
     return [...baseItems, ...(roleSpecificItems[userRole as keyof typeof roleSpecificItems] || [])];
   };
 
-  const isActive = (path: string) => currentPath === path;
+  const isActive = (path: string) => {
+    if (path === "/dashboard") return currentPath === "/";
+    return currentPath === path;
+  };
 
   if (userRole === "SuperAdmin") {
     const menuStructure = getSuperAdminMenuStructure();
