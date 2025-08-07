@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -12,42 +12,17 @@ import {
   FolderIcon,
   BuildingIcon,
   MapPinIcon,
-  CalendarIcon,
   GraduationCapIcon,
-  ClockIcon,
-  UserCheckIcon,
-  TrendingUpIcon,
   ShieldIcon,
   DatabaseIcon,
   MonitorIcon,
-  ArchiveIcon,
-  CheckSquareIcon,
   ClipboardIcon,
-  FilesIcon,
   ChevronRightIcon,
   DownloadIcon,
   BabyIcon,
   LinkIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  Sidebar as ShadcnSidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarSeparator,
-} from "@/components/ui/sidebar";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 interface SidebarProps {
   userRole: string;
@@ -58,8 +33,14 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPath }: SidebarProps) => {
+  const [isHovered, setIsHovered] = useState(false);
   const [surveysOpen, setSurveysOpen] = useState(false);
   const [schoolOpen, setSchoolOpen] = useState(false);
+
+  const handleNavigateAndCollapse = useCallback((path: string) => {
+    onNavigate(path);
+    setIsHovered(false);
+  }, [onNavigate]);
 
   const getSuperAdminMenuStructure = () => [
     {
@@ -189,93 +170,133 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
     return currentPath === path;
   };
 
+  const isExpanded = isHovered;
+
+  // SuperAdmin layout with grouped menu structure
   if (userRole === "SuperAdmin") {
     const menuStructure = getSuperAdminMenuStructure();
     
     return (
-      <ShadcnSidebar collapsible="icon" className="border-r border-border-light">
-        <SidebarHeader className="border-b border-border-light">
-          <div className="flex items-center space-x-2 px-2">
-            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+      <div 
+        className={cn(
+          "h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out flex flex-col shadow-elevated",
+          isExpanded ? "w-64" : "w-14"
+        )}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Header */}
+        <div className="h-14 flex items-center px-3 border-b border-sidebar-border bg-sidebar">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-primary flex-shrink-0">
               <SchoolIcon className="w-5 h-5 text-primary-foreground" />
             </div>
-            <div className="group-data-[collapsible=icon]:hidden">
-              <h2 className="font-semibold text-sm text-foreground">ATİS</h2>
+            <div className={cn("transition-opacity duration-300", isExpanded ? "opacity-100" : "opacity-0")}>
+              <h2 className="font-semibold text-sm text-sidebar-foreground">ATİS</h2>
               <p className="text-xs text-muted-foreground">{userRole}</p>
             </div>
           </div>
-        </SidebarHeader>
+        </div>
 
-        <SidebarContent>
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto py-4">
           {menuStructure.map((group, groupIndex) => (
-            <SidebarGroup key={groupIndex}>
-              <SidebarGroupLabel>{group.groupLabel}</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {group.items.map((item, itemIndex) => (
-                    <SidebarMenuItem key={itemIndex}>
-                      {item.hasSubmenu ? (
-                        <Collapsible
-                          open={item.label === "Sorğular üçün təsdiq" ? surveysOpen : schoolOpen}
-                          onOpenChange={item.label === "Sorğular üçün təsdiq" ? setSurveysOpen : setSchoolOpen}
+            <div key={groupIndex} className="mb-6">
+              {isExpanded && (
+                <div className="px-3 mb-2">
+                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    {group.groupLabel}
+                  </h3>
+                </div>
+              )}
+              <div className="space-y-1">
+                {group.items.map((item, itemIndex) => (
+                  <div key={itemIndex}>
+                    {item.hasSubmenu ? (
+                      <div>
+                        <button
+                          onClick={() => {
+                            if (item.label === "Sorğular") setSurveysOpen(!surveysOpen);
+                            if (item.label === "Məktəb") setSchoolOpen(!schoolOpen);
+                          }}
+                          className={cn(
+                            "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200",
+                            "hover:bg-sidebar-accent text-sidebar-foreground"
+                          )}
                         >
-                          <CollapsibleTrigger asChild>
-                            <SidebarMenuButton>
-                              <item.icon className="w-4 h-4" />
-                              <span>{item.label}</span>
-                              <ChevronRightIcon className="ml-auto h-4 w-4 transition-transform duration-200 data-[state=open]:rotate-90" />
-                            </SidebarMenuButton>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <SidebarMenuSub>
-                              {item.submenu?.map((subItem, subIndex) => (
-                                <SidebarMenuSubItem key={subIndex}>
-                                  <SidebarMenuSubButton
-                                    onClick={() => onNavigate(subItem.path)}
-                                    isActive={isActive(subItem.path)}
-                                  >
-                                    <span>{subItem.label}</span>
-                                  </SidebarMenuSubButton>
-                                </SidebarMenuSubItem>
-                              ))}
-                            </SidebarMenuSub>
-                          </CollapsibleContent>
-                        </Collapsible>
-                      ) : (
-                        <SidebarMenuButton
-                          onClick={() => onNavigate(item.path!)}
-                          isActive={isActive(item.path!)}
-                        >
-                          <item.icon className="w-4 h-4" />
-                          <span>{item.label}</span>
-                        </SidebarMenuButton>
-                      )}
-                    </SidebarMenuItem>
-                  ))}
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
+                          <item.icon className="w-5 h-5 flex-shrink-0" />
+                          {isExpanded && (
+                            <>
+                              <span className="ml-3 truncate">{item.label}</span>
+                              <ChevronRightIcon 
+                                className={cn(
+                                  "ml-auto h-4 w-4 transition-transform duration-200",
+                                  (item.label === "Sorğular" && surveysOpen) || (item.label === "Məktəb" && schoolOpen) ? "rotate-90" : ""
+                                )} 
+                              />
+                            </>
+                          )}
+                        </button>
+                        {isExpanded && ((item.label === "Sorğular" && surveysOpen) || (item.label === "Məktəb" && schoolOpen)) && (
+                          <div className="ml-8 mt-1 space-y-1">
+                            {item.submenu?.map((subItem, subIndex) => (
+                              <button
+                                key={subIndex}
+                                onClick={() => handleNavigateAndCollapse(subItem.path)}
+                                className={cn(
+                                  "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md",
+                                  isActive(subItem.path)
+                                    ? "bg-primary text-primary-foreground shadow-sm"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                                )}
+                              >
+                                <span className="truncate">{subItem.label}</span>
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => handleNavigateAndCollapse(item.path!)}
+                        className={cn(
+                          "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md mx-1",
+                          isActive(item.path!)
+                            ? "bg-primary text-primary-foreground shadow-sm"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent"
+                        )}
+                      >
+                        <item.icon className="w-5 h-5 flex-shrink-0" />
+                        {isExpanded && <span className="ml-3 truncate">{item.label}</span>}
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
-        </SidebarContent>
+        </div>
 
-        <SidebarFooter className="border-t border-border-light">
-          <div className="group-data-[collapsible=icon]:hidden px-2 py-2 bg-secondary rounded-lg mb-2">
-            <p className="text-sm font-medium text-secondary-foreground">{currentUser}</p>
-            <p className="text-xs text-muted-foreground">{userRole}</p>
-          </div>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                onClick={onLogout}
-                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-              >
-                <LogOutIcon className="w-4 h-4" />
-                <span>Çıxış</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarFooter>
-      </ShadcnSidebar>
+        {/* Footer */}
+        <div className="border-t border-sidebar-border p-3">
+          {isExpanded && (
+            <div className="mb-3 px-2 py-2 bg-sidebar-accent rounded-lg">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">{currentUser}</p>
+              <p className="text-xs text-muted-foreground truncate">{userRole}</p>
+            </div>
+          )}
+          <button
+            onClick={onLogout}
+            className={cn(
+              "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md",
+              "text-destructive hover:bg-destructive/10"
+            )}
+          >
+            <LogOutIcon className="w-5 h-5 flex-shrink-0" />
+            {isExpanded && <span className="ml-3">Çıxış</span>}
+          </button>
+        </div>
+      </div>
     );
   }
 
@@ -283,56 +304,65 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
   const menuItems = getOtherRoleMenuStructure();
   
   return (
-    <ShadcnSidebar collapsible="icon" className="border-r border-border-light">
-      <SidebarHeader className="border-b border-border-light">
-        <div className="flex items-center space-x-2 px-2">
-          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center">
+    <div 
+      className={cn(
+        "h-screen bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-in-out flex flex-col shadow-elevated",
+        isExpanded ? "w-64" : "w-14"
+      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Header */}
+      <div className="h-14 flex items-center px-3 border-b border-sidebar-border bg-sidebar">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-gradient-primary rounded-lg flex items-center justify-center shadow-primary flex-shrink-0">
             <SchoolIcon className="w-5 h-5 text-primary-foreground" />
           </div>
-          <div className="group-data-[collapsible=icon]:hidden">
-            <h2 className="font-semibold text-sm text-foreground">ATİS</h2>
+          <div className={cn("transition-opacity duration-300", isExpanded ? "opacity-100" : "opacity-0")}>
+            <h2 className="font-semibold text-sm text-sidebar-foreground">ATİS</h2>
             <p className="text-xs text-muted-foreground">{userRole}</p>
           </div>
         </div>
-      </SidebarHeader>
+      </div>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.path}>
-                  <SidebarMenuButton
-                    onClick={() => onNavigate(item.path)}
-                    isActive={isActive(item.path)}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto py-4 space-y-1">
+        {menuItems.map((item) => (
+          <button
+            key={item.path}
+            onClick={() => handleNavigateAndCollapse(item.path)}
+            className={cn(
+              "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md mx-1",
+              isActive(item.path)
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "text-sidebar-foreground hover:bg-sidebar-accent"
+            )}
+          >
+            <item.icon className="w-5 h-5 flex-shrink-0" />
+            {isExpanded && <span className="ml-3 truncate">{item.label}</span>}
+          </button>
+        ))}
+      </div>
 
-      <SidebarFooter className="border-t border-border-light">
-        <div className="group-data-[collapsible=icon]:hidden px-2 py-2 bg-secondary rounded-lg mb-2">
-          <p className="text-sm font-medium text-secondary-foreground">{currentUser}</p>
-          <p className="text-xs text-muted-foreground">{userRole}</p>
-        </div>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={onLogout}
-              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <LogOutIcon className="w-4 h-4" />
-              <span>Çıxış</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
-    </ShadcnSidebar>
+      {/* Footer */}
+      <div className="border-t border-sidebar-border p-3">
+        {isExpanded && (
+          <div className="mb-3 px-2 py-2 bg-sidebar-accent rounded-lg">
+            <p className="text-sm font-medium text-sidebar-foreground truncate">{currentUser}</p>
+            <p className="text-xs text-muted-foreground truncate">{userRole}</p>
+          </div>
+        )}
+        <button
+          onClick={onLogout}
+          className={cn(
+            "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md",
+            "text-destructive hover:bg-destructive/10"
+          )}
+        >
+          <LogOutIcon className="w-5 h-5 flex-shrink-0" />
+          {isExpanded && <span className="ml-3">Çıxış</span>}
+        </button>
+      </div>
+    </div>
   );
 };

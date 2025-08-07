@@ -4,7 +4,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 
 // Mock user data - in a real app this would come from authentication context
 const mockUsers = {
@@ -117,8 +117,7 @@ const Layout = () => {
           currentPath={location.pathname}
         />
         <SidebarInset className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-16 flex items-center border-b px-4">
-            <SidebarTrigger className="mr-4" />
+          <header className="h-14 flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-6">
             <DashboardHeader
               title={getDashboardTitle()}
               subtitle={getDashboardSubtitle()}
