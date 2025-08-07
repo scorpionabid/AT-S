@@ -1,55 +1,29 @@
-import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { Outlet, useNavigate } from "react-router-dom";
 import { LoginForm } from "@/components/auth/LoginForm";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { ModernSidebar } from "@/components/layout/ModernSidebar";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { HeaderContainer } from "@/components/layout/components/Header/HeaderContainer";
+import { Breadcrumbs } from "@/components/layout/components/Header/Breadcrumbs";
+import { PageContainer } from "@/components/layout/components/Container/PageContainer";
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
-
-// Mock user data - in a real app this would come from authentication context
-const mockUsers = {
-  "admin@edu.gov.az": {
-    name: "System Administrator",
-    role: "SuperAdmin",
-    permissions: ["all"]
-  },
-  "baki@edu.gov.az": {
-    name: "Bakı Regional Admin",
-    role: "RegionAdmin", 
-    region: "Bakı"
-  },
-  "seki@edu.gov.az": {
-    name: "Şəki Regional Admin",
-    role: "RegionAdmin",
-    region: "Şəki-Zaqatala"
-  }
-};
-
-type User = {
-  name: string;
-  role: string;
-  region?: string;
-  permissions?: string[];
-};
+import { useAuth } from "@/contexts/AuthContext";
+import { LayoutProvider } from "@/contexts/LayoutContext";
+import { NavigationProvider } from "@/contexts/NavigationContext";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const Layout = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const { isAuthenticated, currentUser, login, logout } = useAuth();
   const { toast } = useToast();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const handleLogin = (email: string, password: string) => {
-    // Mock authentication - in real app would call API
-    const user = mockUsers[email as keyof typeof mockUsers];
+  const handleLogin = async (email: string, password: string) => {
+    const success = await login(email, password);
     
-    if (user && password === "123456") {
-      setCurrentUser(user);
-      setIsAuthenticated(true);
+    if (success) {
       navigate("/");
       toast({
         title: "Uğurla giriş etdiniz",
-        description: `Xoş gəlmisiniz, ${user.name}`,
+        description: `Xoş gəlmisiniz, ${currentUser?.name}`,
       });
     } else {
       toast({
@@ -61,17 +35,12 @@ const Layout = () => {
   };
 
   const handleLogout = () => {
-    setCurrentUser(null);
-    setIsAuthenticated(false);
+    logout();
     navigate("/");
     toast({
       title: "Sistemdən çıxış",
       description: "Uğurla çıxış etdiniz",
     });
-  };
-
-  const handleNavigate = (path: string) => {
-    navigate(path);
   };
 
   const getDashboardTitle = () => {
@@ -107,31 +76,36 @@ const Layout = () => {
 
   // Show main dashboard layout
   return (
-    <SidebarProvider>
-      <div className="flex h-screen bg-background w-full">
-        <Sidebar
-          userRole={currentUser.role}
-          currentUser={currentUser.name}
-          onNavigate={handleNavigate}
-          onLogout={handleLogout}
-          currentPath={location.pathname}
-        />
-        <SidebarInset className="flex-1 flex flex-col overflow-hidden">
-          <header className="h-14 flex items-center justify-between border-b border-border bg-card/50 backdrop-blur-sm px-6">
-            <DashboardHeader
-              title={getDashboardTitle()}
-              subtitle={getDashboardSubtitle()}
-              userRole={currentUser.role}
-              userName={currentUser.name}
-              notificationCount={5}
-            />
-          </header>
-          <main className="flex-1 overflow-y-auto bg-surface">
-            <Outlet />
-          </main>
-        </SidebarInset>
-      </div>
-    </SidebarProvider>
+    <TooltipProvider>
+      <LayoutProvider>
+        <NavigationProvider>
+          <div className="flex h-screen bg-background w-full">
+            <ModernSidebar onLogout={handleLogout} />
+            
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <HeaderContainer>
+                <div className="flex flex-col space-y-2 flex-1">
+                  <DashboardHeader
+                    title={getDashboardTitle()}
+                    subtitle={getDashboardSubtitle()}
+                    userRole={currentUser.role}
+                    userName={currentUser.name}
+                    notificationCount={5}
+                  />
+                  <Breadcrumbs />
+                </div>
+              </HeaderContainer>
+              
+              <main className="flex-1 overflow-y-auto bg-surface">
+                <PageContainer>
+                  <Outlet />
+                </PageContainer>
+              </main>
+            </div>
+          </div>
+        </NavigationProvider>
+      </LayoutProvider>
+    </TooltipProvider>
   );
 };
 
