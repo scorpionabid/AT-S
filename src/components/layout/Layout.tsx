@@ -84,7 +84,7 @@ const Layout = () => {
             
             <div className="flex-1 flex flex-col overflow-hidden">
               <HeaderContainer>
-                <div className="flex flex-col space-y-2 flex-1">
+                <div className="flex flex-col space-y-1 flex-1 min-w-0">
                   <DashboardHeader
                     title={getDashboardTitle()}
                     subtitle={getDashboardSubtitle()}

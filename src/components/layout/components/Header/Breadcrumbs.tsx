@@ -9,21 +9,21 @@ export const Breadcrumbs: React.FC = () => {
   if (breadcrumbs.length <= 1) return null;
 
   return (
-    <nav className="flex items-center space-x-1 text-sm text-muted-foreground">
+    <nav className="flex items-center space-x-1 text-sm text-muted-foreground overflow-hidden">
       {breadcrumbs.map((crumb, index) => (
-        <React.Fragment key={crumb.path}>
+        <div key={crumb.path} className="flex items-center space-x-1 flex-shrink-0">
           {index > 0 && <ChevronRight className="h-3 w-3" />}
           {index === breadcrumbs.length - 1 ? (
-            <span className="font-medium text-foreground">{crumb.label}</span>
+            <span className="font-medium text-foreground truncate">{crumb.label}</span>
           ) : (
             <Link
               to={crumb.path}
-              className="hover:text-foreground transition-colors"
+              className="hover:text-foreground transition-colors flex items-center"
             >
-              {index === 0 ? <Home className="h-3 w-3" /> : crumb.label}
+              {index === 0 ? <Home className="h-3 w-3" /> : <span className="truncate">{crumb.label}</span>}
             </Link>
           )}
-        </React.Fragment>
+        </div>
       ))}
     </nav>
   );

@@ -20,10 +20,10 @@ export const DashboardHeader = ({
   return (
     <div className="flex items-center justify-between w-full">
       {/* Title Section */}
-      <div className="min-w-0 flex-1">
-        <h1 className="text-xl lg:text-2xl font-bold text-foreground font-heading truncate">{title}</h1>
+      <div className="min-w-0 flex-1 pr-4">
+        <h1 className="text-lg lg:text-xl font-bold text-foreground font-heading truncate">{title}</h1>
         {subtitle && (
-          <p className="text-sm text-muted-foreground mt-0.5 truncate hidden sm:block">{subtitle}</p>
+          <p className="text-xs lg:text-sm text-muted-foreground mt-0.5 truncate hidden sm:block">{subtitle}</p>
         )}
       </div>
 
