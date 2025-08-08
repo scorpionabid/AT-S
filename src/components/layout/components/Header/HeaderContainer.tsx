@@ -11,22 +11,24 @@ export const HeaderContainer: React.FC<HeaderContainerProps> = ({ children }) =>
   const { toggleSidebar, isMobile } = useLayout();
 
   return (
-    <header className="h-16 flex items-center border-b border-border bg-card/50 backdrop-blur-sm px-4 lg:px-6 sticky top-0 z-40">
-      <div className="flex items-center justify-between w-full">
+    <header className="h-16 flex items-center border-b border-border bg-card/50 backdrop-blur-sm px-3 sm:px-4 lg:px-6 sticky top-0 z-40">
+      <div className="flex items-center justify-between w-full min-w-0">
         {/* Mobile Menu Button */}
         {isMobile && (
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
-            className="mr-4 h-9 w-9"
+            className="mr-2 sm:mr-4 h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0"
           >
             <Menu className="h-4 w-4" />
           </Button>
         )}
         
         {/* Header Content */}
-        {children}
+        <div className="min-w-0 w-full">
+          {children}
+        </div>
       </div>
     </header>
   );
