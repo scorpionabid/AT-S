@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SidebarContainer } from '@/components/layout/components/Sidebar/SidebarContainer';
 import { SidebarHeader } from '@/components/layout/components/Sidebar/SidebarHeader';
 import { SidebarMenu } from '@/components/layout/components/Sidebar/SidebarMenu';
@@ -14,6 +14,16 @@ interface ModernSidebarProps {
 export const ModernSidebar: React.FC<ModernSidebarProps> = ({ onLogout }) => {
   const { isExpanded } = useSidebarBehavior();
   const { currentUser } = useAuth();
+
+  // Debug user role and menu groups
+  useEffect(() => {
+    if (currentUser) {
+      console.log('Current User Role:', currentUser.role);
+      console.log('Current User:', currentUser);
+      const menuGroups = getMenuForRole(currentUser.role);
+      console.log('Menu Groups for Role:', menuGroups);
+    }
+  }, [currentUser]);
 
   if (!currentUser) return null;
 

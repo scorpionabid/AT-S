@@ -6,18 +6,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { EyeIcon, EyeOffIcon, ShieldIcon } from "lucide-react";
 
 interface LoginFormProps {
-  onLogin: (email: string, password: string) => void;
+  onLogin: (email: string, password: string) => Promise<void>;
   isLoading?: boolean;
+  error?: string;
 }
 
-export const LoginForm = ({ onLogin, isLoading = false }: LoginFormProps) => {
+export const LoginForm = ({ onLogin, isLoading = false, error }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onLogin(email, password);
+    await onLogin(email, password);
   };
 
   return (
@@ -49,11 +50,11 @@ export const LoginForm = ({ onLogin, isLoading = false }: LoginFormProps) => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">E-poçt ünvanı</Label>
+                <Label htmlFor="email">İstifadəçi adı və ya E-poçt ünvanı</Label>
                 <Input
                   id="email"
-                  type="email"
-                  placeholder="example@edu.gov.az"
+                  type="text"
+                  placeholder="superadmin və ya admin@edu.gov.az"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required

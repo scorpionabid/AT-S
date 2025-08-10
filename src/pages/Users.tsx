@@ -4,60 +4,24 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus } from "lucide-react";
 import { DataTable, Column } from '@/components/common/DataTable';
-import { UserModal, User } from '@/components/modals/UserModal';
+import { UserModal } from '@/components/modals/UserModal';
 import { ConfirmDialog } from '@/components/modals/ConfirmDialog';
 import { useCRUD } from '@/hooks/useCRUD';
+import { userService, User, CreateUserData, UpdateUserData } from '@/services/users';
+import { useToast } from '@/hooks/use-toast';
 
-// Mock data - bu real API ilə əvəz ediləcək
-const mockUsers: User[] = [
-  {
-    id: '1',
-    name: 'Sistem Administrator',
-    email: 'admin@edu.gov.az',
-    role: 'super_admin',
-    status: 'active',
-    phone: '+994 12 123 45 67',
-    createdAt: '2024-01-15',
-  },
-  {
-    id: '2',
-    name: 'Bakı Regional Admin',
-    email: 'baki@edu.gov.az',
-    role: 'region_admin',
-    region: 'baki',
-    status: 'active',
-    phone: '+994 12 234 56 78',
-    createdAt: '2024-01-20',
-  },
-  {
-    id: '3',
-    name: 'Şəki Regional Admin',
-    email: 'seki@edu.gov.az',
-    role: 'region_admin',
-    region: 'seki-zaqatala',
-    status: 'active',
-    phone: '+994 24 123 45 67',
-    createdAt: '2024-01-25',
-  },
-  {
-    id: '4',
-    name: 'Test Teacher',
-    email: 'teacher@school.edu.az',
-    role: 'teacher',
-    institution: 'Bakı 123 saylı məktəb',
-    status: 'inactive',
-    phone: '+994 50 123 45 67',
-    createdAt: '2024-02-01',
-  },
-];
-
+// Role labels for display
 const roleLabels: Record<string, string> = {
-  super_admin: 'Super Admin',
-  region_admin: 'Region Admin',
-  institution_admin: 'Təşkilat Admin',
-  teacher: 'Müəllim',
-  observer: 'Müşahidəçi',
+  superadmin: 'Super Admin',
+  regionadmin: 'Regional Admin', 
+  regionoperator: 'Regional Operator',
+  sektoradmin: 'Sektor Admin',
+  məktəbadmin: 'Məktəb Admin',
+  müəllim: 'Müəllim',
+  user: 'İstifadəçi',
 };
+
+
 
 const statusLabels: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
   active: { label: 'Aktiv', variant: 'default' },
@@ -65,6 +29,8 @@ const statusLabels: Record<string, { label: string; variant: 'default' | 'second
 };
 
 export default function Users() {
+  const { toast } = useToast();
+  
   const {
     data,
     loading,
@@ -72,8 +38,8 @@ export default function Users() {
     isModalOpen,
     isDeleteDialogOpen,
     itemToDelete,
+    pagination,
     actions: {
-      setData,
       openModal,
       closeModal,
       openDeleteDialog,
@@ -82,8 +48,37 @@ export default function Users() {
       handleUpdate,
       handleDelete,
       handleBulkDelete,
+      refresh,
     },
-  } = useCRUD<User>(mockUsers);
+  } = useCRUD<User>([], {
+    fetchData: async (params) => {
+      return await userService.getUsers(params);
+    },
+    create: async (userData: CreateUserData) => {
+      return await userService.createUser(userData);
+    },
+    update: async (id: number, userData: UpdateUserData) => {
+      return await userService.updateUser(id, userData);
+    },
+    delete: async (id: number) => {
+      await userService.deleteUser(id);
+    },
+    bulkDelete: async (ids: number[]) => {
+      await userService.bulkAction({
+        user_ids: ids,
+        action: 'delete'
+      });
+    },
+    autoLoad: true,
+    onSuccess: (action) => {
+      if (action === 'create') {
+        closeModal();
+      }
+    },
+    onError: (action, error) => {
+      console.error(`${action} error:`, error);
+    }
+  });
 
   const columns: Column<User>[] = [
     {
@@ -115,11 +110,11 @@ export default function Users() {
       ),
     },
     {
-      key: 'region',
+      key: 'institution',
       title: 'Region/Təşkilat',
       render: (value, row) => (
         <span className="text-sm">
-          {row.region || row.institution || '-'}
+          {row.region?.name || row.institution?.name || '-'}
         </span>
       ),
     },
@@ -146,7 +141,7 @@ export default function Users() {
       },
     },
     {
-      key: 'createdAt',
+      key: 'created_at',
       title: 'Yaradıldı',
       sortable: true,
       render: (value) => (
@@ -157,11 +152,11 @@ export default function Users() {
     },
   ];
 
-  const handleSave = async (userData: Partial<User>) => {
+  const handleSave = async (userData: any) => {
     if (selectedItem) {
       await handleUpdate(selectedItem.id, userData);
     } else {
-      await handleCreate(userData as Omit<User, 'id'>);
+      await handleCreate(userData);
     }
   };
 
@@ -172,7 +167,7 @@ export default function Users() {
   };
 
   const handleBulkDeleteConfirm = async (users: User[]) => {
-    await handleBulkDelete(users.map(u => u.id));
+    await handleBulkDelete(users.map(u => Number(u.id)));
   };
 
   const handleExport = () => {
@@ -181,11 +176,11 @@ export default function Users() {
       'Ad və Soyad': user.name,
       'Email': user.email,
       'Rol': roleLabels[user.role] || user.role,
-      'Region': user.region || '',
-      'Təşkilat': user.institution || '',
+      'Region': user.region?.name || '',
+      'Təşkilat': user.institution?.name || '',
       'Telefon': user.phone || '',
       'Status': statusLabels[user.status]?.label || user.status,
-      'Yaradıldı': user.createdAt || '',
+      'Yaradıldı': user.created_at || '',
     }));
 
     const csvContent = [

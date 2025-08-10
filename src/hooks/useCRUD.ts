@@ -1,5 +1,6 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { ApiResponse, PaginatedResponse } from '@/services/api';
 
 export interface CRUDState<T> {
   data: T[];
@@ -9,6 +10,12 @@ export interface CRUDState<T> {
   isModalOpen: boolean;
   isDeleteDialogOpen: boolean;
   itemToDelete: T | null;
+  pagination?: {
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
 }
 
 export interface CRUDActions<T> {
@@ -19,22 +26,26 @@ export interface CRUDActions<T> {
   closeModal: () => void;
   openDeleteDialog: (item: T) => void;
   closeDeleteDialog: () => void;
-  handleCreate: (item: Omit<T, 'id'>) => Promise<void>;
-  handleUpdate: (id: string, item: Partial<T>) => Promise<void>;
-  handleDelete: (id: string) => Promise<void>;
-  handleBulkDelete: (ids: string[]) => Promise<void>;
+  handleCreate: (item: any) => Promise<void>;
+  handleUpdate: (id: string | number, item: Partial<T>) => Promise<void>;
+  handleDelete: (id: string | number) => Promise<void>;
+  handleBulkDelete: (ids: (string | number)[]) => Promise<void>;
+  loadData: (params?: any) => Promise<void>;
+  refresh: () => Promise<void>;
 }
 
 export interface CRUDConfig<T> {
-  create?: (item: Omit<T, 'id'>) => Promise<T>;
-  update?: (id: string, item: Partial<T>) => Promise<T>;
-  delete?: (id: string) => Promise<void>;
-  bulkDelete?: (ids: string[]) => Promise<void>;
-  onSuccess?: (action: 'create' | 'update' | 'delete', item?: T) => void;
-  onError?: (action: 'create' | 'update' | 'delete', error: Error) => void;
+  fetchData?: (params?: any) => Promise<T[] | PaginatedResponse<T>>;
+  create?: (item: any) => Promise<T>;
+  update?: (id: string | number, item: Partial<T>) => Promise<T>;
+  delete?: (id: string | number) => Promise<void>;
+  bulkDelete?: (ids: (string | number)[]) => Promise<void>;
+  autoLoad?: boolean;
+  onSuccess?: (action: 'create' | 'update' | 'delete' | 'load', item?: T) => void;
+  onError?: (action: 'create' | 'update' | 'delete' | 'load', error: Error) => void;
 }
 
-export function useCRUD<T extends { id: string }>(
+export function useCRUD<T extends { id: string | number }>(
   initialData: T[] = [],
   config: CRUDConfig<T> = {}
 ) {
@@ -48,7 +59,15 @@ export function useCRUD<T extends { id: string }>(
     isModalOpen: false,
     isDeleteDialogOpen: false,
     itemToDelete: null,
+    pagination: undefined,
   });
+
+  // Auto-load data on mount if fetchData is provided
+  useEffect(() => {
+    if (config.fetchData && config.autoLoad !== false) {
+      loadData();
+    }
+  }, [config.fetchData, config.autoLoad]);
 
   const setData = useCallback((data: T[]) => {
     setState(prev => ({ ...prev, data }));
@@ -94,7 +113,52 @@ export function useCRUD<T extends { id: string }>(
     }));
   }, []);
 
-  const handleCreate = useCallback(async (item: Omit<T, 'id'>) => {
+  const loadData = useCallback(async (params?: any) => {
+    if (!config.fetchData) return;
+    
+    setLoading(true);
+    setError(null);
+
+    try {
+      const result = await config.fetchData(params);
+      
+      if (Array.isArray(result)) {
+        setData(result);
+      } else {
+        // Paginated response
+        setData(result.data);
+        setState(prev => ({
+          ...prev,
+          pagination: {
+            current_page: result.current_page,
+            last_page: result.last_page,
+            per_page: result.per_page,
+            total: result.total,
+          }
+        }));
+      }
+      
+      config.onSuccess?.('load');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Məlumatları yükləmək mümkün olmadı';
+      setError(errorMessage);
+      config.onError?.('load', error as Error);
+      
+      toast({
+        title: 'Xəta',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [config, toast, setData, setLoading, setError]);
+
+  const refresh = useCallback(async () => {
+    await loadData();
+  }, [loadData]);
+
+  const handleCreate = useCallback(async (item: any) => {
     setLoading(true);
     setError(null);
 
@@ -134,7 +198,7 @@ export function useCRUD<T extends { id: string }>(
     }
   }, [state.data, config, toast, setData, setLoading, setError]);
 
-  const handleUpdate = useCallback(async (id: string, updates: Partial<T>) => {
+  const handleUpdate = useCallback(async (id: string | number, updates: Partial<T>) => {
     setLoading(true);
     setError(null);
 
@@ -170,7 +234,7 @@ export function useCRUD<T extends { id: string }>(
     }
   }, [state.data, config, toast, setData, setLoading, setError]);
 
-  const handleDelete = useCallback(async (id: string) => {
+  const handleDelete = useCallback(async (id: string | number) => {
     setLoading(true);
     setError(null);
 
@@ -202,7 +266,7 @@ export function useCRUD<T extends { id: string }>(
     }
   }, [state.data, config, toast, setData, setLoading, setError]);
 
-  const handleBulkDelete = useCallback(async (ids: string[]) => {
+  const handleBulkDelete = useCallback(async (ids: (string | number)[]) => {
     setLoading(true);
     setError(null);
 
@@ -246,6 +310,8 @@ export function useCRUD<T extends { id: string }>(
       handleUpdate,
       handleDelete,
       handleBulkDelete,
+      loadData,
+      refresh,
     },
   };
 }

@@ -206,14 +206,32 @@ export const navigationConfig: MenuGroup[] = [
 ];
 
 export const getMenuForRole = (role: UserRole): MenuGroup[] => {
+  // Map new role names to compatible navigation roles
+  const navigationRole = mapRoleForNavigation(role);
+  
   return navigationConfig
-    .filter(group => !group.roles || group.roles.includes(role))
+    .filter(group => !group.roles || group.roles.includes(navigationRole))
     .map(group => ({
       ...group,
-      items: group.items.filter(item => !item.roles || item.roles.includes(role))
+      items: group.items.filter(item => !item.roles || item.roles.includes(navigationRole))
     }))
     .filter(group => group.items.length > 0);
 };
+
+// Helper function to map backend roles to navigation roles
+function mapRoleForNavigation(role: UserRole): UserRole {
+  const roleMapping: Record<UserRole, UserRole> = {
+    'superadmin': 'SuperAdmin',
+    'regionadmin': 'RegionAdmin',
+    'regionoperator': 'RegionAdmin',
+    'sektoradmin': 'RegionAdmin',
+    'məktəbadmin': 'User',
+    'müəllim': 'User',
+    'user': 'User'
+  };
+  
+  return roleMapping[role] || 'User';
+}
 
 export const findMenuItem = (path: string): MenuItem | null => {
   for (const group of navigationConfig) {

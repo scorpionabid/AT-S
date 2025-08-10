@@ -1,20 +1,43 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { authService, User as AuthUser, LoginCredentials } from '@/services/auth';
+import { useToast } from '@/hooks/use-toast';
 
-export type UserRole = 'SuperAdmin' | 'RegionAdmin' | 'User';
+export type UserRole = 'superadmin' | 'regionadmin' | 'regionoperator' | 'sektoradmin' | 'məktəbadmin' | 'müəllim' | 'user';
 
 export interface User {
+  id: number;
   name: string;
+  email: string;
+  username: string;
   role: UserRole;
-  region?: string;
-  permissions?: string[];
-  email?: string;
+  permissions: string[];
+  institution?: {
+    id: number;
+    name: string;
+    type: string;
+    level: number;
+  };
+  region?: {
+    id: number;
+    name: string;
+  };
+  department?: {
+    id: number;
+    name: string;
+  };
+  created_at: string;
+  updated_at: string;
 }
 
 interface AuthContextType {
   isAuthenticated: boolean;
   currentUser: User | null;
-  login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  loading: boolean;
+  login: (credentials: LoginCredentials) => Promise<boolean>;
+  logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+  hasPermission: (permission: string) => boolean;
+  hasRole: (role: UserRole | UserRole[]) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,28 +50,6 @@ export const useAuth = () => {
   return context;
 };
 
-// Mock user data - in a real app this would come from authentication service
-const mockUsers = {
-  "admin@edu.gov.az": {
-    name: "System Administrator",
-    role: "SuperAdmin" as UserRole,
-    permissions: ["all"],
-    email: "admin@edu.gov.az"
-  },
-  "baki@edu.gov.az": {
-    name: "Bakı Regional Admin",
-    role: "RegionAdmin" as UserRole, 
-    region: "Bakı",
-    email: "baki@edu.gov.az"
-  },
-  "seki@edu.gov.az": {
-    name: "Şəki Regional Admin",
-    role: "RegionAdmin" as UserRole,
-    region: "Şəki-Zaqatala",
-    email: "seki@edu.gov.az"
-  }
-};
-
 interface AuthProviderProps {
   children: ReactNode;
 }
@@ -56,29 +57,114 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  const login = async (email: string, password: string): Promise<boolean> => {
-    // Mock authentication - in real app would call API
-    const user = mockUsers[email as keyof typeof mockUsers];
-    
-    if (user && password === "123456") {
-      setCurrentUser(user);
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        if (authService.isAuthenticated()) {
+          const user = await authService.getCurrentUser();
+          setCurrentUser(user);
+          setIsAuthenticated(true);
+        }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        authService.clearAuth();
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  const login = async (credentials: LoginCredentials): Promise<boolean> => {
+    try {
+      setLoading(true);
+      const response = await authService.login(credentials);
+      
+      setCurrentUser(response.user);
       setIsAuthenticated(true);
+      
+      toast({
+        title: 'Uğurlu giriş',
+        description: `Xoş gəlmisiniz, ${response.user.name}!`,
+      });
+      
       return true;
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Giriş xətası baş verdi';
+      
+      toast({
+        title: 'Giriş xətası',
+        description: message,
+        variant: 'destructive',
+      });
+      
+      return false;
+    } finally {
+      setLoading(false);
     }
-    return false;
   };
 
-  const logout = () => {
-    setCurrentUser(null);
-    setIsAuthenticated(false);
+  const logout = async (): Promise<void> => {
+    try {
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      setCurrentUser(null);
+      setIsAuthenticated(false);
+      
+      toast({
+        title: 'Çıxış',
+        description: 'Uğurla çıxış etdiniz',
+      });
+    }
+  };
+
+  const refreshUser = async (): Promise<void> => {
+    try {
+      if (authService.isAuthenticated()) {
+        const user = await authService.getCurrentUser();
+        setCurrentUser(user);
+      }
+    } catch (error) {
+      console.error('User refresh failed:', error);
+      await logout();
+    }
+  };
+
+  const hasPermission = (permission: string): boolean => {
+    if (!currentUser) return false;
+    
+    // SuperAdmin has all permissions
+    if (currentUser.role === 'superadmin') return true;
+    
+    return currentUser.permissions.includes(permission);
+  };
+
+  const hasRole = (role: UserRole | UserRole[]): boolean => {
+    if (!currentUser) return false;
+    
+    if (Array.isArray(role)) {
+      return role.includes(currentUser.role);
+    }
+    
+    return currentUser.role === role;
   };
 
   const value: AuthContextType = {
     isAuthenticated,
     currentUser,
+    loading,
     login,
-    logout
+    logout,
+    refreshUser,
+    hasPermission,
+    hasRole
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
