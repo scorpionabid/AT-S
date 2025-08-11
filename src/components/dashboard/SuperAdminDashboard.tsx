@@ -10,26 +10,55 @@ import {
   CheckCircleIcon,
   ClockIcon
 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { dashboardService } from "@/services/dashboard";
+import { useEffect, useState } from "react";
 
 export const SuperAdminDashboard = () => {
+  const [stats, setStats] = useState<any>(null);
+  const [recentActivity, setRecentActivity] = useState<any[]>([]);
+
+  const { data: dashboardData, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: () => dashboardService.getSuperAdminDashboard(),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+
+  const { data: activityData } = useQuery({
+    queryKey: ['recent-activity'],
+    queryFn: () => dashboardService.getRecentActivity(5),
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  useEffect(() => {
+    if (dashboardData) {
+      setStats(dashboardData);
+    }
+  }, [dashboardData]);
+
+  useEffect(() => {
+    if (activityData) {
+      setRecentActivity(activityData);
+    }
+  }, [activityData]);
   const systemStats = [
     {
       title: "Ümumi istifadəçilər",
-      value: "1,247",
+      value: stats?.users?.total?.toLocaleString() || "0",
       change: { value: 12, type: "increase" as const },
       icon: UsersIcon,
       variant: "primary" as const
     },
     {
       title: "Təhsil müəssisələri",
-      value: "698",
+      value: stats?.institutions?.total?.toLocaleString() || "0",
       change: { value: 3, type: "increase" as const },
       icon: SchoolIcon,
       variant: "success" as const
     },
     {
       title: "Aktiv sorğular",
-      value: "23",
+      value: stats?.surveys?.active?.toLocaleString() || "0",
       change: { value: 8, type: "decrease" as const },
       icon: BarChart3Icon,
       variant: "warning" as const
@@ -43,7 +72,17 @@ export const SuperAdminDashboard = () => {
     }
   ];
 
-  const recentActivities = [
+  // Use dynamic data if available, fallback to static data
+  const recentActivities = recentActivity.length > 0 ? recentActivity.map(activity => ({
+    title: activity.user?.name || activity.title,
+    description: activity.description,
+    time: new Date(activity.created_at).toLocaleDateString('az-AZ', {
+      hour: '2-digit',
+      minute: '2-digit'
+    }),
+    status: activity.type.includes('completed') ? 'completed' : 
+           activity.type.includes('urgent') ? 'urgent' : 'active'
+  })) : [
     {
       title: "Şəki-Zaqatala Regional İdarəsi",
       description: "Yeni aylıq statistik sorğu yaradıldı",
@@ -74,6 +113,22 @@ export const SuperAdminDashboard = () => {
         return <ClockIcon className="h-4 w-4 text-primary" />;
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1,2,3,4].map((i) => (
+            <div key={i} className="h-32 bg-surface rounded-lg border border-border-light animate-pulse" />
+          ))}
+        </div>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div className="h-64 bg-surface rounded-lg border border-border-light animate-pulse" />
+          <div className="h-64 bg-surface rounded-lg border border-border-light animate-pulse" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

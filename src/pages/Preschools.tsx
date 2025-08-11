@@ -23,11 +23,9 @@ export default function Preschools() {
               <Baby className="h-5 w-5 text-primary" />
               <CardTitle>1 saylı uşaq bağçası</CardTitle>
             </div>
-            <CardDescription>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                Bakı şəhəri
-              </div>
+            <CardDescription className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              Bakı şəhəri
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -57,11 +55,9 @@ export default function Preschools() {
               <Baby className="h-5 w-5 text-primary" />
               <CardTitle>Günəş uşaq bağçası</CardTitle>
             </div>
-            <CardDescription>
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3" />
-                Sumqayıt şəhəri
-              </div>
+            <CardDescription className="flex items-center gap-1">
+              <MapPin className="h-3 w-3" />
+              Sumqayıt şəhəri
             </CardDescription>
           </CardHeader>
           <CardContent>

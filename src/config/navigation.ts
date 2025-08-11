@@ -13,6 +13,14 @@ import {
   BookOpen,
   Link,
   TreePine,
+  Bell,
+  Database,
+  Monitor,
+  Settings,
+  Clipboard,
+  Baby,
+  GraduationCap,
+  Download,
   LucideIcon
 } from 'lucide-react';
 import { UserRole } from '@/contexts/AuthContext';
@@ -36,24 +44,24 @@ export interface MenuGroup {
 
 export const navigationConfig: MenuGroup[] = [
   {
-    id: 'dashboard',
-    label: 'Ana Panel',
-    roles: ['SuperAdmin', 'RegionAdmin'],
-    items: [
-      {
-        id: 'dashboard',
-        label: 'İdarəetmə Paneli',
-        path: '/',
-        icon: LayoutDashboard,
-        roles: ['SuperAdmin', 'RegionAdmin']
-      }
-    ]
-  },
-  {
-    id: 'administration',
+    id: 'idareetme',
     label: 'İdarəetmə',
     roles: ['SuperAdmin'],
     items: [
+      {
+        id: 'dashboard',
+        label: 'Ana səhifə',
+        path: '/',
+        icon: LayoutDashboard,
+        roles: ['SuperAdmin']
+      },
+      {
+        id: 'notifications',
+        label: 'Bildirişlər',
+        path: '/notifications',
+        icon: Bell,
+        roles: ['SuperAdmin']
+      },
       {
         id: 'users',
         label: 'İstifadəçilər',
@@ -67,14 +75,42 @@ export const navigationConfig: MenuGroup[] = [
         path: '/roles',
         icon: Shield,
         roles: ['SuperAdmin']
+      },
+      {
+        id: 'tasks',
+        label: 'Tapşırıqlar',
+        path: '/tasks',
+        icon: FileText,
+        roles: ['SuperAdmin']
       }
     ]
   },
   {
-    id: 'structure',
+    id: 'struktur',
     label: 'Struktur',
     roles: ['SuperAdmin'],
     items: [
+      {
+        id: 'departments',
+        label: 'Departmentlər',
+        path: '/departments',
+        icon: Building2,
+        roles: ['SuperAdmin']
+      },
+      {
+        id: 'institutions',
+        label: 'Müəssisələr',
+        path: '/institutions',
+        icon: School,
+        roles: ['SuperAdmin']
+      },
+      {
+        id: 'preschools',
+        label: 'Məktəbəqədər müəssisələr',
+        path: '/preschools',
+        icon: Baby,
+        roles: ['SuperAdmin']
+      },
       {
         id: 'regions',
         label: 'Regionlar',
@@ -83,65 +119,94 @@ export const navigationConfig: MenuGroup[] = [
         roles: ['SuperAdmin']
       },
       {
-        id: 'departments',
-        label: 'Departamentlər',
-        path: '/departments',
-        icon: Building2,
+        id: 'sectors',
+        label: 'Sektorlar',
+        path: '/sectors',
+        icon: Users,
         roles: ['SuperAdmin']
       },
       {
-        id: 'institutions',
-        label: 'Təhsil Müəssisələri',
-        path: '/institutions',
-        icon: School,
-        roles: ['SuperAdmin']
-      },
-      {
-        id: 'preschools',
-        label: 'Məktəbəqədər Tərbiyə',
-        path: '/preschools',
-        icon: TreePine,
+        id: 'hierarchy',
+        label: 'İerarxiya İdarəetməsi',
+        path: '/hierarchy',
+        icon: Database,
         roles: ['SuperAdmin']
       }
     ]
   },
   {
-    id: 'surveys',
+    id: 'sorqular',
     label: 'Sorğular',
     roles: ['SuperAdmin', 'RegionAdmin'],
     items: [
       {
-        id: 'surveys',
-        label: 'Sorğular',
-        path: '/surveys',
+        id: 'survey-management',
+        label: 'Sorğu İdarəetməsi',
         icon: ClipboardList,
-        roles: ['SuperAdmin', 'RegionAdmin']
+        roles: ['SuperAdmin'],
+        children: [
+          {
+            id: 'surveys',
+            label: 'Sorğular',
+            path: '/surveys',
+            roles: ['SuperAdmin']
+          },
+          {
+            id: 'survey-approval',
+            label: 'Təsdiq',
+            path: '/surveys/approval',
+            roles: ['SuperAdmin']
+          },
+          {
+            id: 'survey-results',
+            label: 'Sorğu nəticələri',
+            path: '/surveys/results',
+            roles: ['SuperAdmin']
+          },
+          {
+            id: 'survey-archive',
+            label: 'Arxiv',
+            path: '/surveys/archive',
+            roles: ['SuperAdmin']
+          }
+        ]
       },
       {
-        id: 'survey-results',
-        label: 'Nəticələr',
-        path: '/survey-results',
-        icon: BarChart3,
-        roles: ['SuperAdmin', 'RegionAdmin']
-      },
-      {
-        id: 'survey-approval',
-        label: 'Təsdiq',
-        path: '/survey-approval',
-        icon: CheckSquare,
-        roles: ['SuperAdmin']
-      },
-      {
-        id: 'survey-archive',
-        label: 'Arxiv',
-        path: '/survey-archive',
-        icon: Archive,
-        roles: ['SuperAdmin', 'RegionAdmin']
+        id: 'school-management',
+        label: 'Məktəb İdarəetməsi',
+        icon: GraduationCap,
+        roles: ['SuperAdmin'],
+        children: [
+          {
+            id: 'school-workload',
+            label: 'Dərs Yükü',
+            path: '/school/workload',
+            roles: ['SuperAdmin']
+          },
+          {
+            id: 'school-schedules',
+            label: 'Dərs Cədvəli',
+            path: '/school/schedules',
+            roles: ['SuperAdmin']
+          },
+          {
+            id: 'school-attendance',
+            label: 'Davamiyyət',
+            path: '/school/attendance',
+            roles: ['SuperAdmin']
+          },
+          {
+            id: 'school-assessments',
+            label: 'Qiymətləndirmələr',
+            path: '/school/assessments',
+            roles: ['SuperAdmin']
+          }
+        ]
       }
     ]
   },
   {
-    id: 'content',
+    id: 'mezmun',
     label: 'Məzmun',
     roles: ['SuperAdmin', 'RegionAdmin'],
     items: [
@@ -154,7 +219,7 @@ export const navigationConfig: MenuGroup[] = [
       },
       {
         id: 'links',
-        label: 'Keçidlər',
+        label: 'Linklər',
         path: '/links',
         icon: Link,
         roles: ['SuperAdmin', 'RegionAdmin']
@@ -162,7 +227,7 @@ export const navigationConfig: MenuGroup[] = [
     ]
   },
   {
-    id: 'reporting',
+    id: 'hesabatlar',
     label: 'Hesabatlar',
     roles: ['SuperAdmin', 'RegionAdmin'],
     items: [
@@ -170,35 +235,42 @@ export const navigationConfig: MenuGroup[] = [
         id: 'reports',
         label: 'Hesabatlar',
         path: '/reports',
-        icon: BarChart3,
+        icon: Download,
         roles: ['SuperAdmin', 'RegionAdmin']
       },
       {
-        id: 'tasks',
-        label: 'Tapşırıqlar',
-        path: '/tasks',
-        icon: CheckSquare,
+        id: 'analytics',
+        label: 'Sistem Statistikası',
+        path: '/analytics',
+        icon: BarChart3,
         roles: ['SuperAdmin', 'RegionAdmin']
       }
     ]
   },
   {
-    id: 'system',
+    id: 'sistem',
     label: 'Sistem',
     roles: ['SuperAdmin'],
     items: [
       {
-        id: 'hierarchy',
-        label: 'İerarxiya',
-        path: '/hierarchy',
-        icon: TreePine,
+        id: 'settings',
+        label: 'Sistem Parametrləri',
+        path: '/settings',
+        icon: Settings,
         roles: ['SuperAdmin']
       },
       {
-        id: 'sectors',
-        label: 'Sektorlar',
-        path: '/sectors',
-        icon: Building2,
+        id: 'audit-logs',
+        label: 'Audit Logları',
+        path: '/audit-logs',
+        icon: Clipboard,
+        roles: ['SuperAdmin']
+      },
+      {
+        id: 'performance',
+        label: 'Performans Monitorinqi',
+        path: '/performance',
+        icon: Monitor,
         roles: ['SuperAdmin']
       }
     ]

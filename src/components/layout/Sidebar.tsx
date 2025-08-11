@@ -34,8 +34,33 @@ interface SidebarProps {
 
 export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPath }: SidebarProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [surveysOpen, setSurveysOpen] = useState(false);
-  const [schoolOpen, setSchoolOpen] = useState(false);
+  
+  // Collapsible group state for SuperAdmin
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
+    "İdarəetmə": true,
+    "Struktur": false,
+    "Sorğular": false,
+    "Məzmun": false,
+    "Hesabatlar": false,
+    "Sistem": false,
+  });
+
+  // Individual item submenu states
+  const [itemSubmenus, setItemSubmenus] = useState<Record<string, boolean>>({});
+
+  const toggleItemSubmenu = (itemKey: string) => {
+    setItemSubmenus(prev => ({
+      ...prev,
+      [itemKey]: !prev[itemKey]
+    }));
+  };
+
+  const handleGroupToggle = (label: string) => {
+    setOpenGroups((prev) => ({
+      ...prev,
+      [label]: !prev[label],
+    }));
+  };
 
   const handleNavigateAndCollapse = useCallback((path: string) => {
     onNavigate(path);
@@ -44,37 +69,34 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
 
   const getSuperAdminMenuStructure = () => [
     {
-      groupLabel: "Ana İdarəetmə",
+      groupLabel: "İdarəetmə",
       items: [
         { icon: HomeIcon, label: "Ana səhifə", path: "/" },
         { icon: BellIcon, label: "Bildirişlər", path: "/notifications" },
+        { icon: UsersIcon, label: "İstifadəçilər", path: "/users" },
+        { icon: ShieldIcon, label: "Rollar", path: "/roles" },
+        { icon: FileTextIcon, label: "Tapşırıqlar", path: "/tasks" },
       ]
     },
     {
-      groupLabel: "İstifadəçi İdarəetməsi", 
+      groupLabel: "Struktur", 
       items: [
-        { icon: UsersIcon, label: "İstifadəçilər", path: "/users" },
-        { icon: ShieldIcon, label: "Rollar", path: "/roles" },
         { icon: BuildingIcon, label: "Departmentlər", path: "/departments" },
         { icon: SchoolIcon, label: "Müəssisələr", path: "/institutions" },
         { icon: BabyIcon, label: "Məktəbəqədər müəssisələr", path: "/preschools" },
-      ]
-    },
-    {
-      groupLabel: "Regional İdarəetmə",
-      items: [
         { icon: MapPinIcon, label: "Regionlar", path: "/regions" },
         { icon: UsersIcon, label: "Sektorlar", path: "/sectors" },
         { icon: DatabaseIcon, label: "İerarxiya İdarəetməsi", path: "/hierarchy" },
       ]
     },
     {
-      groupLabel: "Sorğu Sistemi",
+      groupLabel: "Sorğular",
       items: [
         { 
           icon: ClipboardListIcon, 
-          label: "Sorğular", 
+          label: "Sorğu İdarəetməsi", 
           hasSubmenu: true,
+          key: "surveys",
           submenu: [
             { label: "Sorğular", path: "/surveys" },
             { label: "Təsdiq", path: "/surveys/approval" },
@@ -82,21 +104,11 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
             { label: "Arxiv", path: "/surveys/archive" },
           ]
         },
-      ]
-    },
-    {
-      groupLabel: "Tapşırıq İdarəetməsi",
-      items: [
-        { icon: FileTextIcon, label: "Tapşırıqlar", path: "/tasks" },
-      ]
-    },
-    {
-      groupLabel: "Məktəb İdarəetmə Modulu",
-      items: [
         {
           icon: GraduationCapIcon,
-          label: "Məktəb",
+          label: "Məktəb İdarəetməsi",
           hasSubmenu: true,
+          key: "school",
           submenu: [
             { label: "Dərs Yükü", path: "/school/workload" },
             { label: "Dərs Cədvəli", path: "/school/schedules" },
@@ -107,18 +119,23 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
       ]
     },
     {
-      groupLabel: "Sənəd və Məlumat İdarəetməsi",
+      groupLabel: "Məzmun",
       items: [
         { icon: FolderIcon, label: "Sənədlər", path: "/documents" },
-        { icon: DownloadIcon, label: "Hesabatlar", path: "/reports" },
         { icon: LinkIcon, label: "Linklər", path: "/links" },
       ]
     },
     {
-      groupLabel: "Sistem İdarəetməsi",
+      groupLabel: "Hesabatlar",
+      items: [
+        { icon: DownloadIcon, label: "Hesabatlar", path: "/reports" },
+        { icon: BarChart3Icon, label: "Sistem Statistikası", path: "/analytics" },
+      ]
+    },
+    {
+      groupLabel: "Sistem",
       items: [
         { icon: SettingsIcon, label: "Sistem Parametrləri", path: "/settings" },
-        { icon: BarChart3Icon, label: "Sistem Statistikası", path: "/analytics" },
         { icon: ClipboardIcon, label: "Audit Logları", path: "/audit-logs" },
         { icon: MonitorIcon, label: "Performans Monitorinqi", path: "/performance" },
       ]
@@ -200,81 +217,98 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto py-4">
-          {menuStructure.map((group, groupIndex) => (
-            <div key={groupIndex} className="mb-6">
-              {isExpanded && (
-                <div className="px-3 mb-2">
-                  <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    {group.groupLabel}
-                  </h3>
-                </div>
-              )}
-              <div className="space-y-1">
-                {group.items.map((item, itemIndex) => (
-                  <div key={itemIndex}>
-                    {item.hasSubmenu ? (
-                      <div>
+          {menuStructure.map((group, groupIndex) => {
+            const isGroupOpen = openGroups[group.groupLabel];
+            
+            return (
+              <div key={groupIndex} className="mb-4">
+                {/* Group Header - Only show when expanded */}
+                {isExpanded && (
+                  <button
+                    type="button"
+                    className="w-full flex items-center px-3 py-2 mb-2 focus:outline-none group hover:bg-sidebar-accent/50 transition-colors duration-200 rounded-md mx-1"
+                    onClick={() => handleGroupToggle(group.groupLabel)}
+                    aria-expanded={isGroupOpen}
+                  >
+                    <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider flex-1 text-left">
+                      {group.groupLabel}
+                    </h3>
+                    <ChevronRightIcon
+                      className={cn(
+                        "ml-2 h-4 w-4 text-muted-foreground transition-transform duration-200",
+                        isGroupOpen ? "rotate-90" : "rotate-0"
+                      )}
+                    />
+                  </button>
+                )}
+
+                {/* Group Items */}
+                {(isGroupOpen || !isExpanded) && (
+                  <div className="space-y-1">
+                    {group.items.map((item: any, itemIndex: number) =>
+                      item.hasSubmenu ? (
+                        <div key={itemIndex}>
+                          <button
+                            onClick={() => toggleItemSubmenu(item.key)}
+                            className={cn(
+                              "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md mx-1",
+                              "hover:bg-sidebar-accent text-sidebar-foreground"
+                            )}
+                          >
+                            <item.icon className="w-5 h-5 flex-shrink-0" />
+                            {isExpanded && (
+                              <>
+                                <span className="ml-3 truncate">{item.label}</span>
+                                <ChevronRightIcon
+                                  className={cn(
+                                    "ml-auto h-4 w-4 transition-transform duration-200",
+                                    itemSubmenus[item.key] ? "rotate-90" : "rotate-0"
+                                  )}
+                                />
+                              </>
+                            )}
+                          </button>
+                          {/* Submenu */}
+                          {isExpanded && itemSubmenus[item.key] && (
+                            <div className="ml-8 mt-1 space-y-1">
+                              {item.submenu?.map((subItem: any, subIndex: number) => (
+                                <button
+                                  key={subIndex}
+                                  onClick={() => handleNavigateAndCollapse(subItem.path)}
+                                  className={cn(
+                                    "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md",
+                                    isActive(subItem.path)
+                                      ? "bg-primary text-primary-foreground shadow-sm"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                                  )}
+                                >
+                                  <span className="truncate">{subItem.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ) : (
                         <button
-                          onClick={() => {
-                            if (item.label === "Sorğular") setSurveysOpen(!surveysOpen);
-                            if (item.label === "Məktəb") setSchoolOpen(!schoolOpen);
-                          }}
+                          key={itemIndex}
+                          onClick={() => handleNavigateAndCollapse(item.path!)}
                           className={cn(
-                            "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200",
-                            "hover:bg-sidebar-accent text-sidebar-foreground"
+                            "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md mx-1",
+                            isActive(item.path!)
+                              ? "bg-primary text-primary-foreground shadow-sm"
+                              : "text-sidebar-foreground hover:bg-sidebar-accent"
                           )}
                         >
                           <item.icon className="w-5 h-5 flex-shrink-0" />
-                          {isExpanded && (
-                            <>
-                              <span className="ml-3 truncate">{item.label}</span>
-                              <ChevronRightIcon 
-                                className={cn(
-                                  "ml-auto h-4 w-4 transition-transform duration-200",
-                                  (item.label === "Sorğular" && surveysOpen) || (item.label === "Məktəb" && schoolOpen) ? "rotate-90" : ""
-                                )} 
-                              />
-                            </>
-                          )}
+                          {isExpanded && <span className="ml-3 truncate">{item.label}</span>}
                         </button>
-                        {isExpanded && ((item.label === "Sorğular" && surveysOpen) || (item.label === "Məktəb" && schoolOpen)) && (
-                          <div className="ml-8 mt-1 space-y-1">
-                            {item.submenu?.map((subItem, subIndex) => (
-                              <button
-                                key={subIndex}
-                                onClick={() => handleNavigateAndCollapse(subItem.path)}
-                                className={cn(
-                                  "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md",
-                                  isActive(subItem.path)
-                                    ? "bg-primary text-primary-foreground shadow-sm"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                                )}
-                              >
-                                <span className="truncate">{subItem.label}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => handleNavigateAndCollapse(item.path!)}
-                        className={cn(
-                          "w-full flex items-center px-3 py-2 text-sm transition-colors duration-200 rounded-md mx-1",
-                          isActive(item.path!)
-                            ? "bg-primary text-primary-foreground shadow-sm"
-                            : "text-sidebar-foreground hover:bg-sidebar-accent"
-                        )}
-                      >
-                        <item.icon className="w-5 h-5 flex-shrink-0" />
-                        {isExpanded && <span className="ml-3 truncate">{item.label}</span>}
-                      </button>
+                      )
                     )}
                   </div>
-                ))}
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Footer */}

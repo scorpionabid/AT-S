@@ -24,6 +24,7 @@ import Tasks from "./pages/Tasks";
 import Documents from "./pages/Documents";
 import Links from "./pages/Links";
 import Reports from "./pages/Reports";
+import InstitutionTypesManagement from "./pages/InstitutionTypesManagement";
 import { useState } from "react";
 
 const queryClient = new QueryClient();
@@ -111,6 +112,7 @@ const App = () => (
               <Route path="documents" element={<Documents />} />
               <Route path="links" element={<Links />} />
               <Route path="reports" element={<Reports />} />
+              <Route path="institution-types-management" element={<InstitutionTypesManagement />} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

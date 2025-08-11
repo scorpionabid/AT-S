@@ -61,11 +61,17 @@ class ApiClient {
 
   private async handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     const contentType = response.headers.get('content-type');
+    console.log(`📥 API Response: ${response.status} ${response.statusText}`, { 
+      url: response.url, 
+      contentType 
+    });
     
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
+      console.log('📋 Response data:', data);
       
       if (!response.ok) {
+        console.error('❌ API Error:', data);
         if (response.status === 401) {
           this.removeToken();
           window.location.href = '/login';
@@ -83,12 +89,18 @@ class ApiClient {
   }
 
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    console.log(`🌐 API GET request: ${endpoint}`, { params });
     const url = new URL(`${this.baseURL}${endpoint}`);
     
     if (params) {
       Object.keys(params).forEach(key => {
         if (params[key] !== undefined && params[key] !== null) {
-          url.searchParams.append(key, params[key].toString());
+          // Convert boolean values properly for Laravel validation
+          let value = params[key];
+          if (typeof value === 'boolean') {
+            value = value ? '1' : '0';
+          }
+          url.searchParams.append(key, value.toString());
         }
       });
     }
@@ -103,14 +115,29 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'POST',
-      headers: this.getHeaders(),
-      credentials: 'include',
-      body: JSON.stringify(data),
-    });
+    console.log(`🌐 API POST ${this.baseURL}${endpoint}`, { data, headers: this.getHeaders() });
+    
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        method: 'POST',
+        headers: this.getHeaders(),
+        credentials: 'include',
+        body: JSON.stringify(data),
+      });
 
-    return this.handleResponse<T>(response);
+      console.log(`📨 Raw response for POST ${endpoint}:`, { 
+        status: response.status, 
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      const result = await this.handleResponse<T>(response);
+      console.log(`✨ Processed response for POST ${endpoint}:`, result);
+      return result;
+    } catch (error) {
+      console.error(`💥 POST ${endpoint} failed:`, error);
+      throw error;
+    }
   }
 
   async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
@@ -125,13 +152,28 @@ class ApiClient {
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    const response = await fetch(`${this.baseURL}${endpoint}`, {
-      method: 'DELETE',
-      headers: this.getHeaders(),
-      credentials: 'include',
-    });
+    console.log(`🌐 API DELETE ${this.baseURL}${endpoint}`, { headers: this.getHeaders() });
+    
+    try {
+      const response = await fetch(`${this.baseURL}${endpoint}`, {
+        method: 'DELETE',
+        headers: this.getHeaders(),
+        credentials: 'include',
+      });
 
-    return this.handleResponse<T>(response);
+      console.log(`📨 Raw response for DELETE ${endpoint}:`, { 
+        status: response.status, 
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
+
+      const result = await this.handleResponse<T>(response);
+      console.log(`✨ Processed response for DELETE ${endpoint}:`, result);
+      return result;
+    } catch (error) {
+      console.error(`💥 DELETE ${endpoint} failed:`, error);
+      throw error;
+    }
   }
 
   // Auth-specific methods
