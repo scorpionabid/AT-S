@@ -26,6 +26,7 @@ php artisan migrate
 
 # Run seeders
 php artisan db:seed --class=SuperAdminSeeder
+php artisan db:seed --class=InstitutionTypeSeeder
 php artisan db:seed --class=InstitutionHierarchySeeder
 
 # Run tests
@@ -97,8 +98,10 @@ npm run lint
 - **Progressive lockout**: Account security with failed login attempts tracking
 
 #### Institution Hierarchy System
-- **4-level structure**: Ministry → Regional Office → Sector → School
+- **4-level structure**: Ministry → Regional Office → Sector → School + Preschool Institutions
 - **22 pre-configured institutions** with complete hierarchical relationships
+- **10+ institution types** including kindergartens, preschool centers, vocational schools, special education
+- **Dynamic type management**: SuperAdmin can create custom institution types
 - **Regional data isolation**: Users only see data within their hierarchy level
 - **Department management**: Academic, Administrative, Finance departments per institution
 
@@ -154,7 +157,8 @@ src/components/
 
 #### Core Tables
 - `users`: User management with role assignments
-- `institutions`: 4-level institutional hierarchy
+- `institutions`: 4-level institutional hierarchy with flexible typing
+- `institution_types`: Dynamic institution type management with metadata
 - `roles` & `permissions`: RBAC system with Spatie Laravel Permission
 - `surveys` & `survey_responses`: Dynamic survey system
 - `tasks` & `task_progress_logs`: Task management with audit trail
@@ -162,10 +166,10 @@ src/components/
 - `approval_workflows`: Multi-step approval processes
 
 #### Migration Status
-- **85+ migrations** executed successfully
+- **86+ migrations** executed successfully (including institution_types table)
 - **Cross-database compatibility**: PostgreSQL (production) and SQLite (development)
-- **Seeded data**: 22 institutions, 12 roles, 48 permissions pre-configured
-- **76+ models**: Comprehensive data model coverage for education management
+- **Seeded data**: 22 institutions, 10 institution types, 12 roles, 48 permissions pre-configured
+- **77+ models**: Comprehensive data model coverage for education management including preschool institutions
 
 ## Key Development Patterns
 
@@ -175,6 +179,7 @@ src/components/
 ├── auth/           # Authentication endpoints
 ├── users/          # User management
 ├── institutions/   # Institution hierarchy
+├── institution-types/ # Dynamic institution type management (SuperAdmin only)
 ├── surveys/        # Survey CRUD + targeting
 ├── tasks/          # Task management
 ├── documents/      # File upload/download
@@ -289,11 +294,13 @@ src/components/
 - `/frontend/vite.config.ts` - Vite build configuration
 
 ### Key Directories
-- `/backend/app/Models/` - 76+ Eloquent models
-- `/backend/database/migrations/` - 85+ database migrations
-- `/backend/database/seeders/` - Database seeding scripts
+- `/backend/app/Models/` - 77+ Eloquent models (including InstitutionType)
+- `/backend/database/migrations/` - 86+ database migrations
+- `/backend/database/seeders/` - Database seeding scripts (including InstitutionTypeSeeder)
 - `/frontend/src/components/` - React component library
-- `/frontend/src/services/` - API service layer
+- `/frontend/src/components/modals/InstitutionTypeModal.tsx` - Institution type CRUD modal
+- `/frontend/src/pages/InstitutionTypesManagement.tsx` - SuperAdmin type management page
+- `/frontend/src/services/` - API service layer with dynamic type loading
 - `/frontend/src/types/` - TypeScript type definitions
 
 ### Docker & Scripts

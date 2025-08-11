@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Institution;
+use App\Models\InstitutionType;
 use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -19,10 +20,14 @@ class InstitutionController extends Controller
     public function index(Request $request): JsonResponse
     {
         try {
+            // Get valid institution types dynamically
+            $validTypes = InstitutionType::active()->pluck('key')->toArray();
+            $validTypesString = implode(',', $validTypes);
+            
             $request->validate([
                 'per_page' => 'nullable|integer|min:1|max:100',
                 'search' => 'nullable|string|max:255',
-                'type' => 'nullable|string|in:ministry,region,sektor,school,vocational,university',
+                'type' => "nullable|string|in:{$validTypesString}",
                 'level' => 'nullable|integer|between:1,5',
                 'parent_id' => 'nullable|integer|exists:institutions,id',
                 'region_code' => 'nullable|string|max:10',
@@ -150,9 +155,13 @@ class InstitutionController extends Controller
             ], 403);
         }
 
+        // Get valid institution types dynamically for create
+        $validTypes = InstitutionType::active()->pluck('key')->toArray();
+        $validTypesString = implode(',', $validTypes);
+        
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'type' => 'required|string|in:ministry,region,sektor,school,vocational,university',
+            'type' => "required|string|in:{$validTypesString}",
             'level' => 'required|integer|between:1,5',
             'parent_id' => 'nullable|integer|exists:institutions,id',
             'region_code' => 'nullable|string|max:10',
@@ -224,9 +233,13 @@ class InstitutionController extends Controller
             ], 403);
         }
 
+        // Get valid institution types dynamically for update
+        $validTypes = InstitutionType::active()->pluck('key')->toArray();
+        $validTypesString = implode(',', $validTypes);
+        
         $validator = Validator::make($request->all(), [
             'name' => 'string|max:255',
-            'type' => 'string|in:ministry,region,sektor,school,vocational,university',
+            'type' => "string|in:{$validTypesString}",
             'level' => 'integer|between:1,5',
             'parent_id' => 'nullable|integer|exists:institutions,id',
             'region_code' => 'nullable|string|max:10',

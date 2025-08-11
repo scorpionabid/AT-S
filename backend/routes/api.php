@@ -16,6 +16,7 @@ use App\Http\Controllers\DocumentController;
 // DocumentUploadController and DocumentAnalyticsController merged into DocumentController
 use App\Http\Controllers\DocumentShareController;
 use App\Http\Controllers\InstitutionController;
+use App\Http\Controllers\InstitutionTypeController;
 use App\Http\Controllers\InstitutionHierarchyController;
 use App\Http\Controllers\InstitutionDepartmentController;
 use App\Http\Controllers\ProfileController;
@@ -177,6 +178,17 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('institutions/{institution}', [InstitutionController::class, 'destroy'])->middleware(['permission:institutions.delete', 'audit.logging']);
     Route::get('institutions/types', [InstitutionController::class, 'getTypes'])->middleware('permission:institutions.read');
     Route::get('institutions/statistics', [InstitutionController::class, 'getStatistics'])->middleware('permission:institutions.read');
+    
+    // Institution Types Management (SuperAdmin Only)
+    Route::middleware('role:superadmin')->prefix('institution-types')->group(function () {
+        Route::get('/', [InstitutionTypeController::class, 'index']);
+        Route::post('/', [InstitutionTypeController::class, 'store']);
+        Route::get('/hierarchy', [InstitutionTypeController::class, 'getHierarchy']);
+        Route::get('/parent-types', [InstitutionTypeController::class, 'getParentTypes']);
+        Route::get('/{institutionType}', [InstitutionTypeController::class, 'show']);
+        Route::put('/{institutionType}', [InstitutionTypeController::class, 'update']);
+        Route::delete('/{institutionType}', [InstitutionTypeController::class, 'destroy']);
+    });
     
     // Institution soft delete management
     Route::get('institutions/trashed', [InstitutionController::class, 'trashed'])->middleware('permission:institutions.read');

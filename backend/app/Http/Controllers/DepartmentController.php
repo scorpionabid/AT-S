@@ -340,6 +340,25 @@ class DepartmentController extends Controller
     }
 
     /**
+     * Get all department types.
+     */
+    public function getTypes(): JsonResponse
+    {
+        $types = collect(Department::TYPES)->map(function ($label, $key) {
+            return [
+                'key' => $key,
+                'label' => $label,
+                'description' => null
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'data' => $types,
+        ]);
+    }
+
+    /**
      * Get department types for institution
      */
     public function getTypesForInstitution(Request $request): JsonResponse

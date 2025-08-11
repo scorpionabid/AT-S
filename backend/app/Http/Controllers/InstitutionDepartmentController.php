@@ -364,18 +364,14 @@ class InstitutionDepartmentController extends Controller
      */
     public function getTypes(): JsonResponse
     {
-        $types = [
-            'academic' => 'Akademik Şöbə',
-            'administrative' => 'İnzibati Şöbə',
-            'technical' => 'Texniki Şöbə',
-            'support' => 'Dəstək Şöbəsi',
-            'research' => 'Tədqiqat Şöbəsi',
-            'library' => 'Kitabxana',
-            'hr' => 'İnsan Resursları',
-            'finance' => 'Maliyyə Şöbəsi',
-            'it' => 'İT Şöbəsi',
-            'security' => 'Təhlükəsizlik',
-        ];
+        // Use Department model types for consistency
+        $types = collect(Department::TYPES)->map(function ($label, $key) {
+            return [
+                'key' => $key,
+                'label' => $label,
+                'description' => null
+            ];
+        })->values();
 
         return response()->json([
             'success' => true,

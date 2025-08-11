@@ -117,6 +117,14 @@ class Institution extends Model
     }
 
     /**
+     * Get the institution type relationship.
+     */
+    public function institutionType(): BelongsTo
+    {
+        return $this->belongsTo(InstitutionType::class, 'type', 'key');
+    }
+
+    /**
      * Get the rooms of this institution.
      */
     public function rooms(): HasMany
@@ -285,5 +293,29 @@ class Institution extends Model
                   ->orWhere('short_name', 'ILIKE', "%{$search}%");
             });
         }
+    }
+
+    /**
+     * Get valid parent types for this institution based on its type
+     */
+    public function getValidParentTypes(): array
+    {
+        return $this->institutionType?->allowed_parent_types ?? [];
+    }
+
+    /**
+     * Check if this institution can have the given parent type
+     */
+    public function canHaveParentType(string $parentTypeKey): bool
+    {
+        return in_array($parentTypeKey, $this->getValidParentTypes());
+    }
+
+    /**
+     * Get the display type label
+     */
+    public function getTypeLabel(): string
+    {
+        return $this->institutionType?->getDisplayLabel() ?? $this->type;
     }
 }
