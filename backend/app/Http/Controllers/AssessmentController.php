@@ -47,10 +47,36 @@ class AssessmentController extends Controller
         $academicYearId = $request->academic_year_id;
 
         \Log::info('Assessment API institution check', [
+            'request_institution_id' => $request->institution_id,
+            'user_institution_id' => $user->institution_id,
             'final_institution_id' => $institutionId,
-            'institution_exists' => Institution::where('id', $institutionId)->exists(),
+            'institution_id_is_empty' => empty($institutionId),
+            'institution_exists' => $institutionId ? Institution::where('id', $institutionId)->exists() : false,
             'user_roles' => $user->roles->pluck('name')->toArray()
         ]);
+
+        // Handle case where no valid institution_id is available
+        if (empty($institutionId) || $institutionId === '' || $institutionId === null) {
+            \Log::warning('Assessment API: No valid institution_id available', [
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'request_institution_id' => $request->institution_id,
+                'user_institution_id' => $user->institution_id,
+                'institution_id_value' => $institutionId,
+                'institution_id_type' => gettype($institutionId)
+            ]);
+            
+            // For SuperAdmin without specific institution, return aggregate data
+            if ($user->hasRole('superadmin')) {
+                \Log::info('Returning aggregate data for SuperAdmin');
+                return response()->json([
+                    'success' => true,
+                    'data' => $this->getAggregateAssessmentData($academicYearId, $request->assessment_type, $request->per_page)
+                ]);
+            }
+            
+            return response()->json(['error' => 'Qiymətləndirmə məlumatlarına giriş üçün müəssisə təyin edilməlidir'], 400);
+        }
 
         // Authorization check
         if (!$this->canAccessInstitution($user, $institutionId)) {
@@ -73,11 +99,27 @@ class AssessmentController extends Controller
             $data['bsq_results'] = $this->getBSQResults($institutionId, $academicYearId, $request->per_page);
         }
 
-        // Get summary analytics
-        $data['analytics'] = $this->analyticsService->getInstitutionPerformanceAnalytics(
-            $institutionId, 
-            $academicYearId
-        );
+        // Get summary analytics only if we have a valid institution
+        // For SuperAdmin aggregate data, we already have analytics in getAggregateAssessmentData
+        if (!empty($institutionId)) {
+            try {
+                $data['analytics'] = $this->analyticsService->getInstitutionPerformanceAnalytics(
+                    $institutionId, 
+                    $academicYearId
+                );
+            } catch (\Exception $e) {
+                \Log::error('Analytics service error', [
+                    'institution_id' => $institutionId,
+                    'academic_year_id' => $academicYearId,
+                    'error' => $e->getMessage()
+                ]);
+                // Continue without analytics if there's an error
+                $data['analytics'] = null;
+            }
+        } else {
+            // For SuperAdmin without specific institution, analytics are handled in getAggregateAssessmentData
+            \Log::info('Skipping individual institution analytics for SuperAdmin aggregate view');
+        }
 
         return response()->json([
             'success' => true,
@@ -397,17 +439,38 @@ class AssessmentController extends Controller
         // SuperAdmin can access all institutions
         if ($user->hasRole('superadmin')) return true;
         
-        // If no institution ID provided, deny access
-        if (!$institutionId) return false;
+        // If no institution ID provided, deny access for non-superadmin users
+        if (empty($institutionId) || !$institutionId) {
+            \Log::warning('canAccessInstitution: Empty institution ID', [
+                'user_id' => $user->id,
+                'institution_id' => $institutionId,
+                'institution_id_type' => gettype($institutionId),
+                'user_roles' => $user->roles->pluck('name')->toArray()
+            ]);
+            return false;
+        }
         
         // Check if institution exists
         $institution = Institution::find($institutionId);
-        if (!$institution) return false;
+        if (!$institution) {
+            \Log::warning('canAccessInstitution: Institution not found', [
+                'user_id' => $user->id,
+                'institution_id' => $institutionId,
+                'existing_institutions' => Institution::pluck('id')->toArray()
+            ]);
+            return false;
+        }
         
         // RegionAdmin can access institutions in their region
         if ($user->hasRole('regionadmin')) {
             $userInstitution = Institution::find($user->institution_id);
-            if (!$userInstitution) return false;
+            if (!$userInstitution) {
+                \Log::warning('canAccessInstitution: RegionAdmin user institution not found', [
+                    'user_id' => $user->id,
+                    'user_institution_id' => $user->institution_id
+                ]);
+                return false;
+            }
             
             // Both should be in same region (level 2 or have same level 2 parent)
             $userRegionId = $userInstitution->level === 2 ? $userInstitution->id : $userInstitution->parent_id;
@@ -444,6 +507,49 @@ class AssessmentController extends Controller
         }
 
         return $perPage ? $query->paginate($perPage) : $query->get();
+    }
+
+    private function getAggregateAssessmentData($academicYearId, $assessmentType, $perPage)
+    {
+        $data = [];
+        
+        if (!$assessmentType || $assessmentType === 'all' || $assessmentType === 'ksq') {
+            // Get all KSQ results across all institutions
+            $ksqQuery = KSQResult::with(['institution', 'assessor', 'approver', 'subject', 'academicYear'])
+                ->orderBy('assessment_date', 'desc');
+            
+            if ($academicYearId) {
+                $ksqQuery->where('academic_year_id', $academicYearId);
+            }
+            
+            $data['ksq_results'] = $perPage ? $ksqQuery->paginate($perPage) : $ksqQuery->get();
+        }
+
+        if (!$assessmentType || $assessmentType === 'all' || $assessmentType === 'bsq') {
+            // Get all BSQ results across all institutions
+            $bsqQuery = BSQResult::with(['institution', 'assessor', 'approver', 'academicYear'])
+                ->orderBy('assessment_date', 'desc');
+            
+            if ($academicYearId) {
+                $bsqQuery->where('academic_year_id', $academicYearId);
+            }
+            
+            $data['bsq_results'] = $perPage ? $bsqQuery->paginate($perPage) : $bsqQuery->get();
+        }
+
+        // For aggregate data, we don't provide institution-specific analytics
+        $data['analytics'] = [
+            'overall_analytics' => [
+                'total_assessments' => 0,
+                'average_performance' => 0,
+                'improvement_percentage' => 0,
+                'recommendations' => ['Müəssisə seçin daha detallı analitik üçün'],
+                'risk_areas' => [],
+                'success_factors' => []
+            ]
+        ];
+
+        return $data;
     }
 
     private function calculateRankings($type, $academicYearId, $limit, $institutionType)
