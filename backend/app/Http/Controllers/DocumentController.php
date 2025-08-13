@@ -396,6 +396,27 @@ class DocumentController extends Controller
     }
 
     /**
+     * Get document statistics
+     */
+    public function getStats(): JsonResponse
+    {
+        try {
+            $stats = $this->documentService->getDocumentStats();
+
+            return response()->json([
+                'success' => true,
+                'data' => $stats,
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Statistikalar yüklənərkən xəta baş verdi.',
+                'error' => config('app.debug') ? $e->getMessage() : 'Server error',
+            ], 500);
+        }
+    }
+
+    /**
      * Validation for document store
      */
     private function validateDocumentStore(Request $request)
@@ -404,8 +425,8 @@ class DocumentController extends Controller
             'file' => 'required|file|max:10240',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'category' => 'required|in:' . implode(',', array_keys(Document::CATEGORIES)),
-            'access_level' => 'required|in:' . implode(',', array_keys(Document::ACCESS_LEVELS)),
+            'category' => 'nullable|in:' . implode(',', array_keys(Document::CATEGORIES)),
+            'access_level' => 'nullable|in:' . implode(',', array_keys(Document::ACCESS_LEVELS)),
             'tags' => 'nullable|array',
             'tags.*' => 'string|max:50',
             'allowed_users' => 'nullable|array',
@@ -413,6 +434,10 @@ class DocumentController extends Controller
             'allowed_roles' => 'nullable|array',
             'allowed_institutions' => 'nullable|array',
             'allowed_institutions.*' => 'integer|exists:institutions,id',
+            'accessible_institutions' => 'nullable|array',
+            'accessible_institutions.*' => 'integer|exists:institutions,id',
+            'accessible_departments' => 'nullable|array',
+            'accessible_departments.*' => 'integer|exists:departments,id',
             'is_public' => 'boolean',
             'is_downloadable' => 'boolean',
             'is_viewable_online' => 'boolean',

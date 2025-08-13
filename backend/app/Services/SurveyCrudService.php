@@ -88,6 +88,23 @@ class SurveyCrudService
                 'notification_settings' => $data['notification_settings'] ?? [],
             ]);
 
+            // Create questions if provided
+            if (!empty($data['questions'])) {
+                foreach ($data['questions'] as $index => $questionData) {
+                    // Map frontend question types to backend types
+                    $backendType = $this->mapQuestionType($questionData['type']);
+                    
+                    $survey->questions()->create([
+                        'title' => $questionData['question'],
+                        'type' => $backendType,
+                        'order_index' => $questionData['order'] ?? $index + 1,
+                        'is_required' => $questionData['required'] ?? false,
+                        'options' => $questionData['options'] ?? null,
+                        'validation_rules' => $questionData['validation'] ?? null,
+                    ]);
+                }
+            }
+
             // Create initial version
             $this->createVersion($survey, 'Initial version', $data);
 
@@ -337,9 +354,11 @@ class SurveyCrudService
         return SurveyVersion::create([
             'survey_id' => $survey->id,
             'version_number' => $survey->versions()->count() + 1,
-            'description' => $description,
-            'questions' => $data['questions'] ?? [],
-            'settings' => $data['settings'] ?? [],
+            'structure' => [
+                'questions' => $data['questions'] ?? [],
+                'settings' => $data['settings'] ?? [],
+                'description' => $description
+            ],
             'created_by' => Auth::id()
         ]);
     }
@@ -462,6 +481,27 @@ class SurveyCrudService
             'ip_address' => request()->ip(),
             'user_agent' => request()->userAgent()
         ]);
+    }
+    
+    /**
+     * Map frontend question types to backend enum types
+     */
+    private function mapQuestionType(string $frontendType): string
+    {
+        $mapping = [
+            'radio' => 'single_choice',
+            'checkbox' => 'multiple_choice',
+            'text' => 'text',
+            'textarea' => 'text',
+            'number' => 'number',
+            'email' => 'text',
+            'date' => 'date',
+            'file' => 'file_upload',
+            'rating' => 'rating',
+            'select' => 'single_choice'
+        ];
+
+        return $mapping[$frontendType] ?? 'text';
     }
     
     /**

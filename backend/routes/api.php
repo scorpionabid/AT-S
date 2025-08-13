@@ -49,6 +49,11 @@ use App\Http\Controllers\InventoryMaintenanceController;
 use App\Http\Controllers\InventoryAnalyticsController;
 use App\Http\Controllers\TeacherPerformanceController;
 use App\Http\Controllers\TestWebSocketController;
+use App\Http\Controllers\AssessmentController;
+use App\Http\Controllers\AssessmentTypeController;
+use App\Http\Controllers\AssessmentStudentController;
+use App\Http\Controllers\AssessmentEntryController;
+use App\Http\Controllers\AcademicYearController;
 use Illuminate\Support\Facades\Route;
 
 // Test route
@@ -251,7 +256,10 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Survey actions
     Route::post('surveys/{survey}/publish', [SurveyController::class, 'publish'])->middleware('permission:surveys.publish');
-    Route::post('surveys/{survey}/close', [SurveyController::class, 'close'])->middleware('permission:surveys.manage');
+    Route::post('surveys/{survey}/pause', [SurveyController::class, 'pause'])->middleware('permission:surveys.manage');
+    Route::post('surveys/{survey}/archive', [SurveyController::class, 'archive'])->middleware('permission:surveys.manage');
+    Route::post('surveys/{survey}/duplicate', [SurveyController::class, 'duplicate'])->middleware('permission:surveys.create');
+    Route::get('surveys/{survey}/form', [SurveyController::class, 'getSurveyForResponse'])->middleware('permission:surveys.read');
     Route::get('surveys/{survey}/statistics', [SurveyController::class, 'statistics'])->middleware('permission:surveys.read');
     Route::get('surveys/{survey}/analytics', [SurveyController::class, 'analytics'])->middleware('permission:surveys.read');
     
@@ -263,10 +271,9 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Survey response management
     Route::get('survey-responses', [SurveyResponseController::class, 'index'])->middleware('permission:surveys.read');
-    Route::post('survey-responses', [SurveyResponseController::class, 'save'])->middleware('permission:surveys.read');
     Route::get('survey-responses/{response}', [SurveyResponseController::class, 'show'])->middleware('permission:surveys.read');
     Route::post('surveys/{survey}/responses/start', [SurveyResponseController::class, 'start'])->middleware('permission:surveys.read');
-    Route::put('survey-responses/{response}', [SurveyResponseController::class, 'save'])->middleware('permission:surveys.read');
+    Route::put('survey-responses/{response}/save', [SurveyResponseController::class, 'save'])->middleware('permission:surveys.read');
     Route::post('survey-responses/{response}/submit', [SurveyResponseController::class, 'submit'])->middleware('permission:surveys.read');
     Route::post('survey-responses/{response}/approve', [SurveyResponseController::class, 'approve'])->middleware('permission:surveys.manage');
     Route::post('survey-responses/{response}/reject', [SurveyResponseController::class, 'reject'])->middleware('permission:surveys.manage');
@@ -365,6 +372,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard routes
     Route::get('dashboard/stats', [App\Http\Controllers\DashboardController::class, 'stats']);
     Route::get('dashboard/detailed-stats', [App\Http\Controllers\DashboardController::class, 'detailedStats'])->middleware('permission:users.read');
+    Route::get('dashboard/recent-activity', [App\Http\Controllers\DashboardController::class, 'recentActivity']);
     
     // SuperAdmin advanced dashboard routes
     Route::get('dashboard/superadmin-analytics', [App\Http\Controllers\DashboardController::class, 'superAdminAnalytics'])->middleware('role:superadmin');
@@ -479,6 +487,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('documents')->group(function () {
         Route::get('/', [DocumentController::class, 'index'])->middleware('permission:documents.read');
         Route::post('/', [DocumentController::class, 'store'])->middleware('permission:documents.create');
+        Route::get('/stats', [DocumentController::class, 'getStats'])->middleware('permission:documents.read');
         Route::get('/{document}', [DocumentController::class, 'show'])->middleware('permission:documents.read');
         Route::put('/{document}', [DocumentController::class, 'update'])->middleware('permission:documents.update');
         Route::delete('/{document}', [DocumentController::class, 'destroy'])->middleware('permission:documents.delete');
@@ -834,6 +843,46 @@ Route::middleware('auth:sanctum')->group(function () {
                 return app(App\Http\Controllers\AssessmentController::class)->approve(request(), 'bsq', $id);
             })->middleware('permission:assessments.approve');
         });
+    });
+
+    // Assessment Types Management Routes
+    Route::prefix('assessment-types')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [AssessmentTypeController::class, 'index']);
+        Route::get('/dropdown', [AssessmentTypeController::class, 'dropdown']);
+        Route::get('/{assessmentType}', [AssessmentTypeController::class, 'show']);
+        
+        // Only superadmin and regionadmin can create, update, delete
+        Route::post('/', [AssessmentTypeController::class, 'store'])->middleware('role:superadmin|regionadmin');
+        Route::put('/{assessmentType}', [AssessmentTypeController::class, 'update'])->middleware('role:superadmin|regionadmin');
+        Route::delete('/{assessmentType}', [AssessmentTypeController::class, 'destroy'])->middleware('role:superadmin|regionadmin');
+        Route::post('/{assessmentType}/toggle-status', [AssessmentTypeController::class, 'toggleStatus'])->middleware('role:superadmin|regionadmin');
+    });
+
+    // Assessment Student Management Routes
+    Route::prefix('assessment-students')->middleware('auth:sanctum')->group(function () {
+        Route::get('/institutions/{institutionId}/students', [AssessmentStudentController::class, 'getStudentsByInstitution']);
+        Route::get('/institutions/{institutionId}/grade-levels', [AssessmentStudentController::class, 'getGradeLevels']);
+        Route::get('/institutions/{institutionId}/classes', [AssessmentStudentController::class, 'getClasses']);
+        Route::get('/institutions/{institutionId}/count', [AssessmentStudentController::class, 'getStudentCount']);
+    });
+
+    // Assessment Entry Management Routes
+    Route::prefix('assessment-entries')->middleware('auth:sanctum')->group(function () {
+        Route::get('/', [AssessmentEntryController::class, 'index']);
+        Route::post('/', [AssessmentEntryController::class, 'store'])->middleware('role:superadmin|regionadmin');
+        Route::get('/{assessmentEntry}', [AssessmentEntryController::class, 'show']);
+        Route::put('/{assessmentEntry}', [AssessmentEntryController::class, 'update']);
+        Route::delete('/{assessmentEntry}', [AssessmentEntryController::class, 'destroy']);
+        Route::post('/{assessmentEntry}/submit', [AssessmentEntryController::class, 'submit']);
+        Route::post('/{assessmentEntry}/approve', [AssessmentEntryController::class, 'approve'])->middleware('role:superadmin|regionadmin');
+        Route::post('/{assessmentEntry}/reject', [AssessmentEntryController::class, 'reject'])->middleware('role:superadmin|regionadmin');
+    });
+
+    // Academic Years Routes
+    Route::prefix('academic-years')->middleware('permission:institutions.read')->group(function () {
+        Route::get('/', [AcademicYearController::class, 'index']);
+        Route::get('/active', [AcademicYearController::class, 'active']);
+        Route::get('/{academicYear}', [AcademicYearController::class, 'show']);
     });
 });
 

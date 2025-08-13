@@ -228,6 +228,27 @@ class DocumentService
     }
 
     /**
+     * Get document statistics
+     */
+    public function getDocumentStats()
+    {
+        $user = Auth::user();
+        $query = Document::accessibleBy($user)->active();
+        
+        $total = $query->count();
+        $totalSize = $query->sum('file_size');
+        $publicDocuments = $query->where('is_public', true)->count();
+        $recentUploads = $query->where('created_at', '>=', now()->subMonth())->count();
+        
+        return [
+            'total' => $total,
+            'total_size' => $totalSize,
+            'public_documents' => $publicDocuments,
+            'recent_uploads' => $recentUploads,
+        ];
+    }
+
+    /**
      * Check if user can delete document
      */
     private function canUserDeleteDocument($user, Document $document): bool

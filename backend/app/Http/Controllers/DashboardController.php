@@ -315,6 +315,10 @@ class DashboardController extends Controller
             // Cache advanced analytics for 10 minutes
             $analytics = Cache::remember('superadmin_analytics', 600, function () {
                 return [
+                    'users' => $this->getRealUserStats(),
+                    'institutions' => $this->getRealInstitutionStats(),
+                    'surveys' => $this->getRealSurveyStats(),
+                    'tasks' => $this->getRealTaskStats(),
                     'systemHealth' => $this->getDetailedSystemHealth(),
                     'userEngagement' => $this->getUserEngagement(),
                     'institutionPerformance' => $this->getInstitutionPerformance(),
@@ -804,5 +808,186 @@ class DashboardController extends Controller
             'warning' => rand(0, 3),
             'info' => rand(1, 5)
         ];
+    }
+
+    /**
+     * Get recent activity for dashboard
+     */
+    public function recentActivity(Request $request): JsonResponse
+    {
+        try {
+            $limit = $request->get('limit', 10);
+            $limit = min($limit, 50); // Max 50 items
+            
+            $activities = $this->getRecentActivities();
+            
+            // Convert to expected frontend format
+            $formattedActivities = collect($activities)->map(function ($activity) {
+                return [
+                    'id' => $activity['id'],
+                    'type' => $this->mapActivityType($activity['type']),
+                    'title' => $this->getActivityTitle($activity),
+                    'description' => $activity['action'],
+                    'user' => [
+                        'id' => 1, // Mock user ID
+                        'name' => $activity['user']
+                    ],
+                    'created_at' => now()->subHours(rand(1, 24))->toISOString(),
+                    'metadata' => []
+                ];
+            })->take($limit);
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $formattedActivities->values()
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Recent activity error: ' . $e->getMessage());
+            
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Son fəaliyyətlər yüklənərkən xəta baş verdi',
+                'data' => []
+            ], 500);
+        }
+    }
+
+    private function mapActivityType($type): string
+    {
+        $typeMap = [
+            'user' => 'user_created',
+            'survey' => 'survey_created',
+            'system' => 'login'
+        ];
+        
+        return $typeMap[$type] ?? 'login';
+    }
+
+    private function getActivityTitle($activity): string
+    {
+        switch ($activity['type']) {
+            case 'user':
+                return 'Yeni istifadəçi qeydiyyatı';
+            case 'survey':
+                return 'Yeni sorğu yaradıldı';
+            case 'system':
+                return 'Sistem fəaliyyəti';
+            default:
+                return 'Fəaliyyət';
+        }
+    }
+
+    /**
+     * Get real user statistics from database
+     */
+    private function getRealUserStats(): array
+    {
+        try {
+            $totalUsers = User::count();
+            $activeUsers = User::where('is_active', true)->count();
+            $newThisMonth = User::where('created_at', '>=', now()->startOfMonth())->count();
+
+            return [
+                'total' => $totalUsers,
+                'active' => $activeUsers,
+                'new_this_month' => $newThisMonth,
+                'by_role' => $this->getUsersByRole()
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Real user stats error: ' . $e->getMessage());
+            return ['total' => 0, 'active' => 0, 'new_this_month' => 0, 'by_role' => []];
+        }
+    }
+
+    /**
+     * Get real institution statistics from database
+     */
+    private function getRealInstitutionStats(): array
+    {
+        try {
+            $totalInstitutions = Institution::count();
+            $activeInstitutions = Institution::where('is_active', true)->count();
+
+            return [
+                'total' => $totalInstitutions,
+                'active' => $activeInstitutions,
+                'by_type' => $this->getInstitutionsByType(),
+                'by_level' => $this->getInstitutionsByLevel()
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Real institution stats error: ' . $e->getMessage());
+            return ['total' => 0, 'active' => 0, 'by_type' => [], 'by_level' => []];
+        }
+    }
+
+    /**
+     * Get real survey statistics from database
+     */
+    private function getRealSurveyStats(): array
+    {
+        try {
+            $totalSurveys = Survey::count();
+            $activeSurveys = Survey::where('status', 'active')->count();
+            $completedSurveys = Survey::where('status', 'completed')->count();
+            $draftSurveys = Survey::where('status', 'draft')->count();
+
+            // Get recent surveys
+            $recentSurveys = Survey::with('creator')
+                ->orderBy('created_at', 'desc')
+                ->take(5)
+                ->get()
+                ->map(function ($survey) {
+                    return [
+                        'id' => $survey->id,
+                        'title' => $survey->title,
+                        'status' => $survey->status,
+                        'responses_count' => 0, // Will be updated when we have survey responses
+                        'created_at' => $survey->created_at->toISOString()
+                    ];
+                })
+                ->toArray();
+
+            return [
+                'total' => $totalSurveys,
+                'active' => $activeSurveys,
+                'completed' => $completedSurveys,
+                'draft' => $draftSurveys,
+                'total_responses' => 0, // Will be updated when we have survey responses
+                'recent' => $recentSurveys
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Real survey stats error: ' . $e->getMessage());
+            return [
+                'total' => 0, 'active' => 0, 'completed' => 0, 'draft' => 0,
+                'total_responses' => 0, 'recent' => []
+            ];
+        }
+    }
+
+    /**
+     * Get real task statistics (mock for now since we don't have tasks table)
+     */
+    private function getRealTaskStats(): array
+    {
+        try {
+            // For now return mock data as we don't have tasks implemented yet
+            // In future this will be replaced with real Task model queries
+            return [
+                'total' => 0,
+                'pending' => 0,
+                'in_progress' => 0,
+                'completed' => 0,
+                'overdue' => 0,
+                'my_tasks' => 0,
+                'recent' => []
+            ];
+        } catch (\Exception $e) {
+            \Log::error('Real task stats error: ' . $e->getMessage());
+            return [
+                'total' => 0, 'pending' => 0, 'in_progress' => 0,
+                'completed' => 0, 'overdue' => 0, 'my_tasks' => 0, 'recent' => []
+            ];
+        }
     }
 }

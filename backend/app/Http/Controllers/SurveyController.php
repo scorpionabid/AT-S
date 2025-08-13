@@ -64,6 +64,8 @@ class SurveyController extends BaseController
     public function show(Survey $survey): JsonResponse
     {
         try {
+            // Load questions relationship
+            $survey->load('questions');
             $surveyWithRelations = $this->crudService->getWithRelations($survey);
             $formattedSurvey = $this->crudService->formatDetailedForResponse($surveyWithRelations);
             
@@ -160,6 +162,61 @@ class SurveyController extends BaseController
         try {
             $this->crudService->delete($survey);
             return $this->successResponse(null, 'Survey deleted successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Publish survey
+     */
+    public function publish(Survey $survey): JsonResponse
+    {
+        try {
+            // Update survey status to published
+            $survey->update([
+                'status' => 'published',
+                'published_at' => now()
+            ]);
+            
+            $formattedSurvey = $this->crudService->formatDetailedForResponse($survey);
+            
+            return $this->successResponse($formattedSurvey, 'Survey published successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Pause survey
+     */
+    public function pause(Survey $survey): JsonResponse
+    {
+        try {
+            $survey->update(['status' => 'paused']);
+            
+            $formattedSurvey = $this->crudService->formatDetailedForResponse($survey);
+            
+            return $this->successResponse($formattedSurvey, 'Survey paused successfully');
+        } catch (\Exception $e) {
+            return $this->errorResponse($e->getMessage(), 400);
+        }
+    }
+
+    /**
+     * Archive survey
+     */
+    public function archive(Survey $survey): JsonResponse
+    {
+        try {
+            $survey->update([
+                'status' => 'archived',
+                'archived_at' => now()
+            ]);
+            
+            $formattedSurvey = $this->crudService->formatDetailedForResponse($survey);
+            
+            return $this->successResponse($formattedSurvey, 'Survey archived successfully');
         } catch (\Exception $e) {
             return $this->errorResponse($e->getMessage(), 400);
         }

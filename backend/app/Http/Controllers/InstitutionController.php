@@ -98,8 +98,8 @@ class InstitutionController extends Controller
 
         $response = [
             'success' => true,
-            'institutions' => $institutions->items(),
-            'meta' => [
+            'data' => [
+                'data' => $institutions->items(),
                 'current_page' => $institutions->currentPage(),
                 'last_page' => $institutions->lastPage(),
                 'per_page' => $institutions->perPage(),

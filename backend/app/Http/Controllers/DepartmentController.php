@@ -76,10 +76,11 @@ class DepartmentController extends Controller
         }
 
         return response()->json([
-            'data' => $departments->map(function ($department) {
-                return $this->formatDepartment($department);
-            }),
-            'meta' => [
+            'success' => true,
+            'data' => [
+                'data' => $departments->map(function ($department) {
+                    return $this->formatDepartment($department);
+                }),
                 'current_page' => $departments->currentPage(),
                 'last_page' => $departments->lastPage(),
                 'per_page' => $departments->perPage(),

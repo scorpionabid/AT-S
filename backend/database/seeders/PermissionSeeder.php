@@ -91,6 +91,13 @@ class PermissionSeeder extends Seeder
             'assessments.manage',
             'assessments.export',
 
+            // Assessment Types Management
+            'assessment-types.create',
+            'assessment-types.read',
+            'assessment-types.update',
+            'assessment-types.delete',
+            'assessment-types.manage',
+
             // Attendance Management
             'attendance.create',
             'attendance.read',
@@ -207,6 +214,7 @@ class PermissionSeeder extends Seeder
                 'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
                 'reports.read', 'reports.create', 'reports.export',
                 'assessments.create', 'assessments.read', 'assessments.update', 'assessments.delete', 'assessments.approve', 'assessments.manage', 'assessments.export',
+                'assessment-types.create', 'assessment-types.read', 'assessment-types.update', 'assessment-types.delete', 'assessment-types.manage',
                 'approvals.create', 'approvals.read', 'approvals.update', 'approvals.delete', 'approvals.approve', 'approvals.reject',
                 'rooms.create', 'rooms.read', 'rooms.update', 'rooms.delete', 'rooms.manage', 'rooms.assign',
                 'grades.create', 'grades.read', 'grades.update', 'grades.delete', 'grades.manage', 'grades.assign',
@@ -225,6 +233,7 @@ class PermissionSeeder extends Seeder
                 'tasks.create', 'tasks.read', 'tasks.update', 'tasks.delete',
                 'reports.read', 'reports.create', 'reports.export',
                 'assessments.create', 'assessments.read', 'assessments.update', 'assessments.approve', 'assessments.export',
+                'assessment-types.create', 'assessment-types.read', 'assessment-types.update', 'assessment-types.delete', 'assessment-types.manage',
                 'rooms.create', 'rooms.read', 'rooms.update', 'rooms.manage', 'rooms.assign',
                 'grades.create', 'grades.read', 'grades.update', 'grades.manage', 'grades.assign',
                 'events.create', 'events.read', 'events.update', 'events.manage', 'events.approve', 'events.register', 'events.cancel',

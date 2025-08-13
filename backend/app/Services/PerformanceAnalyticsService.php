@@ -19,10 +19,29 @@ class PerformanceAnalyticsService
      */
     public function getInstitutionPerformanceAnalytics($institutionId, $academicYearId = null, $options = [])
     {
+        \Log::info('PerformanceAnalyticsService called', [
+            'institution_id' => $institutionId,
+            'academic_year_id' => $academicYearId,
+            'institution_exists' => Institution::where('id', $institutionId)->exists()
+        ]);
+
         $cacheKey = "institution_performance_{$institutionId}_{$academicYearId}";
         
         return Cache::remember($cacheKey, 3600, function () use ($institutionId, $academicYearId, $options) {
-            $institution = Institution::findOrFail($institutionId);
+            \Log::info('PerformanceAnalyticsService cache miss, executing query', [
+                'institution_id' => $institutionId,
+                'academic_year_id' => $academicYearId
+            ]);
+
+            $institution = Institution::find($institutionId);
+            if (!$institution) {
+                \Log::error('Institution not found', [
+                    'institution_id' => $institutionId,
+                    'available_institutions' => Institution::pluck('id', 'name')->toArray()
+                ]);
+                throw new \Exception("Institution with ID {$institutionId} not found");
+            }
+            
             $academicYear = $academicYearId ? AcademicYear::find($academicYearId) : AcademicYear::where('is_active', true)->first();
 
             return [

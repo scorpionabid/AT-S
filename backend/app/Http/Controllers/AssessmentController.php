@@ -35,11 +35,30 @@ class AssessmentController extends Controller
         ]);
 
         $user = Auth::user();
+        \Log::info('Assessment API called', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_institution_id' => $user->institution_id,
+            'request_institution_id' => $request->institution_id,
+            'request_params' => $request->all()
+        ]);
+
         $institutionId = $request->institution_id ?? $user->institution_id;
         $academicYearId = $request->academic_year_id;
 
+        \Log::info('Assessment API institution check', [
+            'final_institution_id' => $institutionId,
+            'institution_exists' => Institution::where('id', $institutionId)->exists(),
+            'user_roles' => $user->roles->pluck('name')->toArray()
+        ]);
+
         // Authorization check
         if (!$this->canAccessInstitution($user, $institutionId)) {
+            \Log::warning('Assessment API access denied', [
+                'user_id' => $user->id,
+                'institution_id' => $institutionId,
+                'reason' => 'canAccessInstitution returned false'
+            ]);
             return response()->json(['error' => 'Bu müəssisəyə giriş icazəniz yoxdur'], 403);
         }
 
@@ -375,13 +394,29 @@ class AssessmentController extends Controller
      */
     private function canAccessInstitution($user, $institutionId): bool
     {
+        // SuperAdmin can access all institutions
         if ($user->hasRole('superadmin')) return true;
         
+        // If no institution ID provided, deny access
+        if (!$institutionId) return false;
+        
+        // Check if institution exists
+        $institution = Institution::find($institutionId);
+        if (!$institution) return false;
+        
+        // RegionAdmin can access institutions in their region
         if ($user->hasRole('regionadmin')) {
-            $institution = Institution::find($institutionId);
-            return $institution && $institution->getRegionId() === $user->institution->getRegionId();
+            $userInstitution = Institution::find($user->institution_id);
+            if (!$userInstitution) return false;
+            
+            // Both should be in same region (level 2 or have same level 2 parent)
+            $userRegionId = $userInstitution->level === 2 ? $userInstitution->id : $userInstitution->parent_id;
+            $institutionRegionId = $institution->level === 2 ? $institution->id : $institution->parent_id;
+            
+            return $userRegionId === $institutionRegionId;
         }
         
+        // Other users can only access their own institution
         return $user->institution_id === $institutionId;
     }
 
