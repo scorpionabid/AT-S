@@ -64,10 +64,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        console.log('🔍 AuthContext: Checking authentication');
         if (authService.isAuthenticated()) {
+          console.log('🔍 AuthContext: User is authenticated, getting current user');
           const user = await authService.getCurrentUser();
+          console.log('👤 AuthContext: Got current user:', user);
+          console.log('🎭 AuthContext: Current user role:', user.role);
           setCurrentUser(user);
           setIsAuthenticated(true);
+        } else {
+          console.log('🔍 AuthContext: User is not authenticated');
         }
       } catch (error) {
         console.error('Auth check failed:', error);
@@ -84,6 +90,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       setLoading(true);
       const response = await authService.login(credentials);
+      
+      console.log('🔍 AuthContext: Login response:', response);
+      console.log('👤 AuthContext: Setting user:', response.user);
+      console.log('🎭 AuthContext: User role:', response.user.role);
       
       setCurrentUser(response.user);
       setIsAuthenticated(true);

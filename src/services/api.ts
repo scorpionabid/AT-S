@@ -1,4 +1,13 @@
+console.log('🔧 Environment check:', { 
+  VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
+  NODE_ENV: import.meta.env.NODE_ENV,
+  all_env: import.meta.env
+});
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001/api';
+const SANCTUM_BASE_URL = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8001';
+
+console.log('🔗 API URLs:', { API_BASE_URL, SANCTUM_BASE_URL });
 
 export interface ApiResponse<T = any> {
   data?: T;
@@ -90,22 +99,30 @@ class ApiClient {
 
   async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
     console.log(`🌐 API GET request: ${endpoint}`, { params });
-    const url = new URL(`${this.baseURL}${endpoint}`);
     
-    if (params) {
-      Object.keys(params).forEach(key => {
-        if (params[key] !== undefined && params[key] !== null) {
-          // Convert boolean values properly for Laravel validation
-          let value = params[key];
-          if (typeof value === 'boolean') {
-            value = value ? '1' : '0';
+    // Handle special Sanctum endpoints
+    let requestUrl: string;
+    if (endpoint.startsWith('/sanctum/')) {
+      requestUrl = `${SANCTUM_BASE_URL}${endpoint}`;
+    } else {
+      requestUrl = `${this.baseURL}${endpoint}`;
+      if (params) {
+        const url = new URL(requestUrl);
+        Object.keys(params).forEach(key => {
+          if (params[key] !== undefined && params[key] !== null) {
+            // Convert boolean values properly for Laravel validation
+            let value = params[key];
+            if (typeof value === 'boolean') {
+              value = value ? '1' : '0';
+            }
+            url.searchParams.append(key, value.toString());
           }
-          url.searchParams.append(key, value.toString());
-        }
-      });
+        });
+        requestUrl = url.toString();
+      }
     }
 
-    const response = await fetch(url.toString(), {
+    const response = await fetch(requestUrl, {
       method: 'GET',
       headers: this.getHeaders(),
       credentials: 'include',

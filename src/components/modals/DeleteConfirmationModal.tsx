@@ -4,30 +4,30 @@ import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { AlertTriangle, Trash2, Archive } from 'lucide-react';
-import { Department } from '@/services/departments';
-
 interface DeleteConfirmationModalProps {
   open: boolean;
   onClose: () => void;
-  department: Department | null;
-  onConfirm: (department: Department, deleteType: 'soft' | 'hard') => Promise<void>;
+  item: any | null;
+  onConfirm: (item: any, deleteType: 'soft' | 'hard') => Promise<void>;
+  itemType?: string;
 }
 
 export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   open,
   onClose,
-  department,
+  item,
   onConfirm,
+  itemType = 'departament',
 }) => {
   const [deleteType, setDeleteType] = useState<'soft' | 'hard'>('soft');
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
-    if (!department) return;
+    if (!item) return;
 
     setLoading(true);
     try {
-      await onConfirm(department, deleteType);
+      await onConfirm(item, deleteType);
       onClose();
     } catch (error) {
       console.error('Delete failed:', error);
@@ -41,7 +41,38 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
     onClose();
   };
 
-  if (!department) return null;
+  if (!item) return null;
+
+  // Get item details based on type
+  const getItemDetails = () => {
+    if (itemType === 'departament') {
+      return {
+        name: item.name,
+        subtitle: `Müəssisə: ${item.institution?.name}`,
+        details: [
+          `Növ: ${item.department_type_display || item.department_type}`,
+          `Status: ${item.is_active ? 'Aktiv' : 'Deaktiv'}`
+        ]
+      };
+    } else if (itemType === 'rol') {
+      return {
+        name: item.display_name || item.name,
+        subtitle: `Rol: ${item.name}`,
+        details: [
+          `Səviyyə: ${item.level}`,
+          `Kateqoriya: ${item.role_category === 'system' ? 'Sistem' : 'Özəl'}`,
+          `İcazələr: ${item.permissions?.length || 0}`
+        ]
+      };
+    }
+    return {
+      name: item.name || 'Bilinməyən',
+      subtitle: '',
+      details: []
+    };
+  };
+
+  const itemDetails = getItemDetails();
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -49,7 +80,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-destructive" />
-            Departamenti sil
+            {itemType === 'rol' ? 'Rolu sil' : 'Departamenti sil'}
           </DialogTitle>
           <DialogDescription>
             Bu əməliyyatı necə icra etmək istəyirsiniz?
@@ -60,12 +91,13 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
           <div className="bg-muted p-4 rounded-lg">
             <div className="flex items-center gap-2 mb-2">
               <div className="w-2 h-2 bg-primary rounded-full" />
-              <span className="font-medium">{department.name}</span>
+              <span className="font-medium">{itemDetails.name}</span>
             </div>
             <div className="text-sm text-muted-foreground space-y-1">
-              <div>Müəssisə: {department.institution?.name}</div>
-              <div>Növ: {department.department_type_display || department.department_type}</div>
-              <div>Status: {department.is_active ? 'Aktiv' : 'Deaktiv'}</div>
+              {itemDetails.subtitle && <div>{itemDetails.subtitle}</div>}
+              {itemDetails.details.map((detail, index) => (
+                <div key={index}>{detail}</div>
+              ))}
             </div>
           </div>
 
@@ -79,7 +111,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
                     Soft Delete (Deaktiv et)
                   </Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Departament deaktiv ediləcək, lakin məlumatlar saxlanılacaq. 
+                    {itemType === 'rol' ? 'Rol' : 'Departament'} deaktiv ediləcək, lakin məlumatlar saxlanılacaq. 
                     Gələcəkdə bərpa etmək mümkün olacaq.
                   </p>
                 </div>
@@ -93,7 +125,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
                     Hard Delete (Tamamilə sil)
                   </Label>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Departament və bütün məlumatları tamamilə silinəcək. 
+                    {itemType === 'rol' ? 'Rol' : 'Departament'} və bütün məlumatları tamamilə silinəcək. 
                     Bu əməliyyat geri alına bilməz.
                   </p>
                 </div>
@@ -108,7 +140,7 @@ export const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = (
                 <span className="font-medium">Diqqət!</span>
               </div>
               <p className="text-sm text-destructive/80 mt-1">
-                Bu əməliyyat geri alına bilməz. Departament və bütün əlaqəli məlumatlar 
+                Bu əməliyyat geri alına bilməz. {itemType === 'rol' ? 'Rol' : 'Departament'} və bütün əlaqəli məlumatlar 
                 tamamilə silinəcək.
               </p>
             </div>

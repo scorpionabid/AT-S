@@ -132,7 +132,7 @@ class DashboardService {
 
   // Role-specific dashboard data
   async getSuperAdminDashboard() {
-    const response = await apiClient.get('/dashboard/super-admin');
+    const response = await apiClient.get('/dashboard/superadmin-analytics');
     return response.data;
   }
 
@@ -149,6 +149,64 @@ class DashboardService {
   async getTeacherDashboard() {
     const response = await apiClient.get('/dashboard/teacher');
     return response.data;
+  }
+
+  // New role-specific dashboard methods
+  async getSektorAdminStats() {
+    console.log('🔍 DashboardService.getSektorAdminStats called');
+    try {
+      const response = await apiClient.get('/sektoradmin/dashboard');
+      console.log('✅ DashboardService.getSektorAdminStats successful:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ DashboardService.getSektorAdminStats failed:', error);
+      throw error;
+    }
+  }
+
+  async getSchoolAdminStats() {
+    console.log('🔍 DashboardService.getSchoolAdminStats called');
+    try {
+      const response = await apiClient.get('/mektebadmin/dashboard');
+      console.log('✅ DashboardService.getSchoolAdminStats successful:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ DashboardService.getSchoolAdminStats failed:', error);
+      throw error;
+    }
+  }
+
+  async getTeacherStats() {
+    console.log('🔍 DashboardService.getTeacherStats called');
+    try {
+      const response = await apiClient.get('/teacher/dashboard');
+      console.log('✅ DashboardService.getTeacherStats successful:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ DashboardService.getTeacherStats failed:', error);
+      throw error;
+    }
+  }
+
+  // Additional detailed endpoints
+  async getSektorSchools() {
+    const response = await apiClient.get('/sektoradmin/schools');
+    return response;
+  }
+
+  async getSektorAnalytics() {
+    const response = await apiClient.get('/sektoradmin/analytics');
+    return response;
+  }
+
+  async getSchoolClasses() {
+    const response = await apiClient.get('/mektebadmin/classes');
+    return response;
+  }
+
+  async getSchoolTeachers() {
+    const response = await apiClient.get('/mektebadmin/teachers');
+    return response;
   }
 }
 

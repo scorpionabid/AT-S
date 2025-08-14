@@ -10,6 +10,8 @@ import { Department, CreateDepartmentData, departmentService } from "@/services/
 import { DepartmentModal } from "@/components/modals/DepartmentModal";
 import { DeleteConfirmationModal } from "@/components/modals/DeleteConfirmationModal";
 import { useToast } from "@/hooks/use-toast";
+import { usePagination } from "@/hooks/usePagination";
+import { TablePagination } from "@/components/common/TablePagination";
 
 type SortField = 'name' | 'short_name' | 'department_type' | 'institution' | 'is_active';
 type SortDirection = 'asc' | 'desc';
@@ -27,25 +29,97 @@ export default function Departments() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Load departments
-  const { data: departmentsResponse, isLoading, error } = useQuery({
+  // Define the expected API response type
+  interface DepartmentsApiResponse {
+    success: boolean;
+    data: {
+      data: Department[];
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+  }
+
+  // Define the base response type from the API
+  interface PaginatedResponse<T> {
+    success: boolean;
+    data: {
+      data: T[];
+      current_page: number;
+      last_page: number;
+      per_page: number;
+      total: number;
+    };
+  }
+
+  // Extend the Department interface to include department_type_display
+  interface ExtendedDepartment extends Department {
+    department_type_display?: string;
+  }
+
+  // Load departments with proper typing
+  const { data: departmentsResponse, isLoading, error } = useQuery<PaginatedResponse<ExtendedDepartment>>({
     queryKey: ['departments'],
-    queryFn: () => departmentService.getAll(),
+    queryFn: () => departmentService.getAll() as Promise<PaginatedResponse<ExtendedDepartment>>,
   });
 
-  const rawDepartments = departmentsResponse?.data || [];
+  // Extract departments from the API response
+  const rawDepartments: ExtendedDepartment[] = useMemo(() => {
+    if (!departmentsResponse) return [];
+    
+    // Handle the paginated response structure from the API
+    if (departmentsResponse.success && departmentsResponse.data?.data) {
+      return departmentsResponse.data.data;
+    }
+    
+    console.warn('Unexpected departments response structure:', departmentsResponse);
+    return [];
+  }, [departmentsResponse]);
 
-  // Load department types for filter
-  const { data: typesResponse } = useQuery({
+  // Load department types for filter with proper typing
+  interface DepartmentType {
+    id: string;
+    key: string;        // For SelectItem value
+    name: string;       // For display name
+    label: string;      // For SelectItem label
+    description?: string;
+  }
+
+  const { data: typesResponse } = useQuery<{ success: boolean; data: DepartmentType[] }>({
     queryKey: ['department-types'],
-    queryFn: () => departmentService.getTypes(),
+    queryFn: () => departmentService.getTypes() as Promise<{ success: boolean; data: DepartmentType[] }>,
     staleTime: 1000 * 60 * 10,
   });
 
-  const departmentTypes = typesResponse?.data || [];
+  const departmentTypes = useMemo<DepartmentType[]>(() => {
+    if (!typesResponse) return [];
+    
+    // Handle the response structure from the API
+    if (typesResponse.success && Array.isArray(typesResponse.data)) {
+      return typesResponse.data.map(type => ({
+        ...type,
+        id: type.id || String(Math.random()),
+        key: type.id || String(Math.random()),  // Ensure key is unique and set for SelectItem
+        label: type.name || 'Unnamed',          // Use name as label by default
+        name: type.name || 'Unnamed'            // Ensure name is always defined
+      }));
+    }
+    
+    // Fallback for other response structures
+    return Array.isArray(typesResponse) 
+      ? typesResponse.map((t, index) => ({
+          ...t,
+          id: t.id || `type-${index}`,
+          key: t.id || `type-${index}`,
+          label: t.name || 'Unnamed',
+          name: t.name || 'Unnamed'
+        }))
+      : [];
+  }, [typesResponse]);
 
   // Filtering and Sorting logic
-  const departments = useMemo(() => {
+  const filteredAndSortedDepartments: ExtendedDepartment[] = useMemo(() => {
     let filtered = [...rawDepartments];
 
     // Apply search filter
@@ -105,6 +179,14 @@ export default function Departments() {
     });
     return sorted;
   }, [rawDepartments, sortField, sortDirection, searchTerm, statusFilter, typeFilter]);
+
+  // Apply pagination
+  const pagination = usePagination(filteredAndSortedDepartments, {
+    initialPage: 1,
+    initialItemsPerPage: 15
+  });
+
+  const departments = pagination.paginatedItems;
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -212,7 +294,7 @@ export default function Departments() {
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-foreground">Departmentlər</h1>
-            <p className="text-muted-foreground">Departmentlərin idarə edilməsi</p>
+            <p className="text-muted-foreground">Regional icazələr əsasında departmentlərin idarə edilməsi</p>
           </div>
         </div>
         
@@ -264,7 +346,7 @@ export default function Departments() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Departmentlər</h1>
-          <p className="text-muted-foreground">Departmentlərin idarə edilməsi</p>
+          <p className="text-muted-foreground">Regional icazələr əsasında departmentlərin idarə edilməsi</p>
         </div>
         <Button className="flex items-center gap-2" onClick={() => handleOpenModal()}>
           <Plus className="h-4 w-4" />
@@ -302,18 +384,21 @@ export default function Departments() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Bütün növlər</SelectItem>
-              {departmentTypes.map((type) => (
-                <SelectItem key={type.key} value={type.key}>
-                  {type.label}
-                </SelectItem>
-              ))}
+              {departmentTypes.map((type) => {
+                const itemKey = type.key || type.id || `type-${type.name || 'unknown'}`;
+                return (
+                  <SelectItem key={itemKey} value={itemKey}>
+                    {type.label || type.name || 'Unnamed'}
+                  </SelectItem>
+                );
+              })}
             </SelectContent>
           </Select>
         </div>
 
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            {departments.length} departament
+            {pagination.totalItems} departament
           </span>
           {(searchTerm || statusFilter !== 'all' || typeFilter !== 'all') && (
             <Button variant="outline" size="sm" onClick={clearFilters}>
@@ -384,7 +469,7 @@ export default function Departments() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {departments.length === 0 ? (
+            {pagination.totalItems === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-24 text-center">
                   Heç bir departament tapılmadı.
@@ -450,6 +535,24 @@ export default function Departments() {
         </Table>
       </div>
 
+      {/* Pagination */}
+      {pagination.totalItems > 0 && (
+        <TablePagination
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          totalItems={pagination.totalItems}
+          itemsPerPage={pagination.itemsPerPage}
+          startIndex={pagination.startIndex}
+          endIndex={pagination.endIndex}
+          onPageChange={pagination.goToPage}
+          onItemsPerPageChange={pagination.setItemsPerPage}
+          onPrevious={pagination.goToPreviousPage}
+          onNext={pagination.goToNextPage}
+          canGoPrevious={pagination.canGoPrevious}
+          canGoNext={pagination.canGoNext}
+        />
+      )}
+
       {/* Department Modal */}
       <DepartmentModal
         open={isModalOpen}
@@ -462,7 +565,8 @@ export default function Departments() {
       <DeleteConfirmationModal
         open={isDeleteModalOpen}
         onClose={handleDeleteModalClose}
-        department={departmentToDelete}
+        item={departmentToDelete}
+        itemType="department"
         onConfirm={handleDeleteConfirm}
       />
     </div>

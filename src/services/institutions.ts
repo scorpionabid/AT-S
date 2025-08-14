@@ -69,6 +69,23 @@ class InstitutionService extends BaseService<Institution> {
     super('/institutions');
   }
 
+  async getAll(params?: PaginationParams) {
+    console.log('🔍 InstitutionService.getAll called with params:', params);
+    try {
+      const response = await apiClient.get<Institution[]>(this.baseEndpoint, params);
+      console.log('✅ InstitutionService.getAll successful:', response);
+      return response as any; // PaginatedResponse
+    } catch (error) {
+      console.error('❌ InstitutionService.getAll failed:', error);
+      throw error;
+    }
+  }
+
+  // Alias for getAll to maintain compatibility with modal components
+  async getInstitutions(params?: PaginationParams) {
+    return this.getAll(params);
+  }
+
   async getByType(type: Institution['type'], params?: PaginationParams) {
     const response = await apiClient.get<Institution[]>(`${this.baseEndpoint}`, { ...params, type });
     return response as any; // PaginatedResponse

@@ -4,26 +4,44 @@ import { apiClient } from './api';
 export interface Task extends BaseEntity {
   title: string;
   description?: string;
-  status: 'pending' | 'in_progress' | 'completed' | 'cancelled' | 'overdue';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  due_date?: string;
-  assigned_to: number;
-  assigned_by: number;
-  institution_id?: number;
-  department_id?: number;
+  category: 'report' | 'maintenance' | 'event' | 'audit' | 'instruction' | 'other';
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  status: 'pending' | 'in_progress' | 'review' | 'completed' | 'cancelled';
   progress: number;
+  deadline?: string;
+  started_at?: string;
+  completed_at?: string;
+  created_by: number;
+  assigned_to: number;
+  assigned_institution_id?: number;
+  target_institutions?: number[];
+  target_departments?: number[];
+  target_roles?: string[];
+  target_scope: 'specific' | 'regional' | 'sector' | 'institutional' | 'all';
   notes?: string;
+  completion_notes?: string;
   attachments?: TaskAttachment[];
+  requires_approval: boolean;
+  approved_by?: number;
+  approved_at?: string;
+  
+  // Relations
+  creator?: {
+    id: number;
+    name: string;
+    email: string;
+  };
   assignee?: {
     id: number;
     name: string;
     email: string;
   };
-  assigner?: {
+  assignedInstitution?: {
     id: number;
     name: string;
+    type: string;
   };
-  institution?: {
+  approver?: {
     id: number;
     name: string;
   };
@@ -40,13 +58,17 @@ export interface TaskAttachment {
 
 export interface CreateTaskData {
   title: string;
-  description?: string;
+  description: string;
+  category: Task['category'];
   priority: Task['priority'];
-  due_date?: string;
+  deadline?: string;
   assigned_to: number;
-  institution_id?: number;
-  department_id?: number;
-  attachments?: File[];
+  assigned_institution_id?: number;
+  target_institutions?: number[];
+  target_departments?: number[];
+  target_scope: Task['target_scope'];
+  notes?: string;
+  requires_approval?: boolean;
 }
 
 export interface UpdateTaskData {
@@ -62,13 +84,13 @@ export interface UpdateTaskData {
 export interface TaskFilters extends PaginationParams {
   status?: Task['status'];
   priority?: Task['priority'];
+  category?: Task['category'];
   assigned_to?: number;
-  assigned_by?: number;
-  institution_id?: number;
-  department_id?: number;
-  due_date_from?: string;
-  due_date_to?: string;
-  overdue_only?: boolean;
+  created_by?: number;
+  search?: string;
+  deadline_filter?: 'approaching' | 'overdue' | 'all';
+  sort_by?: 'created_at' | 'deadline' | 'priority' | 'status';
+  sort_direction?: 'asc' | 'desc';
 }
 
 export interface TaskStats {
@@ -87,33 +109,25 @@ class TaskService extends BaseService<Task> {
     super('/tasks');
   }
 
-  async assign(data: CreateTaskData) {
-    const formData = new FormData();
+  async create(data: CreateTaskData): Promise<Task> {
+    console.log('🔥 TaskService.create called', data);
     
-    Object.keys(data).forEach(key => {
-      if (key === 'attachments' && data.attachments) {
-        data.attachments.forEach(file => {
-          formData.append('attachments[]', file);
-        });
-      } else if (data[key as keyof CreateTaskData] !== undefined) {
-        formData.append(key, String(data[key as keyof CreateTaskData]));
+    try {
+      const response = await apiClient.post(this.baseEndpoint, data);
+      console.log('📤 API response for task create:', response);
+      
+      // Backend returns: { success: true, message: '...', data: {...} }
+      if (!response.data) {
+        console.error('❌ No data in response:', response);
+        throw new Error('Tapşırıq yaratma əməliyyatı uğursuz oldu');
       }
-    });
-
-    const response = await fetch(`${(apiClient as any).baseURL}${this.baseEndpoint}`, {
-      method: 'POST',
-      headers: {
-        ...((apiClient as any).getHeaders()),
-        'Content-Type': 'multipart/form-data'
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      throw new Error('Task assignment failed');
+      
+      console.log('✅ Task create successful:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ Task create failed:', error);
+      throw error;
     }
-
-    return response.json();
   }
 
   async updateStatus(id: number, status: Task['status'], notes?: string) {
@@ -168,8 +182,15 @@ class TaskService extends BaseService<Task> {
   }
 
   async getStats(filters?: Partial<TaskFilters>) {
-    const response = await apiClient.get<TaskStats>(`${this.baseEndpoint}/stats`, filters);
-    return response.data;
+    console.log('🔍 TaskService.getStats called', filters);
+    try {
+      const response = await apiClient.get('/tasks/statistics', filters);
+      console.log('✅ TaskService.getStats successful:', response);
+      return response.data || response;
+    } catch (error) {
+      console.error('❌ TaskService.getStats failed:', error);
+      throw error;
+    }
   }
 
   async downloadAttachment(taskId: number, attachmentId: number) {

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,58 +7,66 @@ import {
 } from '@/components/ui/dialog';
 import { FormBuilder, createField, commonValidations } from '@/components/forms/FormBuilder';
 import { useToast } from '@/hooks/use-toast';
-
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-  region?: string;
-  institution?: string;
-  status: 'active' | 'inactive';
-  phone?: string;
-  createdAt?: string;
-}
+import { User, userService } from '@/services/users';
 
 interface UserModalProps {
   open: boolean;
   onClose: () => void;
   user?: User | null;
-  onSave: (user: Partial<User>) => Promise<void>;
+  onSave: (user: any) => Promise<void>;
 }
-
-const roleOptions = [
-  { label: 'Super Admin', value: 'super_admin' },
-  { label: 'Region Admin', value: 'region_admin' },
-  { label: 'Institution Admin', value: 'institution_admin' },
-  { label: 'Teacher', value: 'teacher' },
-  { label: 'Observer', value: 'observer' },
-];
-
-const regionOptions = [
-  { label: 'Bakı', value: 'baki' },
-  { label: 'Şəki-Zaqatala', value: 'seki-zaqatala' },
-  { label: 'Quba-Xaçmaz', value: 'quba-xacmaz' },
-  { label: 'Aran', value: 'aran' },
-  { label: 'Gəncə-Qazax', value: 'gence-qazax' },
-  { label: 'Şirvan-Salyan', value: 'sirvan-salyan' },
-  { label: 'Lənkəran-Astara', value: 'lenkaran-astara' },
-  { label: 'Qərbi Azərbaycan', value: 'qerbi-azerbaycan' },
-];
-
-const statusOptions = [
-  { label: 'Aktiv', value: 'active' },
-  { label: 'Deaktiv', value: 'inactive' },
-];
 
 export function UserModal({ open, onClose, user, onSave }: UserModalProps) {
   const { toast } = useToast();
-  const [loading, setLoading] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [availableRoles, setAvailableRoles] = useState<Array<{id: number, name: string, display_name: string, level: number}>>([]);
+  const [availableInstitutions, setAvailableInstitutions] = useState<Array<{id: number, name: string, type: string, level: number, parent_id: number | null}>>([]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
 
-  const fields = [
-    createField('name', 'Ad və Soyad', 'text', {
+  // Load available roles and institutions when modal opens
+  useEffect(() => {
+    if (open) {
+      loadOptions();
+    }
+  }, [open]);
+
+  const loadOptions = async () => {
+    try {
+      setLoadingOptions(true);
+      const [roles, institutions] = await Promise.all([
+        userService.getAvailableRoles(),
+        userService.getAvailableInstitutions()
+      ]);
+      
+      setAvailableRoles(roles);
+      setAvailableInstitutions(institutions);
+    } catch (error) {
+      console.error('Failed to load options:', error);
+      toast({
+        title: 'Xəta',
+        description: 'Seçimlər yüklənə bilmədi',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingOptions(false);
+    }
+  };
+
+  // Generate form fields with dynamic options
+  const getFields = () => [
+    createField('first_name', 'Ad', 'text', {
       required: true,
-      placeholder: 'İstifadəçinin tam adı',
+      placeholder: 'İstifadəçinin adı',
+      validation: commonValidations.required,
+    }),
+    createField('last_name', 'Soyad', 'text', {
+      required: true,
+      placeholder: 'İstifadəçinin soyadı',
+      validation: commonValidations.required,
+    }),
+    createField('username', 'İstifadəçi adı', 'text', {
+      required: true,
+      placeholder: 'istifadeci_adi',
       validation: commonValidations.required,
     }),
     createField('email', 'Email', 'email', {
@@ -66,27 +74,40 @@ export function UserModal({ open, onClose, user, onSave }: UserModalProps) {
       placeholder: 'ornek@edu.gov.az',
       validation: commonValidations.email,
     }),
-    createField('phone', 'Telefon', 'text', {
+    createField('password', 'Şifrə', 'password', {
+      required: !user, // Yeni istifadəçi üçün şifrə tələb olunur
+      placeholder: 'Minimum 8 simvol',
+      validation: !user ? commonValidations.required : undefined,
+    }),
+    createField('contact_phone', 'Telefon', 'text', {
       placeholder: '+994 XX XXX XX XX',
       validation: commonValidations.phone.optional(),
     }),
-    createField('role', 'Rol', 'select', {
+    createField('role_id', 'Rol', 'select', {
       required: true,
-      options: roleOptions,
-      placeholder: 'Rol seçin',
+      options: availableRoles.map(role => ({ 
+        label: role.display_name, 
+        value: role.id.toString() 
+      })),
+      placeholder: loadingOptions ? 'Rollar yüklənir...' : 'Rol seçin',
+      disabled: loadingOptions,
       validation: commonValidations.required,
     }),
-    createField('region', 'Region', 'select', {
-      options: regionOptions,
-      placeholder: 'Region seçin (əgər tələb olunursa)',
+    createField('institution_id', 'Müəssisə', 'select', {
+      options: availableInstitutions.map(institution => ({ 
+        label: `${institution.name} (${institution.type})`, 
+        value: institution.id.toString() 
+      })),
+      placeholder: loadingOptions ? 'Müəssisələr yüklənir...' : 'Müəssisə seçin',
+      disabled: loadingOptions,
     }),
-    createField('institution', 'Təşkilat', 'text', {
-      placeholder: 'Təşkilat adı (əgər tələb olunursa)',
-    }),
-    createField('status', 'Status', 'select', {
+    createField('is_active', 'Status', 'select', {
       required: true,
-      options: statusOptions,
-      defaultValue: 'active',
+      options: [
+        { label: 'Aktiv', value: true },
+        { label: 'Deaktiv', value: false }
+      ],
+      defaultValue: true,
       validation: commonValidations.required,
     }),
   ];
@@ -123,10 +144,10 @@ export function UserModal({ open, onClose, user, onSave }: UserModalProps) {
         </DialogHeader>
         
         <FormBuilder
-          fields={fields}
+          fields={getFields()}
           onSubmit={handleSubmit}
           submitLabel={user ? 'Yenilə' : 'Əlavə et'}
-          loading={loading}
+          loading={loading || loadingOptions}
           defaultValues={user || {}}
           columns={2}
         />

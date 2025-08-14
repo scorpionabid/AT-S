@@ -32,7 +32,13 @@ export const SuperAdminDashboard = () => {
 
   useEffect(() => {
     if (dashboardData) {
-      setStats(dashboardData);
+      // Use real data from backend API - no mock data
+      setStats({
+        users: dashboardData.users || { total: 0, active: 0, new_this_month: 0 },
+        institutions: dashboardData.institutions || { total: 0, active: 0 },
+        surveys: dashboardData.surveys || { total: 0, active: 0, completed: 0, total_responses: 0 },
+        tasks: dashboardData.tasks || { total: 0, pending: 0, in_progress: 0, completed: 0, overdue: 0 }
+      });
     }
   }, [dashboardData]);
 

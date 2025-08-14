@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { Plus, School, MapPin, Users, Loader2, Building, Edit, Trash2, Settings } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { institutionService, Institution, CreateInstitutionData, InstitutionType } from "@/services/institutions";
@@ -9,9 +8,10 @@ import { DeleteInstitutionModal } from "@/components/modals/DeleteInstitutionMod
 import { useState } from "react";
 import React from "react";
 import { useToast } from "@/hooks/use-toast";
+import { TablePagination } from "@/components/common/TablePagination";
 // import { useAuth } from "@/hooks/useAuth"; // Uncomment when auth context is available
 
-export default function Institutions() {
+const Institutions = () => {
   const [selectedType, setSelectedType] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedInstitution, setSelectedInstitution] = useState<Institution | null>(null);
@@ -23,15 +23,15 @@ export default function Institutions() {
   const queryClient = useQueryClient();
 
   // Load institution types for filtering
-  const { data: institutionTypesResponse } = useQuery({
+  const { data: institutionTypesResponse } = useQuery<{ success: boolean; institution_types: InstitutionType[] }>({
     queryKey: ['institution-types'],
-    queryFn: () => institutionService.getInstitutionTypes(),
+    queryFn: () => institutionService.getInstitutionTypes() as Promise<{ success: boolean; institution_types: InstitutionType[] }>,
     staleTime: 1000 * 60 * 10, // Cache for 10 minutes
   });
 
   const availableTypes = React.useMemo(() => {
-    if (!institutionTypesResponse?.institution_types) return [];
-    return institutionTypesResponse.institution_types.map((type: InstitutionType) => ({
+    if (!institutionTypesResponse?.success || !Array.isArray(institutionTypesResponse.institution_types)) return [];
+    return institutionTypesResponse.institution_types.map((type) => ({
       key: type.key,
       label: type.label_az || type.label,
       level: type.default_level,
@@ -40,37 +40,81 @@ export default function Institutions() {
     }));
   }, [institutionTypesResponse]);
   
-  const { data: institutions, isLoading, error } = useQuery({
+  interface InstitutionsResponse {
+    institutions: Institution[];
+    pagination: {
+      currentPage: number;
+      perPage: number;
+      total: number;
+      lastPage: number;
+    };
+  }
+
+  const { data: institutionsResponse, isLoading, error } = useQuery<InstitutionsResponse>({
     queryKey: ['institutions', selectedType, currentPage, perPage],
     queryFn: async () => {
-      console.log(`🏢 Loading institutions for type: ${selectedType}, page: ${currentPage}`);
-      console.log(`⏰ Query time: ${new Date().toISOString()}`);
-      
-      try {
-        const params = { page: currentPage, per_page: perPage };
-        const result = selectedType === 'all' 
-          ? await institutionService.getAll(params) 
-          : await institutionService.getByType(selectedType, params);
-        
-        console.log(`📦 Institutions loaded for ${selectedType}:`, result);
-        console.log(`📊 Data structure:`, {
-          hasData: !!result?.data,
-          hasInstitutions: !!result?.institutions,
-          dataLength: result?.data?.length || 'undefined',
-          institutionsLength: result?.institutions?.length || 'undefined',
-          hasMeta: !!result?.meta,
-          keys: Object.keys(result || {}),
-          fullResult: result
-        });
-        
-        return result;
-      } catch (err) {
-        console.error(`❌ Failed to load institutions for ${selectedType}:`, err);
-        throw err;
+      const params = {
+        page: currentPage,
+        per_page: perPage,
+      };
+
+      let response;
+      if (selectedType === 'all') {
+        response = await institutionService.getAll(params);
+      } else {
+        // Cast selectedType to the correct type for getByType
+        const institutionType = selectedType as Institution['type'];
+        response = await institutionService.getByType(institutionType, params);
+      }
+
+      // Handle both response formats
+      if (response.success && response.data) {
+        return {
+          institutions: Array.isArray(response.data.data) ? response.data.data : [],
+          pagination: {
+            currentPage: response.data.current_page || 1,
+            lastPage: response.data.last_page || 1,
+            total: response.data.total || 0,
+            perPage: response.data.per_page || perPage,
+          },
+        };
+      } else if (Array.isArray(response)) {
+        // Fallback for direct array response
+        return {
+          institutions: response,
+          pagination: {
+            currentPage: 1,
+            perPage: perPage,
+            total: response.length,
+            lastPage: 1,
+          },
+        };
+      } else if (response.institutions) {
+        // Handle case where institutions is directly in the response
+        return {
+          institutions: response.institutions,
+          pagination: response.pagination || {
+            currentPage: 1,
+            perPage: perPage,
+            total: response.institutions.length,
+            lastPage: 1,
+          },
+        };
+      } else {
+        // Default empty response for any other case
+        return {
+          institutions: [],
+          pagination: {
+            currentPage: 1,
+            perPage: perPage,
+            total: 0,
+            lastPage: 1,
+          },
+        };
       }
     },
     staleTime: 0, // Always refetch
-    cacheTime: 1000 * 60 * 5, // Cache for 5 minutes
+    gcTime: 1000 * 60 * 5, // Cache for 5 minutes (renamed from cacheTime in v5+)
   });
 
   const handleOpenModal = (institution?: Institution) => {
@@ -346,7 +390,8 @@ export default function Institutions() {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <p className="text-sm text-muted-foreground">
-            Ümumi: {institutions?.institutions?.length || 0} müəssisə
+            Ümumi: {institutionsResponse?.pagination?.total || 0} müəssisə
+            {selectedType !== 'all' && ` (${institutionsResponse?.institutions?.length || 0} göstərilir)`}
           </p>
         </div>
         
@@ -364,7 +409,33 @@ export default function Institutions() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {institutions?.institutions?.map((institution: Institution, index: number) => {
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      <p className="text-sm text-muted-foreground">Müəssisələr yüklənir...</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : error ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8">
+                    <div className="flex flex-col items-center justify-center space-y-2">
+                      <p className="text-destructive">
+                        Xəta baş verdi: {error instanceof Error ? error.message : 'Bilinməyən xəta'}
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : !institutionsResponse?.institutions?.length ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                    Heç bir məlumat tapılmadı
+                  </TableCell>
+                </TableRow>
+              ) : (
+                institutionsResponse.institutions.map((institution, index) => {
                 const IconComponent = getInstitutionIcon(institution.type);
                 
                 return (
@@ -431,99 +502,40 @@ export default function Institutions() {
                     </TableCell>
                   </TableRow>
                 );
-              })}
+                })
+              )}
             </TableBody>
           </Table>
         </div>
       </div>
 
       {/* Pagination */}
-      {institutions?.meta && institutions.meta.last_page > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            {institutions.meta.from}-{institutions.meta.to} arası, ümumi {institutions.meta.total} müəssisə
-          </div>
-          
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage > 1) {
-                      setCurrentPage(currentPage - 1);
-                    }
-                  }}
-                  className={currentPage <= 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-              
-              {/* Page Numbers */}
-              {Array.from({ length: Math.min(5, institutions.meta.last_page) }, (_, i) => {
-                let pageNum;
-                const lastPage = institutions.meta.last_page;
-                
-                if (lastPage <= 5) {
-                  pageNum = i + 1;
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1;
-                } else if (currentPage >= lastPage - 2) {
-                  pageNum = lastPage - 4 + i;
-                } else {
-                  pageNum = currentPage - 2 + i;
-                }
-                
-                return (
-                  <PaginationItem key={pageNum}>
-                    <PaginationLink
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setCurrentPage(pageNum);
-                      }}
-                      isActive={currentPage === pageNum}
-                      className="cursor-pointer"
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  </PaginationItem>
-                );
-              })}
-              
-              <PaginationItem>
-                <PaginationNext 
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (currentPage < institutions.meta.last_page) {
-                      setCurrentPage(currentPage + 1);
-                    }
-                  }}
-                  className={currentPage >= institutions.meta.last_page ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-          
-          {/* Per Page Selector */}
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Səhifədə:</span>
-            <select 
-              value={perPage} 
-              onChange={(e) => {
-                setPerPage(Number(e.target.value));
-                setCurrentPage(1); // Reset to first page
-              }}
-              className="border rounded px-2 py-1 text-sm"
-            >
-              <option value={15}>15</option>
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-        </div>
+      {institutionsResponse?.pagination && institutionsResponse.pagination.total > 0 && (
+        <TablePagination
+          currentPage={institutionsResponse.pagination.currentPage}
+          totalPages={institutionsResponse.pagination.lastPage}
+          totalItems={institutionsResponse.pagination.total}
+          itemsPerPage={perPage}
+          startIndex={(institutionsResponse.pagination.currentPage - 1) * perPage}
+          endIndex={Math.min(institutionsResponse.pagination.currentPage * perPage, institutionsResponse.pagination.total)}
+          onPageChange={(page: number) => setCurrentPage(page)}
+          onItemsPerPageChange={(itemsPerPage: number) => {
+            setPerPage(itemsPerPage);
+            setCurrentPage(1);
+          }}
+          onPrevious={() => {
+            if (currentPage > 1) {
+              setCurrentPage(currentPage - 1);
+            }
+          }}
+          onNext={() => {
+            if (currentPage < institutionsResponse.pagination.lastPage) {
+              setCurrentPage(currentPage + 1);
+            }
+          }}
+          canGoPrevious={currentPage > 1}
+          canGoNext={currentPage < institutionsResponse.pagination.lastPage}
+        />
       )}
 
       <InstitutionModal
@@ -542,4 +554,6 @@ export default function Institutions() {
       />
     </div>
   );
-}
+};
+
+export default Institutions;

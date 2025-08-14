@@ -20,11 +20,26 @@ import Surveys from "./pages/Surveys";
 import SurveyApproval from "./pages/SurveyApproval";
 import SurveyResults from "./pages/SurveyResults";
 import SurveyArchive from "./pages/SurveyArchive";
+import SurveyResponse from "./pages/SurveyResponse";
 import Tasks from "./pages/Tasks";
 import Documents from "./pages/Documents";
 import Links from "./pages/Links";
 import Reports from "./pages/Reports";
 import InstitutionTypesManagement from "./pages/InstitutionTypesManagement";
+import Notifications from "./pages/Notifications";
+import Analytics from "./pages/Analytics";
+import Settings from "./pages/Settings";
+import AuditLogs from "./pages/AuditLogs";
+import Performance from "./pages/Performance";
+import SchoolWorkload from "./pages/SchoolWorkload";
+import SchoolSchedules from "./pages/SchoolSchedules";
+import SchoolAttendance from "./pages/SchoolAttendance";
+import AssessmentTypes from "./pages/AssessmentTypes";
+import AssessmentResults from "./pages/AssessmentResults";
+import AssessmentEntry from "./pages/AssessmentEntry";
+import RegionAdminIndex from "./pages/regionadmin/RegionAdminIndex";
+import RegionAdminUsers from "./pages/regionadmin/RegionAdminUsers";
+import RegionAdminSectors from "./pages/regionadmin/RegionAdminSectors";
 import { useState } from "react";
 
 const queryClient = new QueryClient();
@@ -105,6 +120,8 @@ const App = () => (
               <Route path="sectors" element={<Sectors />} />
               <Route path="hierarchy" element={<Hierarchy />} />
               <Route path="surveys" element={<Surveys />} />
+              <Route path="survey-response/:surveyId" element={<SurveyResponse />} />
+              <Route path="survey-response/:surveyId/:responseId" element={<SurveyResponse />} />
               <Route path="survey-approval" element={<SurveyApproval />} />
               <Route path="survey-results" element={<SurveyResults />} />
               <Route path="survey-archive" element={<SurveyArchive />} />
@@ -113,6 +130,34 @@ const App = () => (
               <Route path="links" element={<Links />} />
               <Route path="reports" element={<Reports />} />
               <Route path="institution-types-management" element={<InstitutionTypesManagement />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="audit-logs" element={<AuditLogs />} />
+              <Route path="performance" element={<Performance />} />
+              <Route path="school/workload" element={<SchoolWorkload />} />
+              <Route path="school/schedules" element={<SchoolSchedules />} />
+              <Route path="school/attendance" element={<SchoolAttendance />} />
+              
+              {/* Assessment Management Routes */}
+              <Route path="assessments/types" element={<AssessmentTypes />} />
+              <Route path="assessments/results" element={<AssessmentResults />} />
+              <Route path="assessments/entry" element={<AssessmentEntry />} />
+              
+              {/* RegionAdmin Routes */}
+              <Route path="regionadmin" element={<RegionAdminIndex />} />
+              <Route path="regionadmin/users/operators" element={<RegionAdminUsers />} />
+              <Route path="regionadmin/users/sektoradmins" element={<RegionAdminUsers />} />
+              <Route path="regionadmin/users/schooladmins" element={<RegionAdminUsers />} />
+              <Route path="regionadmin/users/teachers" element={<RegionAdminUsers />} />
+              <Route path="regionadmin/sectors" element={<RegionAdminSectors />} />
+              <Route path="regionadmin/schools" element={<div className="p-6"><h1>Regional Schools</h1><p>Hazırlanmaqdadır...</p></div>} />
+              <Route path="regionadmin/hierarchy" element={<div className="p-6"><h1>Regional Hierarchy</h1><p>Hazırlanmaqdadır...</p></div>} />
+              <Route path="regionadmin/tasks/*" element={<div className="p-6"><h1>Regional Tasks</h1><p>Hazırlanmaqdadır...</p></div>} />
+              <Route path="regionadmin/surveys/*" element={<div className="p-6"><h1>Regional Surveys</h1><p>Hazırlanmaqdadır...</p></div>} />
+              <Route path="regionadmin/documents/*" element={<div className="p-6"><h1>Regional Documents</h1><p>Hazırlanmaqdadır...</p></div>} />
+              <Route path="regionadmin/reports/*" element={<div className="p-6"><h1>Regional Reports</h1><p>Hazırlanmaqdadır...</p></div>} />
+              <Route path="regionadmin/settings/*" element={<div className="p-6"><h1>Regional Settings</h1><p>Hazırlanmaqdadır...</p></div>} />
             </Route>
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

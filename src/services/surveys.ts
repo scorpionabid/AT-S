@@ -59,10 +59,35 @@ export interface SurveyFilters extends PaginationParams {
 export interface SurveyResponse {
   id: number;
   survey_id: number;
-  user_id?: number;
-  answers: SurveyAnswer[];
-  submitted_at: string;
-  ip_address?: string;
+  institution_id: number;
+  department_id?: number;
+  respondent_id: number;
+  respondent_role?: string;
+  responses: Record<string, any>;
+  progress_percentage: number;
+  is_complete: boolean;
+  status: 'draft' | 'submitted' | 'approved' | 'rejected';
+  started_at: string;
+  submitted_at?: string;
+  approved_at?: string;
+  approved_by?: number;
+  rejection_reason?: string;
+  survey?: {
+    id: number;
+    title: string;
+    survey_type: string;
+    is_anonymous: boolean;
+  };
+  institution?: {
+    id: number;
+    name: string;
+    type: string;
+  };
+  respondent?: {
+    id: number;
+    username: string;
+    name: string;
+  };
 }
 
 export interface SurveyAnswer {
@@ -113,8 +138,38 @@ class SurveyService extends BaseService<Survey> {
     return response as any; // PaginatedResponse
   }
 
-  async submitResponse(id: number, answers: SurveyAnswer[]) {
-    const response = await apiClient.post(`${this.baseEndpoint}/${id}/responses`, { answers });
+  async getSurveyForResponse(id: number) {
+    const response = await apiClient.get(`${this.baseEndpoint}/${id}/form`);
+    return response.data;
+  }
+
+  async startResponse(surveyId: number, departmentId?: number) {
+    const response = await apiClient.post(`${this.baseEndpoint}/${surveyId}/responses/start`, {
+      department_id: departmentId
+    });
+    return response.data;
+  }
+
+  async saveResponse(responseId: number, responses: Record<string, any>, autoSubmit: boolean = false) {
+    const response = await apiClient.put(`/survey-responses/${responseId}/save`, {
+      responses,
+      auto_submit: autoSubmit
+    });
+    return response.data;
+  }
+
+  async submitResponse(responseId: number) {
+    const response = await apiClient.post(`/survey-responses/${responseId}/submit`);
+    return response.data;
+  }
+
+  async getResponse(responseId: number) {
+    const response = await apiClient.get(`/survey-responses/${responseId}`);
+    return response.data;
+  }
+
+  async deleteResponse(responseId: number) {
+    const response = await apiClient.delete(`/survey-responses/${responseId}`);
     return response.data;
   }
 

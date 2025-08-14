@@ -43,9 +43,12 @@ const PaginationLink = ({
   className,
   isActive,
   size = "icon",
+  onClick,
+  children,
   ...props
-}: PaginationLinkProps) => (
-  <a
+}: PaginationLinkProps & { onClick?: () => void; children?: React.ReactNode }) => (
+  <button
+    type="button"
     aria-current={isActive ? "page" : undefined}
     className={cn(
       buttonVariants({
@@ -54,19 +57,24 @@ const PaginationLink = ({
       }),
       className
     )}
+    onClick={onClick}
     {...props}
-  />
+  >
+    {children}
+  </button>
 )
 PaginationLink.displayName = "PaginationLink"
 
 const PaginationPrevious = ({
   className,
+  onClick,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: React.ComponentProps<typeof PaginationLink> & { onClick?: () => void }) => (
   <PaginationLink
     aria-label="Go to previous page"
     size="default"
     className={cn("gap-1 pl-2.5", className)}
+    onClick={onClick}
     {...props}
   >
     <ChevronLeft className="h-4 w-4" />
@@ -77,12 +85,14 @@ PaginationPrevious.displayName = "PaginationPrevious"
 
 const PaginationNext = ({
   className,
+  onClick,
   ...props
-}: React.ComponentProps<typeof PaginationLink>) => (
+}: React.ComponentProps<typeof PaginationLink> & { onClick?: () => void }) => (
   <PaginationLink
     aria-label="Go to next page"
     size="default"
     className={cn("gap-1 pr-2.5", className)}
+    onClick={onClick}
     {...props}
   >
     <span>Sonrakı</span>

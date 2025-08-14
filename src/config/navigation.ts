@@ -21,6 +21,9 @@ import {
   Baby,
   GraduationCap,
   Download,
+  Award,
+  Target,
+  PlusCircle,
   LucideIcon
 } from 'lucide-react';
 import { UserRole } from '@/contexts/AuthContext';
@@ -42,132 +45,140 @@ export interface MenuGroup {
   roles?: UserRole[];
 }
 
-export const navigationConfig: MenuGroup[] = [
+// Universal navigation config for all roles
+export const universalNavigationConfig: MenuGroup[] = [
   {
-    id: 'idareetme',
-    label: 'İdarəetmə',
-    roles: ['SuperAdmin'],
+    id: 'dashboard',
+    label: 'Ana Səhifə',
+    roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin', 'müəllim'],
     items: [
       {
-        id: 'dashboard',
-        label: 'Ana səhifə',
+        id: 'dashboard-home',
+        label: 'Dashboard',
         path: '/',
         icon: LayoutDashboard,
-        roles: ['SuperAdmin']
-      },
+        roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin', 'müəllim']
+      }
+    ]
+  },
+  {
+    id: 'users-management',
+    label: 'İstifadəçi İdarəetməsi',
+    roles: ['superadmin', 'regionadmin'],
+    items: [
       {
         id: 'notifications',
         label: 'Bildirişlər',
         path: '/notifications',
         icon: Bell,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin']
       },
       {
         id: 'users',
         label: 'İstifadəçilər',
         path: '/users',
         icon: Users,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin']
       },
       {
         id: 'roles',
         label: 'Rollar',
         path: '/roles',
         icon: Shield,
-        roles: ['SuperAdmin']
+        roles: ['superadmin']
       },
       {
         id: 'tasks',
         label: 'Tapşırıqlar',
         path: '/tasks',
         icon: FileText,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin']
       }
     ]
   },
   {
     id: 'struktur',
     label: 'Struktur',
-    roles: ['SuperAdmin'],
+    roles: ['superadmin', 'regionadmin', 'sektoradmin'],
     items: [
       {
         id: 'departments',
         label: 'Departmentlər',
         path: '/departments',
         icon: Building2,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin', 'sektoradmin']
       },
       {
         id: 'institutions',
         label: 'Müəssisələr',
         path: '/institutions',
         icon: School,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin', 'sektoradmin']
       },
       {
         id: 'preschools',
         label: 'Məktəbəqədər müəssisələr',
         path: '/preschools',
         icon: Baby,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin']
       },
       {
         id: 'regions',
         label: 'Regionlar',
         path: '/regions',
         icon: MapPin,
-        roles: ['SuperAdmin']
+        roles: ['superadmin']
       },
       {
         id: 'sectors',
         label: 'Sektorlar',
         path: '/sectors',
         icon: Users,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin']
       },
       {
         id: 'hierarchy',
         label: 'İerarxiya İdarəetməsi',
         path: '/hierarchy',
         icon: Database,
-        roles: ['SuperAdmin']
+        roles: ['superadmin', 'regionadmin']
       }
     ]
   },
   {
     id: 'sorqular',
     label: 'Sorğular',
-    roles: ['SuperAdmin', 'RegionAdmin'],
+    roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin'],
     items: [
       {
         id: 'survey-management',
         label: 'Sorğu İdarəetməsi',
         icon: ClipboardList,
-        roles: ['SuperAdmin'],
+        roles: ['superadmin', 'regionadmin'],
         children: [
           {
             id: 'surveys',
             label: 'Sorğular',
             path: '/surveys',
-            roles: ['SuperAdmin']
+            roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin']
           },
           {
             id: 'survey-approval',
             label: 'Təsdiq',
-            path: '/surveys/approval',
-            roles: ['SuperAdmin']
+            path: '/survey-approval',
+            roles: ['superadmin', 'regionadmin']
           },
           {
             id: 'survey-results',
             label: 'Sorğu nəticələri',
-            path: '/surveys/results',
-            roles: ['SuperAdmin']
+            path: '/survey-results',
+            roles: ['superadmin', 'regionadmin', 'sektoradmin']
           },
           {
             id: 'survey-archive',
             label: 'Arxiv',
-            path: '/surveys/archive',
-            roles: ['SuperAdmin']
+            path: '/survey-archive',
+            roles: ['superadmin', 'regionadmin']
           }
         ]
       },
@@ -175,31 +186,55 @@ export const navigationConfig: MenuGroup[] = [
         id: 'school-management',
         label: 'Məktəb İdarəetməsi',
         icon: GraduationCap,
-        roles: ['SuperAdmin'],
+        roles: ['superadmin', 'regionadmin', 'sektoradmin', 'məktəbadmin', 'müəllim'],
         children: [
           {
             id: 'school-workload',
             label: 'Dərs Yükü',
             path: '/school/workload',
-            roles: ['SuperAdmin']
+            roles: ['superadmin', 'məktəbadmin', 'müəllim']
           },
           {
             id: 'school-schedules',
             label: 'Dərs Cədvəli',
             path: '/school/schedules',
-            roles: ['SuperAdmin']
+            roles: ['superadmin', 'məktəbadmin', 'müəllim']
           },
           {
             id: 'school-attendance',
             label: 'Davamiyyət',
             path: '/school/attendance',
-            roles: ['SuperAdmin']
+            roles: ['superadmin', 'məktəbadmin', 'müəllim']
           },
           {
-            id: 'school-assessments',
-            label: 'Qiymətləndirmələr',
-            path: '/school/assessments',
-            roles: ['SuperAdmin']
+            id: 'assessment-types',
+            label: 'Qiymətləndirmə Növləri',
+            path: '/assessments/types',
+            roles: ['superadmin', 'regionadmin', 'sektoradmin']
+          },
+          {
+            id: 'assessment-results',
+            label: 'Qiymətləndirmə Nəticələri',
+            path: '/assessments/results',
+            roles: ['superadmin', 'regionadmin', 'sektoradmin', 'məktəbadmin']
+          },
+          {
+            id: 'assessment-entry',
+            label: 'Qiymətləndirmə Daxil Etmə',
+            path: '/assessments/entry',
+            roles: ['superadmin', 'regionadmin', 'sektoradmin', 'məktəbadmin', 'müəllim']
+          },
+          {
+            id: 'gradebook',
+            label: 'Qiymət Dəftəri',
+            path: '/school/gradebook',
+            roles: ['müəllim', 'məktəbadmin']
+          },
+          {
+            id: 'my-classes',
+            label: 'Mənim Siniflərim',
+            path: '/school/my-classes',
+            roles: ['müəllim']
           }
         ]
       }
@@ -208,105 +243,98 @@ export const navigationConfig: MenuGroup[] = [
   {
     id: 'mezmun',
     label: 'Məzmun',
-    roles: ['SuperAdmin', 'RegionAdmin'],
+    roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin'],
     items: [
       {
         id: 'documents',
         label: 'Sənədlər',
         path: '/documents',
         icon: FileText,
-        roles: ['SuperAdmin', 'RegionAdmin']
+        roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin']
       },
       {
         id: 'links',
         label: 'Linklər',
         path: '/links',
         icon: Link,
-        roles: ['SuperAdmin', 'RegionAdmin']
+        roles: ['superadmin', 'regionadmin', 'regionoperator', 'sektoradmin', 'məktəbadmin']
       }
     ]
   },
   {
     id: 'hesabatlar',
     label: 'Hesabatlar',
-    roles: ['SuperAdmin', 'RegionAdmin'],
+    roles: ['superadmin', 'regionadmin', 'sektoradmin', 'məktəbadmin'],
     items: [
       {
         id: 'reports',
         label: 'Hesabatlar',
         path: '/reports',
         icon: Download,
-        roles: ['SuperAdmin', 'RegionAdmin']
+        roles: ['superadmin', 'regionadmin', 'sektoradmin', 'məktəbadmin']
       },
       {
         id: 'analytics',
         label: 'Sistem Statistikası',
         path: '/analytics',
         icon: BarChart3,
-        roles: ['SuperAdmin', 'RegionAdmin']
+        roles: ['superadmin', 'regionadmin', 'sektoradmin']
       }
     ]
   },
   {
     id: 'sistem',
     label: 'Sistem',
-    roles: ['SuperAdmin'],
+    roles: ['superadmin'],
     items: [
       {
         id: 'settings',
         label: 'Sistem Parametrləri',
         path: '/settings',
         icon: Settings,
-        roles: ['SuperAdmin']
+        roles: ['superadmin']
       },
       {
         id: 'audit-logs',
         label: 'Audit Logları',
         path: '/audit-logs',
         icon: Clipboard,
-        roles: ['SuperAdmin']
+        roles: ['superadmin']
       },
       {
         id: 'performance',
         label: 'Performans Monitorinqi',
         path: '/performance',
         icon: Monitor,
-        roles: ['SuperAdmin']
+        roles: ['superadmin']
       }
     ]
   }
 ];
 
 export const getMenuForRole = (role: UserRole): MenuGroup[] => {
-  // Map new role names to compatible navigation roles
-  const navigationRole = mapRoleForNavigation(role);
-  
-  return navigationConfig
-    .filter(group => !group.roles || group.roles.includes(navigationRole))
+  return universalNavigationConfig
+    .filter(group => !group.roles || group.roles.includes(role))
     .map(group => ({
       ...group,
-      items: group.items.filter(item => !item.roles || item.roles.includes(navigationRole))
+      items: filterMenuItems(group.items, role)
     }))
     .filter(group => group.items.length > 0);
 };
 
-// Helper function to map backend roles to navigation roles
-function mapRoleForNavigation(role: UserRole): UserRole {
-  const roleMapping: Record<UserRole, UserRole> = {
-    'superadmin': 'SuperAdmin',
-    'regionadmin': 'RegionAdmin',
-    'regionoperator': 'RegionAdmin',
-    'sektoradmin': 'RegionAdmin',
-    'məktəbadmin': 'User',
-    'müəllim': 'User',
-    'user': 'User'
-  };
-  
-  return roleMapping[role] || 'User';
+// Helper function to recursively filter menu items based on role
+function filterMenuItems(items: MenuItem[], role: UserRole): MenuItem[] {
+  return items
+    .filter(item => !item.roles || item.roles.includes(role))
+    .map(item => ({
+      ...item,
+      children: item.children ? filterMenuItems(item.children, role) : undefined
+    }))
+    .filter(item => !item.children || item.children.length > 0);
 }
 
 export const findMenuItem = (path: string): MenuItem | null => {
-  for (const group of navigationConfig) {
+  for (const group of universalNavigationConfig) {
     for (const item of group.items) {
       if (item.path === path) return item;
       if (item.children) {

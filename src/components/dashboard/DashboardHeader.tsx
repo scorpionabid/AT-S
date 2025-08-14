@@ -1,22 +1,74 @@
-import { Button } from "@/components/ui/button";
-import { BellIcon, SearchIcon, UserIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { UserProfile } from "@/components/layout/components/Header/UserProfile";
+import { NotificationDropdown } from "@/components/layout/components/Header/NotificationDropdown";
+import { useAuth } from "@/contexts/AuthContext";
+import { useState } from "react";
 
 interface DashboardHeaderProps {
   title: string;
   subtitle?: string;
-  userRole: string;
-  userName: string;
   notificationCount?: number;
+  onLogout?: () => void;
 }
 
 export const DashboardHeader = ({ 
   title, 
   subtitle, 
-  userRole, 
-  userName, 
-  notificationCount = 0 
+  notificationCount = 0,
+  onLogout
 }: DashboardHeaderProps) => {
+  const { currentUser } = useAuth();
+  
+  // Sample notification data for testing
+  const [notifications, setNotifications] = useState([
+    {
+      id: 1,
+      title: "Yeni sorğu təsdiqi",
+      message: "Əməkdaşların motivasiyası sorğusu təsdiq üçün göndərildi",
+      type: "info" as const,
+      isRead: false,
+      createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString() // 30 minutes ago
+    },
+    {
+      id: 2,
+      title: "Sistem yeniləməsi",
+      message: "Sistem yeniləməsi uğurla tamamlandı",
+      type: "success" as const,
+      isRead: false,
+      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() // 2 hours ago
+    },
+    {
+      id: 3,
+      title: "Xəbərdarlıq",
+      message: "Serverdə yaddaş istifadəsi yüksək səviyyədədir",
+      type: "warning" as const,
+      isRead: true,
+      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString() // 1 day ago
+    }
+  ]);
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
+
+  const handleMarkAsRead = (id: number) => {
+    setNotifications(prev => 
+      prev.map(notification => 
+        notification.id === id 
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+  };
+
+  const handleMarkAllAsRead = () => {
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, isRead: true }))
+    );
+  };
+
+  const handleDeleteNotification = (id: number) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
   return (
     <div className="flex items-center justify-between w-full">
       {/* Title Section */}
@@ -39,25 +91,18 @@ export const DashboardHeader = ({
         </div>
 
         {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
-          <BellIcon className="h-4 w-4" />
-          {notificationCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-4 w-4 bg-destructive text-destructive-foreground text-xs rounded-full flex items-center justify-center text-[10px] font-medium">
-              {notificationCount > 9 ? "9+" : notificationCount}
-            </span>
-          )}
-        </Button>
+        <NotificationDropdown
+          notifications={notifications}
+          unreadCount={unreadCount}
+          onMarkAsRead={handleMarkAsRead}
+          onMarkAllAsRead={handleMarkAllAsRead}
+          onDelete={handleDeleteNotification}
+        />
 
         {/* User Profile */}
-        <div className="flex items-center space-x-2 flex-shrink-0">
-          <div className="hidden lg:block text-right min-w-0">
-            <p className="text-sm font-medium text-foreground truncate max-w-[120px] xl:max-w-none">{userName}</p>
-            <p className="text-xs text-muted-foreground truncate">{userRole}</p>
-          </div>
-          <Button variant="ghost" size="icon" className="rounded-full bg-secondary h-8 w-8 sm:h-9 sm:w-9 flex-shrink-0">
-            <UserIcon className="h-4 w-4" />
-          </Button>
-        </div>
+        {currentUser && onLogout && (
+          <UserProfile user={currentUser} onLogout={onLogout} />
+        )}
       </div>
     </div>
   );

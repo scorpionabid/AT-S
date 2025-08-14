@@ -109,27 +109,57 @@ const SelectLabel = React.forwardRef<
 ))
 SelectLabel.displayName = SelectPrimitive.Label.displayName
 
+// Utility function to safely convert children to string
+const safeChildrenToString = (children: React.ReactNode): string => {
+  if (children === null || children === undefined) return '';
+  if (typeof children === 'string') return children;
+  if (typeof children === 'number' || typeof children === 'boolean') return String(children);
+  
+  // If it's an object, try to extract meaningful text
+  if (typeof children === 'object') {
+    // Check if it's an object with name or display_name properties
+    const obj = children as any;
+    if (obj && typeof obj === 'object' && !React.isValidElement(obj)) {
+      if (obj.name) return String(obj.name);
+      if (obj.display_name) return String(obj.display_name);
+      if (obj.label) return String(obj.label);
+      
+      // As last resort, stringify the object  
+      console.warn('SelectItem received object as children:', obj);
+      return JSON.stringify(obj);
+    }
+  }
+  
+  // If it's a React element or other complex structure, convert to string
+  return String(children);
+};
+
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
-  <SelectPrimitive.Item
-    ref={ref}
-    className={cn(
-      "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
-      className
-    )}
-    {...props}
-  >
-    <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-      <SelectPrimitive.ItemIndicator>
-        <Check className="h-4 w-4" />
-      </SelectPrimitive.ItemIndicator>
-    </span>
+>(({ className, children, ...props }, ref) => {
+  // Safely convert children to string to prevent React object rendering errors
+  const textContent = React.useMemo(() => safeChildrenToString(children), [children]);
 
-    <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-  </SelectPrimitive.Item>
-))
+  return (
+    <SelectPrimitive.Item
+      ref={ref}
+      className={cn(
+        "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+        className
+      )}
+      {...props}
+    >
+      <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
+        <SelectPrimitive.ItemIndicator>
+          <Check className="h-4 w-4" />
+        </SelectPrimitive.ItemIndicator>
+      </span>
+
+      <SelectPrimitive.ItemText>{textContent}</SelectPrimitive.ItemText>
+    </SelectPrimitive.Item>
+  )
+})
 SelectItem.displayName = SelectPrimitive.Item.displayName
 
 const SelectSeparator = React.forwardRef<

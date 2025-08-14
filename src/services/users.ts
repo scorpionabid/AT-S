@@ -2,13 +2,18 @@ import { apiClient, ApiResponse, PaginatedResponse } from './api';
 
 export interface User {
   id: number;
-  name: string;
+  first_name: string;
+  last_name: string;
+  name?: string; // computed field (first_name + last_name)
   email: string;
   username: string;
-  role: string;
+  role_id: string;
+  role?: string;
   permissions: string[];
-  phone?: string;
-  status: 'active' | 'inactive';
+  contact_phone?: string;
+  phone?: string; // alias for contact_phone
+  is_active: boolean;
+  status?: 'active' | 'inactive'; // computed from is_active
   institution?: {
     id: number;
     name: string;
@@ -28,24 +33,26 @@ export interface User {
 }
 
 export interface CreateUserData {
-  name: string;
+  first_name: string;
+  last_name: string;
   email: string;
   username: string;
   password: string;
-  password_confirmation: string;
-  role: string;
-  phone?: string;
+  role_id: string;
+  contact_phone?: string;
   institution_id?: number;
   department_id?: number;
+  is_active?: boolean;
 }
 
 export interface UpdateUserData {
-  name?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   username?: string;
-  role?: string;
-  phone?: string;
-  status?: 'active' | 'inactive';
+  role_id?: string;
+  contact_phone?: string;
+  is_active?: boolean;
   institution_id?: number;
   department_id?: number;
 }
@@ -171,8 +178,18 @@ class UserService {
     throw new Error('Failed to get user statistics');
   }
 
-  async getAvailableInstitutions(): Promise<Array<{id: number, name: string, type: string}>> {
-    const response = await apiClient.get<Array<{id: number, name: string, type: string}>>('/users/institutions/available');
+  async getAvailableInstitutions(): Promise<Array<{id: number, name: string, type: string, level: number, parent_id: number | null}>> {
+    const response = await apiClient.get<Array<{id: number, name: string, type: string, level: number, parent_id: number | null}>>('/users/institutions/available');
+    
+    if (response.data) {
+      return response.data;
+    }
+    
+    return [];
+  }
+
+  async getAvailableRoles(): Promise<Array<{id: number, name: string, display_name: string, level: number}>> {
+    const response = await apiClient.get<Array<{id: number, name: string, display_name: string, level: number}>>('/users/roles/available');
     
     if (response.data) {
       return response.data;

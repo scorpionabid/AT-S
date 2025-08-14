@@ -88,9 +88,8 @@ const Layout = () => {
                   <DashboardHeader
                     title={getDashboardTitle()}
                     subtitle={getDashboardSubtitle()}
-                    userRole={currentUser.role}
-                    userName={currentUser.name}
                     notificationCount={5}
+                    onLogout={handleLogout}
                   />
                   <Breadcrumbs />
                 </div>

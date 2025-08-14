@@ -1,13 +1,22 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, ClipboardList, Calendar, TrendingUp, Eye, Edit, Trash2, Play, Pause } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
-import { surveyService, Survey } from "@/services/surveys";
+import { Plus, ClipboardList, Calendar, TrendingUp, Eye, Edit, Trash2, Play, Pause, BarChart3 } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { surveyService, Survey, CreateSurveyData } from "@/services/surveys";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { SurveyModal } from "@/components/modals/SurveyModal";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Surveys() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'draft' | 'active' | 'completed' | 'archived'>('all');
+  const [showSurveyModal, setShowSurveyModal] = useState(false);
+  const [selectedSurvey, setSelectedSurvey] = useState<Survey | null>(null);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
   
   const { data: surveys, isLoading, error } = useQuery({
     queryKey: ['surveys', statusFilter],
@@ -20,14 +29,14 @@ export default function Surveys() {
   const { data: surveyStats } = useQuery({
     queryKey: ['survey-stats'],
     queryFn: () => surveyService.getAll({ per_page: 1 }).then(data => ({
-      total: data.total || 0,
-      active: surveys?.data?.filter((s: Survey) => s.status === 'active').length || 0,
-      thisMonth: surveys?.data?.filter((s: Survey) => 
+      total: data.data?.total || 0,
+      active: surveys?.data?.data?.filter((s: Survey) => s.status === 'active').length || 0,
+      thisMonth: surveys?.data?.data?.filter((s: Survey) => 
         new Date(s.created_at).getMonth() === new Date().getMonth()
       ).length || 0,
-      totalResponses: surveys?.data?.reduce((sum: number, s: Survey) => sum + (s.responses_count || 0), 0) || 0,
+      totalResponses: surveys?.data?.data?.reduce((sum: number, s: Survey) => sum + (s.response_count || 0), 0) || 0,
     })),
-    enabled: !!surveys?.data
+    enabled: !!surveys?.data?.data
   });
 
   const getStatusBadge = (status: string) => {
@@ -53,6 +62,124 @@ export default function Surveys() {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // Create survey mutation
+  const createSurveyMutation = useMutation({
+    mutationFn: (data: CreateSurveyData) => surveyService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-stats'] });
+      setShowSurveyModal(false);
+      setSelectedSurvey(null);
+    },
+  });
+
+  // Update survey mutation
+  const updateSurveyMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<CreateSurveyData> }) => 
+      surveyService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-stats'] });
+      setShowSurveyModal(false);
+      setSelectedSurvey(null);
+    },
+  });
+
+  // Delete survey mutation
+  const deleteSurveyMutation = useMutation({
+    mutationFn: (id: number) => surveyService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-stats'] });
+      toast({
+        title: "Uğurlu",
+        description: "Sorğu silindi",
+      });
+    },
+  });
+
+  // Publish survey mutation
+  const publishSurveyMutation = useMutation({
+    mutationFn: (id: number) => surveyService.publish(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-stats'] });
+      toast({
+        title: "Uğurlu",
+        description: "Sorğu yayımlandı",
+      });
+    },
+  });
+
+  // Pause survey mutation
+  const pauseSurveyMutation = useMutation({
+    mutationFn: (id: number) => surveyService.pause(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['surveys'] });
+      queryClient.invalidateQueries({ queryKey: ['survey-stats'] });
+      toast({
+        title: "Uğurlu",
+        description: "Sorğu dayandırıldı",
+      });
+    },
+  });
+
+  const handleSaveSurvey = async (data: CreateSurveyData) => {
+    try {
+      if (selectedSurvey) {
+        await updateSurveyMutation.mutateAsync({ id: selectedSurvey.id, data });
+      } else {
+        await createSurveyMutation.mutateAsync(data);
+      }
+    } catch (error) {
+      console.error('Survey save error:', error);
+      throw error;
+    }
+  };
+
+  const handleEditSurvey = (survey: Survey) => {
+    setSelectedSurvey(survey);
+    setShowSurveyModal(true);
+  };
+
+  const handleDeleteSurvey = async (id: number) => {
+    if (window.confirm('Sorğunu silmək istədiyinizdən əminsiniz?')) {
+      try {
+        await deleteSurveyMutation.mutateAsync(id);
+      } catch (error) {
+        toast({
+          title: "Xəta",
+          description: "Sorğu silinərkən xəta baş verdi",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handlePublishSurvey = async (id: number) => {
+    try {
+      await publishSurveyMutation.mutateAsync(id);
+    } catch (error) {
+      toast({
+        title: "Xəta",
+        description: "Sorğu yayımlanarkən xəta baş verdi",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePauseSurvey = async (id: number) => {
+    try {
+      await pauseSurveyMutation.mutateAsync(id);
+    } catch (error) {
+      toast({
+        title: "Xəta",
+        description: "Sorğu dayandırılarkən xəta baş verdi",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -99,7 +226,10 @@ export default function Surveys() {
           <h1 className="text-3xl font-bold text-foreground">Sorğular</h1>
           <p className="text-muted-foreground">Sorğuların yaradılması və idarə edilməsi</p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button 
+          className="flex items-center gap-2"
+          onClick={() => setShowSurveyModal(true)}
+        >
           <Plus className="h-4 w-4" />
           Yeni Sorğu
         </Button>
@@ -153,7 +283,7 @@ export default function Surveys() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-muted-foreground">Ümumi sorğular</p>
-                <p className="text-2xl font-bold">{surveys?.total || 0}</p>
+                <p className="text-2xl font-bold">{surveys?.data?.total || 0}</p>
               </div>
               <TrendingUp className="h-8 w-8 text-green-500" />
             </div>
@@ -181,17 +311,21 @@ export default function Surveys() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {surveys?.data?.length === 0 ? (
+            {surveys?.data?.data?.length === 0 ? (
               <div className="text-center py-8">
                 <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">Hələlik sorğu yoxdur</p>
-                <Button className="mt-4" variant="outline">
+                <Button 
+                  className="mt-4" 
+                  variant="outline"
+                  onClick={() => setShowSurveyModal(true)}
+                >
                   <Plus className="h-4 w-4 mr-2" />
                   İlk sorğunu yarat
                 </Button>
               </div>
             ) : (
-              surveys?.data?.map((survey: Survey) => (
+              surveys?.data?.data?.map((survey: Survey) => (
                 <div key={survey.id} className="flex items-center justify-between p-4 border border-border rounded-lg hover:bg-surface/50 transition-colors">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
@@ -214,20 +348,47 @@ export default function Surveys() {
                     <Button variant="ghost" size="sm">
                       <Eye className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => navigate('/survey-results')}
+                      title="Nəticələr"
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleEditSurvey(survey)}
+                    >
                       <Edit className="h-4 w-4" />
                     </Button>
                     {survey.status === 'draft' && (
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handlePublishSurvey(survey.id)}
+                        disabled={publishSurveyMutation.isPending}
+                      >
                         <Play className="h-4 w-4" />
                       </Button>
                     )}
                     {survey.status === 'active' && (
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handlePauseSurvey(survey.id)}
+                        disabled={pauseSurveyMutation.isPending}
+                      >
                         <Pause className="h-4 w-4" />
                       </Button>
                     )}
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeleteSurvey(survey.id)}
+                      disabled={deleteSurveyMutation.isPending}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -236,15 +397,26 @@ export default function Surveys() {
             )}
           </div>
           
-          {surveys?.data && surveys.data.length > 0 && (
+          {surveys?.data?.data && surveys.data.data.length > 0 && (
             <div className="mt-4 flex justify-center">
               <div className="text-sm text-muted-foreground">
-                {surveys.data.length} / {surveys.total} sorğu göstərilir
+                {surveys.data.data.length} / {surveys.data.total} sorğu göstərilir
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Survey Modal */}
+      <SurveyModal
+        open={showSurveyModal}
+        onClose={() => {
+          setShowSurveyModal(false);
+          setSelectedSurvey(null);
+        }}
+        survey={selectedSurvey}
+        onSave={handleSaveSurvey}
+      />
     </div>
   );
 }

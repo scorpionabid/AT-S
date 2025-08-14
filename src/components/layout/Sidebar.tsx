@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { 
   HomeIcon, 
   UsersIcon, 
@@ -23,6 +23,11 @@ import {
   LinkIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { profileService, ProfileResponse } from "@/services/profile";
+import { useToast } from "@/hooks/use-toast";
+import { ProfileEditModal } from "@/components/modals/ProfileEditModal";
+import { PasswordChangeModal } from "@/components/modals/PasswordChangeModal";
 
 interface SidebarProps {
   userRole: string;
@@ -34,6 +39,29 @@ interface SidebarProps {
 
 export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPath }: SidebarProps) => {
   const [isHovered, setIsHovered] = useState(false);
+  const [profileData, setProfileData] = useState<ProfileResponse | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const [isProfileEditOpen, setIsProfileEditOpen] = useState(false);
+  const [isPasswordChangeOpen, setIsPasswordChangeOpen] = useState(false);
+  const { toast } = useToast();
+  
+  // Load profile data when component mounts
+  useEffect(() => {
+    loadProfileData();
+  }, []);
+
+  const loadProfileData = async () => {
+    try {
+      setIsLoadingProfile(true);
+      const profile = await profileService.getProfile();
+      setProfileData(profile);
+    } catch (error) {
+      console.error('Sidebar profil yüklənərkən xəta:', error);
+      // Don't show toast for sidebar profile loading errors to avoid spam
+    } finally {
+      setIsLoadingProfile(false);
+    }
+  };
   
   // Collapsible group state for SuperAdmin
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
@@ -67,6 +95,16 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
     setIsHovered(false);
   }, [onNavigate]);
 
+  const handleProfileClick = () => {
+    console.log('📍 Sidebar profile clicked, current state:', isProfileEditOpen);
+    setIsProfileEditOpen(true);
+    console.log('📍 Setting profile modal to true');
+  };
+
+  const handleProfileUpdate = (updatedProfile: ProfileResponse) => {
+    setProfileData(updatedProfile);
+  };
+
   const getSuperAdminMenuStructure = () => [
     {
       groupLabel: "İdarəetmə",
@@ -99,9 +137,9 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
           key: "surveys",
           submenu: [
             { label: "Sorğular", path: "/surveys" },
-            { label: "Təsdiq", path: "/surveys/approval" },
-            { label: "Sorğu nəticələri", path: "/surveys/results" },
-            { label: "Arxiv", path: "/surveys/archive" },
+            { label: "Təsdiq", path: "/survey-approval" },
+            { label: "Sorğu nəticələri", path: "/survey-results" },
+            { label: "Arxiv", path: "/survey-archive" },
           ]
         },
         {
@@ -151,6 +189,7 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
     const roleSpecificItems = {
       RegionAdmin: [
         { icon: ClipboardListIcon, label: "Sorğular", path: "/surveys" },
+        { icon: BarChart3Icon, label: "Sorğu Nəticələri", path: "/survey-results" },
         { icon: UsersIcon, label: "Sektorlar", path: "/sectors" },
         { icon: FolderIcon, label: "Sənədlər", path: "/documents" },
         { icon: BarChart3Icon, label: "Hesabatlar", path: "/reports" },
@@ -314,9 +353,34 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
         {/* Footer */}
         <div className="border-t border-sidebar-border p-3">
           {isExpanded && (
-            <div className="mb-3 px-2 py-2 bg-sidebar-accent rounded-lg">
-              <p className="text-sm font-medium text-sidebar-foreground truncate">{currentUser}</p>
-              <p className="text-xs text-muted-foreground truncate">{userRole}</p>
+            <div 
+              onClick={handleProfileClick}
+              className="w-full mb-3 px-2 py-2 bg-sidebar-accent rounded-lg hover:bg-sidebar-accent/80 transition-colors duration-200 cursor-pointer select-none"
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && handleProfileClick()}
+            >
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  {profileData?.avatar_url && <AvatarImage src={profileData.avatar_url} alt={currentUser} />}
+                  <AvatarFallback className="bg-primary text-primary-foreground font-medium text-sm">
+                    {profileService.getUserInitials(profileData?.user?.profile ? 
+                      profileService.getDisplayName(profileData.user.profile, currentUser) : 
+                      currentUser
+                    )}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0 text-left">
+                  <p className="text-sm font-medium text-sidebar-foreground truncate">
+                    {profileData?.user?.profile ? 
+                      profileService.getDisplayName(profileData.user.profile, currentUser) : 
+                      currentUser
+                    }
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{userRole}</p>
+                </div>
+                <SettingsIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              </div>
             </div>
           )}
           <button
@@ -330,6 +394,22 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
             {isExpanded && <span className="ml-3">Çıxış</span>}
           </button>
         </div>
+
+        {/* Profile Modals for SuperAdmin */}
+        <ProfileEditModal
+          isOpen={isProfileEditOpen}
+          onClose={() => {
+            console.log('📍 Profile modal closing');
+            setIsProfileEditOpen(false);
+          }}
+          profileData={profileData}
+          onProfileUpdate={handleProfileUpdate}
+        />
+
+        <PasswordChangeModal
+          isOpen={isPasswordChangeOpen}
+          onClose={() => setIsPasswordChangeOpen(false)}
+        />
       </div>
     );
   }
@@ -381,9 +461,34 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
       {/* Footer */}
       <div className="border-t border-sidebar-border p-3">
         {isExpanded && (
-          <div className="mb-3 px-2 py-2 bg-sidebar-accent rounded-lg">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">{currentUser}</p>
-            <p className="text-xs text-muted-foreground truncate">{userRole}</p>
+          <div
+            onClick={handleProfileClick}
+            className="w-full mb-3 px-2 py-2 bg-sidebar-accent rounded-lg hover:bg-sidebar-accent/80 transition-colors duration-200 cursor-pointer select-none"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => e.key === 'Enter' && handleProfileClick()}
+          >
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-8 w-8 flex-shrink-0">
+                {profileData?.avatar_url && <AvatarImage src={profileData.avatar_url} alt={currentUser} />}
+                <AvatarFallback className="bg-primary text-primary-foreground font-medium text-sm">
+                  {profileService.getUserInitials(profileData?.user?.profile ? 
+                    profileService.getDisplayName(profileData.user.profile, currentUser) : 
+                    currentUser
+                  )}
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0 text-left">
+                <p className="text-sm font-medium text-sidebar-foreground truncate">
+                  {profileData?.user?.profile ? 
+                    profileService.getDisplayName(profileData.user.profile, currentUser) : 
+                    currentUser
+                  }
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{userRole}</p>
+              </div>
+              <SettingsIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </div>
           </div>
         )}
         <button
@@ -397,6 +502,19 @@ export const Sidebar = ({ userRole, currentUser, onNavigate, onLogout, currentPa
           {isExpanded && <span className="ml-3">Çıxış</span>}
         </button>
       </div>
+
+      {/* Profile Modals */}
+      <ProfileEditModal
+        isOpen={isProfileEditOpen}
+        onClose={() => setIsProfileEditOpen(false)}
+        profileData={profileData}
+        onProfileUpdate={handleProfileUpdate}
+      />
+
+      <PasswordChangeModal
+        isOpen={isPasswordChangeOpen}
+        onClose={() => setIsPasswordChangeOpen(false)}
+      />
     </div>
   );
 };
