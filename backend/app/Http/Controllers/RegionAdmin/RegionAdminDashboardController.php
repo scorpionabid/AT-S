@@ -49,4 +49,33 @@ class RegionAdminDashboardController extends Controller
         ]);
     }
 
+    /**
+     * Get RegionAdmin dashboard activities
+     */
+    public function getDashboardActivities(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $userRegionId = $user->institution_id;
+        
+        try {
+            // Get all institution IDs for the region
+            $regionInstitutions = $this->dashboardService->getRegionInstitutions($userRegionId);
+            $allRegionInstitutions = $this->dashboardService->getAllRegionInstitutions($regionInstitutions);
+            $institutionIds = $allRegionInstitutions->pluck('id');
+            
+            $activities = $this->dashboardService->getRecentActivities($user, $institutionIds);
+            
+            return response()->json([
+                'success' => true,
+                'data' => $activities
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Regional activities data could not be retrieved',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
 }

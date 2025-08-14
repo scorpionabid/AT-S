@@ -6,6 +6,7 @@ use App\Models\Department;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class DepartmentController extends Controller
 {
@@ -26,7 +27,9 @@ class DepartmentController extends Controller
             'sort_direction' => 'nullable|string|in:asc,desc'
         ]);
 
-        $query = Department::with(['institution', 'parent', 'children']);
+        $user = Auth::user();
+        $query = Department::with(['institution', 'parent', 'children'])
+                          ->accessibleBy($user);
 
         // Apply filters
         if ($request->search) {
@@ -96,6 +99,16 @@ class DepartmentController extends Controller
      */
     public function show(Department $department): JsonResponse
     {
+        $user = Auth::user();
+        
+        // Check if user can access this department based on regional permissions
+        if (!$this->canUserAccessDepartment($user, $department)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu departamentə giriş icazəniz yoxdur.',
+            ], 403);
+        }
+
         $department->load(['institution', 'parent', 'children', 'users']);
 
         return response()->json([
@@ -152,6 +165,16 @@ class DepartmentController extends Controller
             'functional_scope' => 'nullable|string|max:1000',
             'is_active' => 'nullable|boolean'
         ]);
+
+        $user = Auth::user();
+        
+        // Check regional permissions for department creation
+        if (!$this->canUserCreateDepartment($user, $validatedData)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu əməliyyatı həyata keçirmək üçün icazəniz yoxdur.',
+            ], 403);
+        }
 
         // Validate department type against institution type
         $institution = \App\Models\Institution::find($request->institution_id);
@@ -221,6 +244,16 @@ class DepartmentController extends Controller
             'is_active' => 'sometimes|boolean'
         ]);
 
+        $user = Auth::user();
+        
+        // Check if user can access this department based on regional permissions
+        if (!$this->canUserModifyDepartment($user, $department)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu departamenti dəyişdirmək icazəniz yoxdur.',
+            ], 403);
+        }
+
         // Prevent self-parenting
         if ($request->parent_department_id && $request->parent_department_id == $department->id) {
             return response()->json([
@@ -254,19 +287,14 @@ class DepartmentController extends Controller
      */
     public function destroy(Request $request, Department $department): JsonResponse
     {
-        // Check institution access for non-superadmin users
-        if (!auth()->user()->hasRole('superadmin')) {
-            $userInstitution = auth()->user()->institution;
-            if (!$userInstitution) {
-                return response()->json(['message' => 'User not assigned to any institution'], 403);
-            }
-
-            // Get all accessible institution IDs (user's institution and its children)
-            $accessibleInstitutions = $userInstitution->getAllChildrenIds();
-            
-            if (!in_array($department->institution_id, $accessibleInstitutions)) {
-                return response()->json(['message' => 'Access denied to this institution'], 403);
-            }
+        $user = Auth::user();
+        
+        // Check if user can delete this department based on regional permissions
+        if (!$this->canUserDeleteDepartment($user, $department)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu departamenti silmək icazəniz yoxdur.',
+            ], 403);
         }
 
         $deleteType = $request->query('type', 'soft');
@@ -442,5 +470,162 @@ class DepartmentController extends Controller
             'created_at' => $department->created_at,
             'updated_at' => $department->updated_at
         ];
+    }
+
+    /**
+     * Check if user can create department with regional permissions
+     */
+    private function canUserCreateDepartment($user, array $departmentData): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+        $userInstitutionId = $user->institution_id;
+        $targetInstitutionId = $departmentData['institution_id'] ?? null;
+
+        if (!$targetInstitutionId) {
+            return false;
+        }
+
+        switch ($userRole) {
+            case 'regionadmin':
+            case 'regionoperator':
+                // Regional admins can create departments for their region and sub-institutions
+                $allowedInstitutions = $this->getRegionalInstitutions($userInstitutionId);
+                return $allowedInstitutions->contains($targetInstitutionId);
+                
+            case 'sektoradmin':
+                // Sector admins can create departments for their sector and schools
+                $allowedInstitutions = $this->getSectorInstitutions($userInstitutionId);
+                return $allowedInstitutions->contains($targetInstitutionId);
+                
+            case 'məktəbadmin':
+                // School admins can only create departments in their institution
+                return $targetInstitutionId === $userInstitutionId;
+                
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if user can modify department with enhanced regional permissions
+     */
+    private function canUserModifyDepartment($user, $department): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+        $userInstitutionId = $user->institution_id;
+
+        switch ($userRole) {
+            case 'regionadmin':
+            case 'regionoperator':
+                return $this->isDepartmentInUserRegion($department, $userInstitutionId);
+                
+            case 'sektoradmin':
+                return $this->isDepartmentInUserSector($department, $userInstitutionId);
+                
+            case 'məktəbadmin':
+                return $department->institution_id === $userInstitutionId;
+                
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if user can delete department with enhanced regional permissions
+     */
+    private function canUserDeleteDepartment($user, $department): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+
+        // Only SuperAdmin and RegionAdmin can delete departments
+        if (in_array($userRole, ['regionadmin'])) {
+            return $this->isDepartmentInUserRegion($department, $user->institution_id);
+        }
+
+        return false;
+    }
+
+    /**
+     * Check if user can access department
+     */
+    private function canUserAccessDepartment($user, $department): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+        $userInstitutionId = $user->institution_id;
+
+        switch ($userRole) {
+            case 'regionadmin':
+            case 'regionoperator':
+                return $this->isDepartmentInUserRegion($department, $userInstitutionId);
+                
+            case 'sektoradmin':
+                return $this->isDepartmentInUserSector($department, $userInstitutionId);
+                
+            case 'məktəbadmin':
+            case 'müəllim':
+                return $department->institution_id === $userInstitutionId;
+                
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Get all institutions in user's region
+     */
+    private function getRegionalInstitutions($regionId)
+    {
+        return \App\Models\Institution::where(function($q) use ($regionId) {
+            $q->where('id', $regionId) // The region itself
+              ->orWhere('parent_id', $regionId); // Sectors
+        })->get()->pluck('id')
+        ->merge(
+            \App\Models\Institution::whereIn('parent_id', 
+                \App\Models\Institution::where('parent_id', $regionId)->pluck('id')
+            )->pluck('id') // Schools
+        );
+    }
+
+    /**
+     * Get all institutions in user's sector
+     */
+    private function getSectorInstitutions($sektorId)
+    {
+        return \App\Models\Institution::where('parent_id', $sektorId)->pluck('id')
+               ->push($sektorId);
+    }
+
+    /**
+     * Check if department is in user's region
+     */
+    private function isDepartmentInUserRegion($department, $userRegionId): bool
+    {
+        $allowedInstitutions = $this->getRegionalInstitutions($userRegionId);
+        return $allowedInstitutions->contains($department->institution_id);
+    }
+
+    /**
+     * Check if department is in user's sector
+     */
+    private function isDepartmentInUserSector($department, $userSektorId): bool
+    {
+        $allowedInstitutions = $this->getSectorInstitutions($userSektorId);
+        return $allowedInstitutions->contains($department->institution_id);
     }
 }

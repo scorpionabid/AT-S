@@ -56,6 +56,10 @@ class InstitutionController extends Controller
 
         $query = Institution::with(['parent', 'children.parent']);
 
+        // Apply regional filtering based on user role
+        $currentUser = $request->user();
+        $this->applyRegionalFiltering($query, $currentUser);
+
         // Apply filters
         if ($request->search) {
             $query->searchByName($request->search);
@@ -148,10 +152,18 @@ class InstitutionController extends Controller
     {
         $user = Auth::user();
         
-        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+        if (!$user->hasRole(['superadmin', 'regionadmin', 'sektoradmin'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        // Check regional permissions for parent_id
+        if ($request->parent_id && !$this->canAccessInstitution($user, $request->parent_id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu parent müəssisəyə giriş icazəniz yoxdur.',
             ], 403);
         }
 
@@ -226,10 +238,18 @@ class InstitutionController extends Controller
     {
         $user = Auth::user();
         
-        if (!$user->hasRole(['superadmin', 'regionadmin'])) {
+        if (!$user->hasRole(['superadmin', 'regionadmin', 'sektoradmin'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        // Check if user can access this institution
+        if (!$this->canAccessInstitution($user, $institution->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu müəssisəni redaktə etmək icazəniz yoxdur.',
             ], 403);
         }
 
@@ -307,10 +327,18 @@ class InstitutionController extends Controller
                 'success' => false,
                 'message' => 'Təşkilatı tam silmək üçün icazəniz yoxdur.',
             ], 403);
-        } elseif ($deleteType === 'soft' && !$user->hasRole(['superadmin', 'regionadmin'])) {
+        } elseif ($deleteType === 'soft' && !$user->hasRole(['superadmin', 'regionadmin', 'sektoradmin'])) {
             return response()->json([
                 'success' => false,
                 'message' => 'Bu əməliyyat üçün icazəniz yoxdur.',
+            ], 403);
+        }
+
+        // Check if user can access this institution
+        if (!$this->canAccessInstitution($user, $institution->id)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Bu müəssisəni silmək icazəniz yoxdur.',
             ], 403);
         }
 
@@ -979,5 +1007,139 @@ class InstitutionController extends Controller
         
         // Default to Azerbaijan if can't determine
         return 'AZ';
+    }
+
+    /**
+     * Apply regional filtering based on current user's role and institution
+     */
+    private function applyRegionalFiltering($query, $currentUser): void
+    {
+        // Get user's role name from Spatie roles
+        $userRole = $currentUser->roles->first()?->name;
+        
+        switch ($userRole) {
+            case 'superadmin':
+                // SuperAdmin can see all institutions
+                break;
+                
+            case 'regionadmin':
+                // RegionAdmin can only see institutions in their region and sub-institutions
+                $this->applyRegionAdminInstitutionFiltering($query, $currentUser);
+                break;
+                
+            case 'regionoperator':
+                // RegionOperator can see institutions in their region (same as RegionAdmin but limited create permissions)
+                $this->applyRegionAdminInstitutionFiltering($query, $currentUser);
+                break;
+                
+            case 'sektoradmin':
+                // SektorAdmin can only see their sector and schools under it
+                $this->applySektorAdminInstitutionFiltering($query, $currentUser);
+                break;
+                
+            case 'məktəbadmin':
+                // MəktəbAdmin can only see their own school
+                $query->where('id', $currentUser->institution_id);
+                break;
+                
+            case 'müəllim':
+                // Teachers can only see their own school
+                $query->where('id', $currentUser->institution_id);
+                break;
+                
+            default:
+                // Unknown role - restrict to only their own institution if they have one
+                if ($currentUser->institution_id) {
+                    $query->where('id', $currentUser->institution_id);
+                } else {
+                    $query->where('id', -1); // Force empty result
+                }
+                break;
+        }
+    }
+
+    /**
+     * Apply RegionAdmin filtering - can see institutions in their region and all sub-institutions
+     */
+    private function applyRegionAdminInstitutionFiltering($query, $currentUser): void
+    {
+        $userRegionId = $currentUser->institution_id;
+        
+        // Get all institutions under this region (sectors and schools)
+        $regionInstitutions = Institution::where(function($q) use ($userRegionId) {
+            $q->where('id', $userRegionId) // The region itself
+              ->orWhere('parent_id', $userRegionId); // Sectors in this region
+        })->pluck('id');
+
+        // Get schools under sectors
+        $schoolInstitutions = Institution::whereIn('parent_id', $regionInstitutions)->pluck('id');
+
+        // Combine all institution IDs
+        $allInstitutionIds = $regionInstitutions->merge($schoolInstitutions);
+
+        // Filter institutions to only show those in this hierarchy
+        $query->whereIn('id', $allInstitutionIds);
+    }
+
+    /**
+     * Apply SektorAdmin filtering - can see their sector and schools under it
+     */
+    private function applySektorAdminInstitutionFiltering($query, $currentUser): void
+    {
+        $userSektorId = $currentUser->institution_id;
+        
+        // Get all schools under this sector
+        $sektorSchools = Institution::where('parent_id', $userSektorId)->pluck('id');
+        
+        // Include the sector itself
+        $allInstitutionIds = $sektorSchools->push($userSektorId);
+
+        // Filter institutions to only show those in this hierarchy
+        $query->whereIn('id', $allInstitutionIds);
+    }
+
+    /**
+     * Check if current user can access a specific institution
+     */
+    private function canAccessInstitution($user, $institutionId): bool
+    {
+        $userRole = $user->roles->first()?->name;
+        
+        switch ($userRole) {
+            case 'superadmin':
+                return true; // SuperAdmin can access all institutions
+                
+            case 'regionadmin':
+            case 'regionoperator':
+                // Check if institution is in their region
+                $userRegionId = $user->institution_id;
+                $regionInstitutions = Institution::where(function($q) use ($userRegionId) {
+                    $q->where('id', $userRegionId)
+                      ->orWhere('parent_id', $userRegionId);
+                })->pluck('id');
+                
+                $schoolInstitutions = Institution::whereIn('parent_id', $regionInstitutions)->pluck('id');
+                $allInstitutionIds = $regionInstitutions->merge($schoolInstitutions);
+                
+                return $allInstitutionIds->contains($institutionId);
+                
+            case 'sektoradmin':
+                // Check if institution is their sector or under their sector
+                $userSektorId = $user->institution_id;
+                if ($institutionId == $userSektorId) {
+                    return true;
+                }
+                
+                $sektorSchools = Institution::where('parent_id', $userSektorId)->pluck('id');
+                return $sektorSchools->contains($institutionId);
+                
+            case 'məktəbadmin':
+            case 'müəllim':
+                // Can only access their own institution
+                return $institutionId == $user->institution_id;
+                
+            default:
+                return false;
+        }
     }
 }

@@ -83,6 +83,28 @@ Route::get('version', [HealthController::class, 'version']);
 Route::get('config/app', [ConfigController::class, 'getAppConfig']);
 Route::get('config/constants', [ConfigController::class, 'getConstants']);
 
+// Temporary debug route for role testing
+Route::get('/debug-users', function() {
+    $users = \App\Models\User::with('roles')->take(2)->get();
+    $result = [];
+    
+    foreach ($users as $user) {
+        $firstRole = $user->roles->first();
+        $result[] = [
+            'user' => $user->email,
+            'role_exists' => $firstRole ? 'yes' : 'no',
+            'role' => $firstRole ? [
+                'id' => $firstRole->id,
+                'name' => $firstRole->name,
+                'display_name' => $firstRole->display_name,
+                'level' => $firstRole->level
+            ] : null
+        ];
+    }
+    
+    return response()->json(['debug_result' => $result]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     // Profile management endpoints
     Route::prefix('profile')->group(function () {
@@ -163,6 +185,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Users helper endpoints
     Route::get('users/institutions/available', [UserController::class, 'getAvailableInstitutions'])->middleware('permission:users.read');
+    Route::get('users/roles/available', [UserController::class, 'getAvailableRoles'])->middleware('permission:users.read');
 
     // Institution bulk operations (must be before parameterized routes)
     Route::post('institutions/bulk/activate', [App\Http\Controllers\InstitutionController::class, 'bulkActivate'])->middleware('permission:institutions.update');
@@ -389,6 +412,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('regionadmin')->middleware(['role:regionadmin|superadmin', 'regional.access:institutions', 'audit.logging'])->group(function () {
         // Dashboard endpoints
         Route::get('dashboard', [RegionAdminDashboardController::class, 'getDashboardStats']);
+        Route::get('dashboard/stats', [RegionAdminDashboardController::class, 'getDashboardStats']);
+        Route::get('dashboard/activities', [RegionAdminDashboardController::class, 'getDashboardActivities']);
         
         // Institution management endpoints - READ operations
         Route::get('institutions', [RegionAdminInstitutionController::class, 'index']);
@@ -466,6 +491,14 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('dashboard', [MektebAdminDashboardController::class, 'getDashboardStats']);
         Route::get('classes', [MektebAdminDashboardController::class, 'getSchoolClasses']);
         Route::get('teachers', [MektebAdminDashboardController::class, 'getSchoolTeachers']);
+    });
+
+    // Müəllim Dashboard and Analytics
+    Route::prefix('teacher')->middleware(['role:müəllim', 'regional.access:school', 'audit.logging'])->group(function () {
+        // Dashboard endpoints
+        Route::get('dashboard', [App\Http\Controllers\Teacher\TeacherDashboardController::class, 'getDashboardStats']);
+        Route::get('classes', [App\Http\Controllers\Teacher\TeacherDashboardController::class, 'getTeacherClasses']);
+        Route::get('gradebook', [App\Http\Controllers\Teacher\TeacherDashboardController::class, 'getGradebook']);
     });
     
     // System Configuration (SuperAdmin only)

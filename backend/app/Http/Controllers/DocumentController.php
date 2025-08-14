@@ -66,6 +66,16 @@ class DocumentController extends Controller
         }
 
         try {
+            $user = Auth::user();
+            
+            // Check regional permissions for document creation
+            if (!$this->canUserCreateDocument($user, $validator->validated())) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu əməliyyatı həyata keçirmək üçün icazəniz yoxdur.',
+                ], 403);
+            }
+
             $file = $request->file('file');
             
             // Validate file
@@ -104,6 +114,16 @@ class DocumentController extends Controller
     public function show(Document $document): JsonResponse
     {
         try {
+            $user = Auth::user();
+            
+            // Check if user can access this document based on regional permissions
+            if (!$document->canAccess($user)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu sənədə giriş icazəniz yoxdur.',
+                ], 403);
+            }
+
             // Log access
             $this->documentService->logAccess($document, 'view');
 
@@ -141,6 +161,24 @@ class DocumentController extends Controller
         }
 
         try {
+            $user = Auth::user();
+            
+            // Check if user can access this document based on regional permissions
+            if (!$document->canAccess($user)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu sənədə giriş icazəniz yoxdur.',
+                ], 403);
+            }
+            
+            // Check if user can edit this document
+            if (!$this->canUserModifyDocument($user, $document)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu sənədi dəyişdirmək icazəniz yoxdur.',
+                ], 403);
+            }
+
             $updatedDocument = $this->documentService->updateDocument(
                 $document,
                 $validator->validated()
@@ -166,6 +204,24 @@ class DocumentController extends Controller
     public function destroy(Document $document): JsonResponse
     {
         try {
+            $user = Auth::user();
+            
+            // Check if user can access this document based on regional permissions
+            if (!$document->canAccess($user)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu sənədə giriş icazəniz yoxdur.',
+                ], 403);
+            }
+            
+            // Check if user can delete this document
+            if (!$this->canUserDeleteDocument($user, $document)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Bu sənədi silmək icazəniz yoxdur.',
+                ], 403);
+            }
+
             $this->documentService->deleteDocument($document);
 
             return response()->json([
@@ -186,6 +242,17 @@ class DocumentController extends Controller
      */
     public function download(Document $document): StreamedResponse
     {
+        $user = Auth::user();
+        
+        // Check if user can access and download this document
+        if (!$document->canAccess($user)) {
+            abort(403, 'Bu sənədə giriş icazəniz yoxdur.');
+        }
+        
+        if (!$document->canDownload($user)) {
+            abort(403, 'Bu sənədi yükləmək icazəniz yoxdur.');
+        }
+
         return $this->downloadService->downloadDocument($document);
     }
 
@@ -194,6 +261,13 @@ class DocumentController extends Controller
      */
     public function preview(Document $document): StreamedResponse
     {
+        $user = Auth::user();
+        
+        // Check if user can access this document
+        if (!$document->canAccess($user)) {
+            abort(403, 'Bu sənədə giriş icazəniz yoxdur.');
+        }
+
         return $this->downloadService->previewDocument($document);
     }
 
@@ -499,5 +573,141 @@ class DocumentController extends Controller
             'max_downloads' => 'nullable|integer|min:1',
             'password' => 'nullable|string|min:4|max:20',
         ]);
+    }
+
+    /**
+     * Check if user can create document with regional permissions
+     */
+    private function canUserCreateDocument($user, array $documentData): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+        $userInstitutionId = $user->institution_id;
+
+        // Users can only create documents in their own institution or sub-institutions
+        switch ($userRole) {
+            case 'regionadmin':
+            case 'regionoperator':
+                // Regional admins can create documents for their region and sub-institutions
+                $allowedInstitutions = $this->getRegionalInstitutions($userInstitutionId);
+                return !isset($documentData['institution_id']) || 
+                       in_array($documentData['institution_id'], $allowedInstitutions->toArray());
+                
+            case 'sektoradmin':
+                // Sector admins can create documents for their sector and schools
+                $allowedInstitutions = $this->getSectorInstitutions($userInstitutionId);
+                return !isset($documentData['institution_id']) || 
+                       in_array($documentData['institution_id'], $allowedInstitutions->toArray());
+                
+            case 'məktəbadmin':
+            case 'müəllim':
+                // School-level users can only create documents in their institution
+                return !isset($documentData['institution_id']) || 
+                       $documentData['institution_id'] === $userInstitutionId;
+                
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if user can modify document with enhanced regional permissions
+     */
+    private function canUserModifyDocument($user, Document $document): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        if ($document->uploaded_by === $user->id) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+        $userInstitutionId = $user->institution_id;
+
+        switch ($userRole) {
+            case 'regionadmin':
+            case 'regionoperator':
+                // Regional admins can modify documents in their region
+                return $this->isDocumentInUserRegion($document, $userInstitutionId);
+                
+            case 'sektoradmin':
+                // Sector admins can modify documents in their sector
+                return $this->isDocumentInUserSector($document, $userInstitutionId);
+                
+            case 'məktəbadmin':
+                // School admins can only modify documents in their institution
+                return $document->institution_id === $userInstitutionId;
+                
+            default:
+                return false;
+        }
+    }
+
+    /**
+     * Check if user can delete document with enhanced regional permissions
+     */
+    private function canUserDeleteDocument($user, Document $document): bool
+    {
+        if ($user->hasRole('superadmin')) {
+            return true;
+        }
+
+        if ($document->uploaded_by === $user->id) {
+            return true;
+        }
+
+        $userRole = $user->roles->first()?->name;
+
+        // Only document owners and superadmins can delete documents for security
+        // RegionAdmins can only delete if they uploaded the document
+        return false;
+    }
+
+    /**
+     * Get all institutions in user's region
+     */
+    private function getRegionalInstitutions($regionId)
+    {
+        return \App\Models\Institution::where(function($q) use ($regionId) {
+            $q->where('id', $regionId) // The region itself
+              ->orWhere('parent_id', $regionId); // Sectors
+        })->get()->pluck('id')
+        ->merge(
+            \App\Models\Institution::whereIn('parent_id', 
+                \App\Models\Institution::where('parent_id', $regionId)->pluck('id')
+            )->pluck('id') // Schools
+        );
+    }
+
+    /**
+     * Get all institutions in user's sector
+     */
+    private function getSectorInstitutions($sektorId)
+    {
+        return \App\Models\Institution::where('parent_id', $sektorId)->pluck('id')
+               ->push($sektorId);
+    }
+
+    /**
+     * Check if document is in user's region
+     */
+    private function isDocumentInUserRegion(Document $document, $userRegionId): bool
+    {
+        $allowedInstitutions = $this->getRegionalInstitutions($userRegionId);
+        return $allowedInstitutions->contains($document->institution_id);
+    }
+
+    /**
+     * Check if document is in user's sector
+     */
+    private function isDocumentInUserSector(Document $document, $userSektorId): bool
+    {
+        $allowedInstitutions = $this->getSectorInstitutions($userSektorId);
+        return $allowedInstitutions->contains($document->institution_id);
     }
 }

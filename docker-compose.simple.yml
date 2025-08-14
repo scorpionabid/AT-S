@@ -16,6 +16,9 @@ services:
     volumes:
       - ./backend/database:/var/www/html/database
       - ./backend/storage:/var/www/html/storage
+      - ./backend/app:/var/www/html/app
+      - ./backend/routes:/var/www/html/routes
+      - ./backend/config:/var/www/html/config
     networks:
       - atis_network
 

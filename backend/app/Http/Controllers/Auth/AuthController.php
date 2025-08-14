@@ -77,7 +77,7 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['profile', 'role', 'institution']);
+        $user = $request->user()->load(['profile', 'roles', 'institution']);
         
         // Spatie roles və permissions
         $roles = $user->getRoleNames()->toArray();

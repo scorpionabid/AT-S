@@ -80,7 +80,7 @@ class LoginService
         $this->logSuccessfulLogin($user);
 
         // Load user with all relations
-        $user->load(['profile', 'role', 'institution']);
+        $user->load(['profile', 'roles', 'institution']);
         
         // Get roles and permissions CORRECTLY
         $roles = $user->getRoleNames()->toArray();

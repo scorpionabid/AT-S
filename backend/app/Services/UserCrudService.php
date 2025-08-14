@@ -21,7 +21,7 @@ class UserCrudService
      */
     public function getPaginatedList(array $params): LengthAwarePaginator
     {
-        $query = User::with(['role', 'institution', 'profile']);
+        $query = User::with(['roles', 'institution', 'profile']);
         
         // Apply filters
         $this->applyFilters($query, $params);
@@ -53,7 +53,7 @@ class UserCrudService
      */
     public function getWithRelations(User $user): User
     {
-        $user->load(['role.permissions', 'institution', 'department', 'profile']);
+        $user->load(['roles.permissions', 'institution', 'department', 'profile']);
         
         // Log activity
         $this->logActivity('user_view', "Viewed user: {$user->username}", [
@@ -262,7 +262,7 @@ class UserCrudService
     protected function applyFilters($query, array $params): void
     {
         if (!empty($params['role'])) {
-            $query->whereHas('role', function ($q) use ($params) {
+            $query->whereHas('roles', function ($q) use ($params) {
                 $q->where('name', $params['role']);
             });
         }
@@ -343,16 +343,37 @@ class UserCrudService
      */
     public function formatForResponse(User $user): array
     {
-        return [
-            'id' => $user->id,
-            'username' => $user->username,
-            'email' => $user->email,
-            'role' => [
+        // Ensure roles are loaded
+        if (!$user->relationLoaded('roles')) {
+            $user->load('roles');
+        }
+        
+        // Get first role from Spatie roles relationship
+        $firstRole = $user->roles->first();
+        
+        $roleData = null;
+        if ($firstRole) {
+            $roleData = [
+                'id' => $firstRole->id,
+                'name' => $firstRole->name,
+                'display_name' => $firstRole->display_name,
+                'level' => $firstRole->level
+            ];
+        } else {
+            // Fallback to old role relationship if Spatie roles not found
+            $roleData = [
                 'id' => $user->role?->id,
                 'name' => $user->role?->name,
                 'display_name' => $user->role?->display_name,
                 'level' => $user->role?->level
-            ],
+            ];
+        }
+        
+        return [
+            'id' => $user->id,
+            'username' => $user->username,
+            'email' => $user->email,
+            'role' => $roleData,
             'institution' => [
                 'id' => $user->institution?->id,
                 'name' => $user->institution?->name,
@@ -381,11 +402,14 @@ class UserCrudService
      */
     public function formatDetailedForResponse(User $user): array
     {
+        // Get first role from Spatie roles relationship
+        $firstRole = $user->roles->first();
+        
         return [
             'id' => $user->id,
             'username' => $user->username,
             'email' => $user->email,
-            'role_id' => $user->role?->id,
+            'role_id' => $firstRole?->id,
             'institution_id' => $user->institution?->id,
             'department_id' => $user->department?->id,
             'departments' => $user->departments ?? [],
@@ -404,11 +428,11 @@ class UserCrudService
             'gender' => $user->profile?->gender,
             'contact_phone' => $user->profile?->contact_phone,
             'role' => [
-                'id' => $user->role?->id,
-                'name' => $user->role?->name,
-                'display_name' => $user->role?->display_name,
-                'level' => $user->role?->level,
-                'department_access' => $user->role?->department_access
+                'id' => $firstRole?->id,
+                'name' => $firstRole?->name,
+                'display_name' => $firstRole?->display_name,
+                'level' => $firstRole?->level,
+                'department_access' => $firstRole?->department_access
             ],
             'institution' => [
                 'id' => $user->institution?->id,

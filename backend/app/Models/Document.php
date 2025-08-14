@@ -238,33 +238,57 @@ class Document extends Model
     }
 
     /**
-     * Scope: User can access
+     * Scope: Documents accessible by user with regional filtering
      */
     public function scopeAccessibleBy(Builder $query, User $user): Builder
     {
-        return $query->where(function ($q) use ($user) {
-            // Public documents
-            $q->where('is_public', true)
-              // Or uploaded by user
-              ->orWhere('uploaded_by', $user->id)
-              // Or user in allowed users
-              ->orWhereJsonContains('allowed_users', $user->id)
-              // Or user institution matches access level
-              ->orWhere(function ($subQ) use ($user) {
-                  if ($user->institution_id) {
-                      $subQ->where('institution_id', $user->institution_id)
-                           ->where('access_level', 'institution');
-                  }
-              });
-
-            // Role-based access
-            if ($user->roles->isNotEmpty()) {
-                $userRoles = $user->roles->pluck('name')->toArray();
-                foreach ($userRoles as $role) {
-                    $q->orWhereJsonContains('allowed_roles', $role);
-                }
+        $userRole = $user->roles->first()?->name;
+        
+        return $query->where(function ($q) use ($user, $userRole) {
+            // SuperAdmin can see all documents
+            if ($userRole === 'superadmin') {
+                return; // No restrictions
             }
+            
+            // Apply regional filtering based on user role
+            $this->applyRegionalDocumentFiltering($q, $user, $userRole);
         });
+    }
+
+    /**
+     * Apply regional filtering for documents based on user role
+     */
+    private function applyRegionalDocumentFiltering($query, User $user, $userRole)
+    {
+        $userInstitutionId = $user->institution_id;
+        
+        switch ($userRole) {
+            case 'regionadmin':
+            case 'regionoperator':
+                // Regional admins can see documents in their region and sub-institutions
+                $this->applyRegionAdminDocumentFiltering($query, $user, $userInstitutionId);
+                break;
+                
+            case 'sektoradmin':
+                // Sector admins can see documents in their sector and schools
+                $this->applySektorAdminDocumentFiltering($query, $user, $userInstitutionId);
+                break;
+                
+            case 'məktəbadmin':
+            case 'müəllim':
+                // School-level users can only see documents in their institution
+                $this->applySchoolDocumentFiltering($query, $user, $userInstitutionId);
+                break;
+                
+            default:
+                // Unknown role - very restricted access
+                $query->where('uploaded_by', $user->id)
+                      ->orWhere(function($q) use ($user) {
+                          $q->where('is_public', true)
+                            ->whereJsonContains('allowed_users', $user->id);
+                      });
+                break;
+        }
     }
 
     /**
@@ -497,7 +521,7 @@ class Document extends Model
     /**
      * Archive document
      */
-    public function archive(string $reason = null): bool
+    public function archive(?string $reason = null): bool
     {
         return $this->update([
             'status' => 'archived',
@@ -557,5 +581,78 @@ class Document extends Model
             default:
                 return 'other';
         }
+    }
+
+    /**
+     * Apply RegionAdmin document filtering
+     */
+    private function applyRegionAdminDocumentFiltering($query, User $user, $userRegionId)
+    {
+        // Get all institutions in the region
+        $regionInstitutions = Institution::where(function($q) use ($userRegionId) {
+            $q->where('id', $userRegionId) // The region itself
+              ->orWhere('parent_id', $userRegionId); // Sectors
+        })->pluck('id');
+
+        $schoolInstitutions = Institution::whereIn('parent_id', $regionInstitutions)->pluck('id');
+        $allRegionalInstitutions = $regionInstitutions->merge($schoolInstitutions);
+
+        $query->where(function ($q) use ($user, $allRegionalInstitutions) {
+            // Documents from regional institutions
+            $q->whereIn('institution_id', $allRegionalInstitutions)
+              // Or uploaded by user
+              ->orWhere('uploaded_by', $user->id)
+              // Or public documents
+              ->orWhere('is_public', true)
+              // Or specifically allowed for this user
+              ->orWhereJsonContains('allowed_users', $user->id)
+              // Or regional access level documents
+              ->orWhere(function($subQ) use ($allRegionalInstitutions) {
+                  $subQ->where('access_level', 'regional')
+                       ->whereIn('institution_id', $allRegionalInstitutions);
+              })
+              // Or sectoral documents in their region
+              ->orWhere(function($subQ) use ($allRegionalInstitutions) {
+                  $subQ->where('access_level', 'sectoral')
+                       ->whereIn('institution_id', $allRegionalInstitutions);
+              });
+        });
+    }
+
+    /**
+     * Apply SektorAdmin document filtering
+     */
+    private function applySektorAdminDocumentFiltering($query, User $user, $userSektorId)
+    {
+        $sektorSchools = Institution::where('parent_id', $userSektorId)->pluck('id');
+        $allSektorInstitutions = $sektorSchools->push($userSektorId);
+
+        $query->where(function ($q) use ($user, $allSektorInstitutions) {
+            $q->whereIn('institution_id', $allSektorInstitutions)
+              ->orWhere('uploaded_by', $user->id)
+              ->orWhere('is_public', true)
+              ->orWhereJsonContains('allowed_users', $user->id)
+              ->orWhere(function($subQ) use ($allSektorInstitutions) {
+                  $subQ->where('access_level', 'sectoral')
+                       ->whereIn('institution_id', $allSektorInstitutions);
+              });
+        });
+    }
+
+    /**
+     * Apply School-level document filtering
+     */
+    private function applySchoolDocumentFiltering($query, User $user, $userInstitutionId)
+    {
+        $query->where(function ($q) use ($user, $userInstitutionId) {
+            $q->where('institution_id', $userInstitutionId)
+              ->orWhere('uploaded_by', $user->id)
+              ->orWhere('is_public', true)
+              ->orWhereJsonContains('allowed_users', $user->id)
+              ->orWhere(function($subQ) use ($userInstitutionId) {
+                  $subQ->where('access_level', 'institution')
+                       ->where('institution_id', $userInstitutionId);
+              });
+        });
     }
 }
