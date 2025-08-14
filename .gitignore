@@ -42,11 +42,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Git optimization
+.git/gc.log*
+.git/objects/*\ 2
+
+# Dependencies
 node_modules
 dist
 dist-ssr
 *.local
-=======
 # Docker
 docker-compose.override.yml
 .docker/
